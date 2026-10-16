@@ -1,7 +1,7 @@
 import { t, esc, api, icon, num, money, fmtRel, openModal, closeModal, toast, $, $$ } from '../core.js';
 import { crumbs, cards, imgOf, priceText, requireLogin, shortCat, tierBadge, promoBadge } from '../ui.js';
 import { state } from '../core.js';
-import { mapWidget, leasingModal, reportModal, inspectionModal, promoteModal, priceChart, calendarWidget, compareList, providerOptions, bindSeg, goPay, shareLink } from '../features.js';
+import { mapWidget, yandexSearchUrl, leasingModal, reportModal, inspectionModal, promoteModal, priceChart, calendarWidget, compareList, providerOptions, bindSeg, goPay, shareLink } from '../features.js';
 import { go, onAuthChanged } from '../app.js';
 
 const kw = (hp) => (hp ? ` / ${String(Math.round(hp * 0.7457 * 10) / 10).replace('.', ',')} kW` : '');
@@ -123,7 +123,7 @@ export default async function listing({ params }) {
       <div class="box"><h3>${esc(t('location_title'))}</h3>
         <p class="small" style="margin:0">${esc([l.location.region_name, l.location.city, l.location.address].filter(Boolean).join(', '))}</p>
         ${l.location.note ? `<p class="tiny muted" style="margin:6px 0 0">${esc(l.location.note)}</p>` : ''}
-        ${l.geo ? '<div class="map-box" data-map></div>' : `<a class="btn btn-soft btn-sm" style="margin-top:12px" target="_blank" rel="noopener" href="https://www.openstreetmap.org/search?query=${encodeURIComponent([l.location.address, l.location.city, l.location.country_name].filter(Boolean).join(', '))}">${esc(t('show_on_map'))}</a>`}
+        ${l.geo ? '<div class="map-box" data-map></div>' : `<a class="btn btn-soft btn-sm" style="margin-top:12px" target="_blank" rel="noopener" href="${yandexSearchUrl([l.location.address, l.location.city, l.location.country_name].filter(Boolean).join(', '))}">${esc(t('show_on_map'))}</a>`}
       </div>`;
 
   const similarTitle = part ? t('seen_together') : t('similar');

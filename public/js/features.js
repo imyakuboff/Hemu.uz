@@ -20,8 +20,81 @@ export function loadLeaflet() {
   return leafletP;
 }
 
+// ---------- Yandex Maps JS API 2.1 ----------
+let ymapsP = null;
+const YA_LANG = { uz: 'uz_UZ', en: 'en_US', prs: 'en_US', ps: 'en_US', tk: 'tr_TR', az: 'tr_TR' };
+export function loadYmaps() {
+  if (window.ymaps?.Map) return Promise.resolve(window.ymaps);
+  if (!ymapsP) {
+    ymapsP = new Promise((resolve, reject) => {
+      const key = state.platform?.yandex_maps_key;
+      const s = document.createElement('script');
+      s.src = `https://api-maps.yandex.ru/2.1/?lang=${YA_LANG[state.lang] || 'ru_RU'}${key ? `&apikey=${encodeURIComponent(key)}` : ''}`;
+      s.async = true;
+      const timer = setTimeout(() => reject(new Error('ymaps timeout')), 12000);
+      s.onload = () => window.ymaps.ready(() => { clearTimeout(timer); resolve(window.ymaps); }, (e) => { clearTimeout(timer); reject(e); });
+      s.onerror = () => { clearTimeout(timer); reject(new Error('ymaps load')); };
+      document.head.appendChild(s);
+    }).catch((e) => { ymapsP = null; throw e; });
+  }
+  return ymapsP;
+}
+const useYandex = () => (state.platform?.map_provider || 'yandex') === 'yandex';
+
+async function yandexWidget(el, { markers = [], center, zoom = 11, onClick, picked } = {}) {
+  const ym = await loadYmaps();
+  el.classList.add('ymap');
+  const map = new ym.Map(el, { center: center || [41.31, 69.28], zoom, controls: ['zoomControl', 'geolocationControl', 'typeSelector', 'fullscreenControl'] }, { suppressMapOpenBlock: false, yandexMapDisablePoiInteractivity: true });
+  map.behaviors.disable('scrollZoom');
+  const opts = { preset: 'islands#blueDotIcon', iconColor: '#0b6fcf' };
+  if (markers.length) {
+    const marks = markers.map((m) => new ym.Placemark([m.lat, m.lng], m.html ? { balloonContentBody: m.html, hintContent: '' } : {}, opts));
+    if (marks.length > 1) {
+      const cl = new ym.Clusterer({ preset: 'islands#blueClusterIcons', groupByCoordinates: false });
+      cl.add(marks);
+      map.geoObjects.add(cl);
+      map.setBounds(cl.getBounds(), { checkZoomRange: true, zoomMargin: 40 }).then(() => { if (map.getZoom() > 13) map.setZoom(13); });
+    } else {
+      map.geoObjects.add(marks[0]);
+      map.setCenter([markers[0].lat, markers[0].lng], 14);
+    }
+  }
+  let pin = picked ? new ym.Placemark([picked.lat, picked.lng], {}, { ...opts, preset: 'islands#redDotIcon', draggable: true }) : null;
+  if (pin) { map.geoObjects.add(pin); map.setCenter([picked.lat, picked.lng], 14); }
+  if (onClick) {
+    const emit = ([lat, lng]) => onClick({ lat: Math.round(lat * 1e5) / 1e5, lng: Math.round(lng * 1e5) / 1e5 });
+    map.events.add('click', (e) => {
+      const c = e.get('coords');
+      if (pin) pin.geometry.setCoordinates(c);
+      else {
+        pin = new ym.Placemark(c, {}, { ...opts, preset: 'islands#redDotIcon', draggable: true });
+        pin.events.add('dragend', () => emit(pin.geometry.getCoordinates()));
+        map.geoObjects.add(pin);
+      }
+      emit(c);
+    });
+    pin?.events.add('dragend', () => emit(pin.geometry.getCoordinates()));
+  }
+  // Ichki havolalar (balun ichidagi e'lon) — SPA orqali
+  el.addEventListener('click', (ev) => {
+    const a = ev.target.closest('a[href^="/"]');
+    if (a && !ev.defaultPrevented) { ev.preventDefault(); window.mxGo(a.getAttribute('href')); }
+  });
+  return map;
+}
+
+// Xaritada qidirish havolasi (koordinata bo'lmasa)
+export const yandexSearchUrl = (text) => `https://yandex.uz/maps/?text=${encodeURIComponent(text)}`;
+
 // markers: [{lat, lng, html}] ; onClick(latlng) — joy tanlash rejimi
-export async function mapWidget(el, { markers = [], center, zoom = 11, onClick, picked } = {}) {
+export async function mapWidget(el, opts = {}) {
+  if (useYandex()) {
+    try { return await yandexWidget(el, opts); } catch (e) { console.warn('Yandex Maps:', e?.message || e); el.classList.remove('ymap'); el.innerHTML = ''; }
+  }
+  return leafletWidget(el, opts);
+}
+
+async function leafletWidget(el, { markers = [], center, zoom = 11, onClick, picked } = {}) {
   const L = await loadLeaflet();
   const map = L.map(el, { scrollWheelZoom: false, attributionControl: true });
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(map);

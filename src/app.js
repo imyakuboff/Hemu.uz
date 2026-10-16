@@ -94,7 +94,9 @@ function createApp() {
 
   // ---------- Frontend (SPA) ----------
   const pub = path.join(__dirname, '..', 'public');
-  const spaCsp = "default-src 'self'; img-src 'self' data: blob: https://*.tile.openstreetmap.org; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self'; connect-src 'self'; worker-src 'self'; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'";
+  // Yandex Maps JS API 2.1: skript, plitkalar, geokoder va statistika domenlari
+  const YA = 'https://api-maps.yandex.ru https://*.maps.yandex.net https://yastatic.net https://yandex.ru https://*.yandex.ru';
+  const spaCsp = `default-src 'self'; img-src 'self' data: blob: https://*.tile.openstreetmap.org ${YA}; style-src 'self' 'unsafe-inline'; font-src 'self' ${YA}; script-src 'self' ${YA}; connect-src 'self' ${YA}; worker-src 'self' blob:; frame-src ${YA}; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'`;
   app.use((req, res, next) => {
     res.set('Content-Security-Policy', spaCsp);
     next();

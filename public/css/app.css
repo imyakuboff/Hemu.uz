@@ -1646,3 +1646,8 @@ em.mt-del { color: #1f9d55; font-weight: 600; }
   .mh-stats span { min-width: 0; flex: 1; padding: 6px 10px; }
   .mh-stats b { font-size: 17px; }
 }
+
+/* Yandex Maps konteyneri */
+.ymap { position: relative; overflow: hidden; }
+.ymap [class*="ymaps-2"][class*="-balloon"] a { color: var(--ink); }
+.ymap [class*="ymaps-2"][class*="-copyrights-promo"] { opacity: .85; }

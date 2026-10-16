@@ -148,7 +148,7 @@ export async function catalog({ query }) {
         mapWidget(big, { markers: pts }).then((m) => {
           big.addEventListener('click', (ev) => {
             const a = ev.target.closest('a[href^="/listing/"]');
-            if (a) { ev.preventDefault(); window.mxGo(a.getAttribute('href')); }
+            if (a && !ev.defaultPrevented) { ev.preventDefault(); window.mxGo(a.getAttribute('href')); }
           });
           return m;
         }).catch(() => big.remove());

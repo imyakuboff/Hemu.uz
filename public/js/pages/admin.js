@@ -280,6 +280,12 @@ const D = {
   int_site: ['Sayt manzili', 'Адрес сайта', 'Site address'],
   int_site_hint: ["To'lov tizimlari qaytaradigan va push uchun manzil, masalan https://hemu.uz", 'Адрес для возврата из платёжных систем и push, например https://hemu.uz', 'Used for payment return URLs and push, e.g. https://hemu.uz'],
   int_sms: ['SMS — Eskiz.uz', 'SMS — Eskiz.uz', 'SMS — Eskiz.uz'],
+  int_maps: ['Xarita — Yandex Maps', 'Карта — Яндекс Карты', 'Map — Yandex Maps'],
+  int_maps_hint: ["Kalitni developer.tech.yandex.ru kabinetida oling (\"JavaScript API va HTTP Geokoder\") va sayt domenini kalitga qo'shing. Kalit bo'lmasa ham xarita ochiladi, lekin Yandex cheklashi mumkin.", 'Ключ получите в кабинете developer.tech.yandex.ru («JavaScript API и HTTP Геокодер») и добавьте домен сайта в настройки ключа. Без ключа карта откроется, но Яндекс может её ограничить.', 'Get a key at developer.tech.yandex.ru ("JavaScript API and HTTP Geocoder") and add your site domain to it. Without a key the map still opens, but Yandex may limit it.'],
+  mapProvider: ['Xarita xizmati', 'Сервис карт', 'Map provider'],
+  yandexMapsKey: ['Yandex Maps API kaliti', 'API-ключ Яндекс Карт', 'Yandex Maps API key'],
+  mp_yandex: ['Yandex Maps', 'Яндекс Карты', 'Yandex Maps'],
+  mp_osm: ['OpenStreetMap', 'OpenStreetMap', 'OpenStreetMap'],
   int_sms_hint: ["notify.eskiz.uz kabinetidagi email va parol. Eskiz faqat +998 raqamlarga yuboradi. Yangi hisobda faqat tasdiqlangan shablon matnlari ketadi — \"HEMU.UZ kodi: …\" shablonini Eskizda tasdiqlating.", 'Email и пароль от кабинета notify.eskiz.uz. Eskiz отправляет только на номера +998. На новом аккаунте уходят только одобренные шаблоны — утвердите в Eskiz шаблон «Код HEMU.UZ: …».', 'Email and password of your notify.eskiz.uz account. Eskiz sends to +998 numbers only. New accounts can only send approved templates — get the "HEMU.UZ code: …" template approved in Eskiz.'],
   smsProvider: ['SMS provayder', 'SMS-провайдер', 'SMS provider'],
   sp_log: ["Sinov (SMS yuborilmaydi)", 'Тест (SMS не отправляются)', 'Test (no SMS sent)'],
@@ -1544,6 +1550,13 @@ async function integrationsPage() {
           <div class="full">${tog('adminTwoFactor')}</div>
         </div>
         <div class="int-test"><input class="input" data-test-phone type="tel" placeholder="+998 90 123 45 67"><button type="button" class="btn btn-soft" data-test-sms>${icon('send')} ${esc(a('test_sms'))}</button><button type="button" class="btn btn-ghost" data-balance>${esc(a('sms_balance'))}</button><span class="small" data-int-out></span></div>
+      </div>
+
+      <div class="box"><h3>${esc(a('int_maps'))} ${st(r.status.maps)}</h3><p class="tiny muted" style="margin:-4px 0 12px">${esc(a('int_maps_hint'))}</p>
+        <div class="form-grid">
+          ${field(a('mapProvider'), sel('mapProvider', [['yandex', a('mp_yandex')], ['osm', a('mp_osm')]], by.mapProvider.value, false))}
+          ${txt('yandexMapsKey', 'placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" autocomplete="off"')}
+        </div>
       </div>
 
       <div class="box"><h3>${esc(a('int_pay'))} · Click ${st(r.status.click)} · Payme ${st(r.status.payme)}</h3>

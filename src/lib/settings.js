@@ -56,6 +56,9 @@ const DEFS = [
   ['payme.merchantId', 'string', 0, 60],
   ['payme.key', 'secret', 0, 300],
   ['payme.testMode', 'bool'],
+  // Xarita: Yandex Maps (kalit — developer.tech.yandex.ru) yoki OpenStreetMap
+  ['mapProvider', 'enum', ['yandex', 'osm']],
+  ['yandexMapsKey', 'string', 0, 100],
 ];
 
 // Moderator faqat shu kalitlarni o'zgartira oladi
@@ -69,6 +72,8 @@ config.requireCompanyDocs ??= true;
 config.announcement ??= '';
 config.announcementType ??= 'info';
 config.supportPhone ||= '+998918041224';
+config.mapProvider ??= process.env.MAP_PROVIDER || 'yandex';
+config.yandexMapsKey ??= process.env.YANDEX_MAPS_KEY || '';
 config.supportEmail ??= '';
 config.legalName ??= '';
 // Test: yangi raqam bilan ro'yxatdan o'tishda SMS-kod ekranga chiqadi (mavjud hisoblarga ta'sir qilmaydi)

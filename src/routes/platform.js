@@ -70,6 +70,8 @@ r.get('/platform', (_req, res) => {
     support_telegram: config.supportTelegram || null,
     support_email: config.supportEmail || null,
     registration_open: config.registrationOpen,
+    map_provider: config.mapProvider || 'yandex',
+    yandex_maps_key: config.yandexMapsKey || null,
   });
 });
 

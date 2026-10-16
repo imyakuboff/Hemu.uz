@@ -853,7 +853,7 @@ admin.patch('/support/:id', async (req, res) => {
 });
 
 // ---------- Integratsiyalar: SMS (Eskiz.uz), Click, Payme ----------
-const INTEGRATION_KEYS = /^(siteUrl|otpDevEcho|otpTestRegistration|adminTwoFactor|smsProvider|eskiz\.|paymentsDev|click\.|payme\.)/;
+const INTEGRATION_KEYS = /^(siteUrl|otpDevEcho|otpTestRegistration|adminTwoFactor|smsProvider|eskiz\.|paymentsDev|click\.|payme\.|mapProvider|yandexMapsKey)/;
 function integrationsView() {
   const base = `${config.siteUrl}/api/v1`;
   return {
@@ -863,6 +863,7 @@ function integrationsView() {
       click: Boolean(config.click.serviceId && config.click.merchantId && config.click.secretKey),
       payme: Boolean(config.payme.merchantId && config.payme.key),
       https: config.siteUrl.startsWith('https://'),
+      maps: config.mapProvider === 'yandex' ? Boolean(config.yandexMapsKey) : true,
     },
     callbacks: { click_prepare: `${base}/pay/click/prepare`, click_complete: `${base}/pay/click/complete`, payme: `${base}/pay/payme` },
     sms_log: db.all('SELECT * FROM sms_log ORDER BY id DESC LIMIT 15'),

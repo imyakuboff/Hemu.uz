@@ -8,7 +8,7 @@ const { normalizeSearch } = require('../i18n');
 
 // Mexanik yo'nalishlari va haydovchi boshqaradigan texnika turlari
 const MECHANIC_SKILLS = ['hydraulics', 'engine', 'electrics', 'transmission', 'undercarriage', 'welding', 'diagnostics', 'ac', 'tires'];
-const DRIVER_SKILLS = ['excavator', 'backhoe', 'loader', 'crane', 'bulldozer', 'grader', 'dump_truck', 'tractor_unit', 'roller', 'manipulator', 'concrete_mixer', 'agri_tractor', 'combine'];
+const DRIVER_SKILLS = ['excavator', 'backhoe', 'loader', 'crane', 'bulldozer', 'grader', 'dump_truck', 'tractor_unit', 'roller', 'manipulator', 'concrete_mixer'];
 const LICENSES = ['B', 'C', 'CE', 'D', 'tractor', 'special'];
 const RATE_UNITS = ['hour', 'day', 'shift', 'month', 'job'];
 

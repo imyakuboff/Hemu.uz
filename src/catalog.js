@@ -70,17 +70,6 @@ const CATALOG = [
       S('generators', ['Generatorlar', 'Генераторы', 'Generators', 'Генераторлар', 'Генераторлор', 'Генераторҳо', 'Generatorlar', 'Generatorlar', 'جنراتورها', 'جنراتورونه']),
       S('road-machinery', ["Yo'l texnikasi", 'Дорожная техника', 'Road machinery', 'Жол техникасы', 'Жол техникасы', 'Техникаи роҳсозӣ', 'Ýol tehnikasy', 'Yol texnikası', 'ماشین‌آلات سرک‌سازی', 'د سړک جوړونې ماشینونه']),
     ]),
-  C('agri', 'equipment', 'sprout',
-    ["Qishloq xo'jaligi texnikasi", 'Сельхозтехника', 'Agricultural machinery', 'Ауыл шаруашылығы техникасы', 'Айыл чарба техникасы', 'Техникаи кишоварзӣ', 'Oba hojalyk tehnikasy', 'Kənd təsərrüfatı texnikası', 'ماشین‌آلات زراعتی', 'کرنیز ماشینونه'],
-    [
-      S('agri-tractors', N.tractors),
-      S('combines', ['Kombaynlar', 'Комбайны', 'Combine harvesters', 'Комбайндар', 'Комбайндар', 'Комбайнҳо', 'Kombaýnlar', 'Kombaynlar', 'کمباین‌ها', 'کمباینونه']),
-      S('seeders', ['Seyalkalar', 'Сеялки', 'Seeders', 'Тұқым сепкіштер', 'Үрөн сепкичтер', 'Тухмипошакҳо', 'Tohum sepijiler', 'Toxumsəpənlər', 'تخم‌پاش‌ها', 'تخم کرونکي'],
-      ),
-      S('sprayers', ['Purkagichlar', 'Опрыскиватели', 'Sprayers', 'Бүріккіштер', 'Чачыраткычтар', 'Дорупошакҳо', 'Sepijiler', 'Çiləyicilər', 'سم‌پاش‌ها', 'سپرې کوونکي']),
-      S('mowers', ["O'roq mashinalari", 'Косилки', 'Mowers', 'Шөп шапқыштар', 'Чөп чапкычтар', 'Алафдаравҳо', 'Ot orujylar', 'Otbiçənlər', 'علف‌برها', 'واښه رېبونکي']),
-      S('agri-trailers', ['Tirkamalar', 'Прицепы', 'Trailers', 'Тіркемелер', 'Чиркегичтер', 'Прицепҳо', 'Tirkegler', 'Qoşqular', 'تریلرها', 'ټریلرونه']),
-    ]),
   C('materials', 'material', 'layers',
     ['Qurilish materiallari', 'Стройматериалы', 'Building materials', 'Құрылыс материалдары', 'Курулуш материалдары', 'Масолеҳи сохтмонӣ', 'Gurluşyk materiallary', 'Tikinti materialları', 'مواد ساختمانی', 'ساختماني توکي'],
     [

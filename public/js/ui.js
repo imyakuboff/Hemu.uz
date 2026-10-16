@@ -2,7 +2,7 @@ import { state, t, esc, icon, qs, api, num, fmtRel, initials, placeholder, catIc
 import { compareList, voiceButton } from './features.js';
 
 // Dizayndagi sarlavha va bosh sahifadagi 6 ta yo'nalish ("Строительная техника"siz)
-export const NAV_SLUGS = ['special', 'parts', 'trucks', 'agri', 'materials', 'services'];
+export const NAV_SLUGS = ['special', 'parts', 'trucks', 'materials', 'services'];
 export const shortCat = (c) => (c.slug === 'trucks' ? t('trucks_short') : c.name);
 
 export function locationLabel() {

@@ -13,6 +13,16 @@ function syncCatalog() {
       root.children.forEach((ch, j) => upsert(ch.slug, parentId, root.kind, null, j, L(ch.names)));
     });
   });
+  // Katalogdan olib tashlangan kategoriyalar: e'lon va so'rovlar bog'lanmagan bo'lsa — bazadan ham o'chiriladi
+  const keep = new Set(CATALOG.flatMap((r) => [r.slug, ...r.children.map((c) => c.slug)]));
+  const stale = db.all('SELECT id, slug, parent_id FROM categories').filter((c) => !keep.has(c.slug)).sort((x, y) => (y.parent_id ? 1 : 0) - (x.parent_id ? 1 : 0));
+  for (const c of stale) {
+    const used = db.get('SELECT 1 FROM listings WHERE category_id = ? OR subcategory_id = ? LIMIT 1', c.id, c.id)
+      || db.get('SELECT 1 FROM requests WHERE category_id = ? OR subcategory_id = ? LIMIT 1', c.id, c.id)
+      || db.get('SELECT 1 FROM categories WHERE parent_id = ? LIMIT 1', c.id);
+    if (used) continue;
+    try { db.run('DELETE FROM categories WHERE id = ?', c.id); } catch { /* boshqa bog'lanish bor — qoldiramiz */ }
+  }
   cache = null;
 }
 

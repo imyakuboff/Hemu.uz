@@ -109,7 +109,7 @@ test('telefon: mamlakatlar va +7 (KZ/RU) ajratish', async () => {
 
 test('kategoriyalar: daraxt, sonlar, ko\'p tilli qidiruv', async () => {
   const r = await api('GET', '/api/v1/categories?lang=ru');
-  assert.equal(r.body.length, 7);
+  assert.equal(r.body.length, 6);
   assert.equal(r.body[0].name, 'Спецтехника');
   assert.ok(r.body[0].count >= 3);
   for (const q of ['экскаватор', 'ekskavator', 'Excavator', 'Ekskawator']) {
@@ -123,7 +123,7 @@ test('bosh sahifa', async () => {
   const r = await api('GET', '/api/v1/home?lang=ru', { token: S.buyer.token });
   assert.equal(r.status, 200);
   assert.equal(r.body.hero.total_active, 16);
-  assert.equal(r.body.categories.length, 7);
+  assert.equal(r.body.categories.length, 6);
   assert.equal(r.body.popular.length, 4);
   assert.equal(r.body.recent.length, 4);
   assert.ok(r.body.recommended.length >= 1);
@@ -156,7 +156,7 @@ test('qidiruv: lotin/kirill, filtrlar, valyuta konvertatsiyasi', async () => {
   const verified = await api('GET', '/api/v1/listings?verified=1');
   assert.ok(verified.body.items.every((x) => x.seller.verified));
   const count = await api('GET', '/api/v1/listings/count?category=special&year_min=2020');
-  assert.equal(count.body.total, 2);
+  assert.equal(count.body.total, 4);
 });
 
 test("e'lon sahifasi: ko'rishlar, o'xshashlar, telefon", async () => {

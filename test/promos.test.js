@@ -65,7 +65,7 @@ test('mavsum oralig\'i: oddiy va yil oxiridan o\'tadigan', () => {
 test('aksiya: admin sozlaydi, sotuvchi chegirma qo\'yadi, kartochkada narx o\'zgaradi', async () => {
   // Boshlang'ich 3 ta aksiya bor; sinov uchun "qurilish"ni doimiy qilamiz
   const all = (await api('GET', '/api/v1/admin/promos', { token: S.admin.token })).body;
-  assert.equal(all.length, 3);
+  assert.equal(all.length, 2);
   const q = all.find((p) => p.slug === 'qurilish');
   assert.equal((await api('PUT', `/api/v1/admin/promos/${q.id}`, { token: S.buyer.token, body: { start_md: '' } })).status, 403);
   assert.equal((await api('PUT', `/api/v1/admin/promos/${q.id}`, { token: S.admin.token, body: { start_md: '13-45' } })).status, 422);

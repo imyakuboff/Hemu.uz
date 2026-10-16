@@ -854,12 +854,12 @@ const COLUMNS = [
     if (!has) db.exec(`ALTER TABLE ${table} ADD COLUMN ${col} ${def}`);
   }
   db.exec('CREATE UNIQUE INDEX IF NOT EXISTS ux_users_username ON users(username COLLATE NOCASE) WHERE username IS NOT NULL');
+  // Qishloq xo'jaligi bo'limi olib tashlandi — uning platforma aksiyasi ham
+  db.exec(`DELETE FROM promo_listings WHERE promo_id IN (SELECT id FROM promos WHERE slug = 'bahor' AND owner_user_id IS NULL);
+    DELETE FROM promos WHERE slug = 'bahor' AND owner_user_id IS NULL;`);
   // Boshlang'ich mavsumiy aksiyalar (faqat jadval bo'sh bo'lsa; admin keyin o'zgartiradi)
   if (!db.prepare('SELECT COUNT(*) AS n FROM promos').get().n) {
     const ins = db.prepare('INSERT INTO promos (slug, names, subtitles, emoji, theme, categories, max_discount, start_md, end_md, sort) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-    ins.run('bahor', JSON.stringify({ uz: "Bahor: qishloq xo'jaligi texnikasi", ru: 'Весна: сельхозтехника', en: 'Spring: agricultural machinery' }),
-      JSON.stringify({ uz: "Traktor, seyalka va kombaynlarga mavsumiy chegirmalar", ru: 'Сезонные скидки на тракторы, сеялки и комбайны', en: 'Seasonal discounts on tractors, seeders and combines' }),
-      '🌱', 'green', JSON.stringify(['agri']), 20, '02-15', '05-31', 1);
     ins.run('qurilish', JSON.stringify({ uz: 'Qurilish mavsumi', ru: 'Строительный сезон', en: 'Construction season' }),
       JSON.stringify({ uz: 'Ekskavator, yuklagich va beton texnikasi arzonroq', ru: 'Экскаваторы, погрузчики и бетонная техника дешевле', en: 'Excavators, loaders and concrete machinery for less' }),
       '🏗️', 'orange', JSON.stringify(['special', 'construction', 'trucks']), 15, '03-15', '11-15', 2);

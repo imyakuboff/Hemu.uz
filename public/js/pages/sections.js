@@ -28,7 +28,7 @@ const regionSel = async (val) => {
 
 // ---------- Texnika sotuvi, ijara, ehtiyot qismlar, ta'mirlash ----------
 const PRESETS = {
-  transportsale: { base: { kind: 'equipment', deal_type: 'sale' }, roots: ['special', 'trucks', 'construction', 'agri'] },
+  transportsale: { base: { kind: 'equipment', deal_type: 'sale' }, roots: ['special', 'trucks', 'construction'] },
   transportrental: { base: { deal_type: 'rent' }, roots: null },
   sparepart: { base: { kind: 'part' }, roots: null, rubric: 'parts' },
   'transport-repair': { base: { category: 'services' }, rubric: 'services', subs: ['repair', 'maintenance'] },

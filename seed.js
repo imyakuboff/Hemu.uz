@@ -148,7 +148,7 @@ function seed(file = config.dbFile) {
   }, 8, 188, P('stone'));
 
   // --- Qirg'iziston ---
-  add(bishkek, cBishkek, 'agri', 'agri-tractors', {
+  add(bishkek, cBishkek, 'special', 'special-tractors', {
     deal_type: 'sale', title: 'Трактор МТЗ Беларус 82.1', brand: 'МТЗ', model: '82.1', year: 2022, hours: 840, power_hp: 81, condition: 'used', drive: 'Полный, 4×4', price: 2300000, currency: 'KGS', leasing: 1,
     description: 'МТЗ 82.1 в отличном состоянии, 840 м/ч. Передний мост, кабина с кондиционером.', country: 'KG', region: 'chuy', city: 'Бишкек',
   }, 26, 455, P('mtz'));
@@ -182,7 +182,7 @@ function seed(file = config.dbFile) {
   }, 4, 340, P('jcb_thumb1'));
 
   // --- Afg'oniston (tasdiqlanmagan kompaniya — shaxsiy sifatida) ---
-  add(kabul, null, 'agri', 'agri-tractors', {
+  add(kabul, null, 'special', 'special-tractors', {
     deal_type: 'sale', title: 'Трактор МТЗ Беларус 82.1, 2020', brand: 'МТЗ', model: '82.1', year: 2020, hours: 2100, power_hp: 81, condition: 'used', price: 1150000, currency: 'AFN',
     description: 'تراکتور MTZ 82.1، سال ۲۰۲۰، حالت خوب. Kabul, delivery possible.', country: 'AF', region: 'kabul', city: 'Кабул',
   }, 60, 75, P('mtz'));

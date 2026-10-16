@@ -243,7 +243,7 @@ const P = {
 export const icon = (name, cls = '') => `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true">${P[name] || P.grid}</svg>`;
 
 // Rasm yo'q e'lonlar uchun kategoriya rasmi
-const CAT_ICON = { special: 'excavator', parts: 'gear', trucks: 'truck', construction: 'crane', agri: 'sprout', materials: 'layers', services: 'wrench' };
+const CAT_ICON = { special: 'excavator', parts: 'gear', trucks: 'truck', construction: 'crane', materials: 'layers', services: 'wrench' };
 export const catIcon = (slug) => CAT_ICON[slug] || 'grid';
 export function placeholder(catSlug) {
   const p = P[catIcon(catSlug)];

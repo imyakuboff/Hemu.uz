@@ -280,7 +280,10 @@ export async function request() {
   const country = state.country || u.country;
   const cur = state.meta.countries.find((c) => c.code === country)?.currency || 'USD';
   const wantRoot = { equipment: 'special', part: 'parts', service: 'services' };
-  const root = state.cats.find((c) => c.slug === 'special');
+  const pre = new URLSearchParams(location.search);
+  const root = state.cats.find((c) => c.slug === pre.get('category')) || state.cats.find((c) => c.slug === 'special');
+  const preSub = pre.get('subcategory');
+  const preWant = root.slug === 'services' ? 'service' : root.slug === 'parts' ? 'part' : 'equipment';
   const conds = [['any', t('any_cond')], ...state.meta.conditions.map((c) => [c.value, c.label])];
   const html = `
   ${crumbs([[t('home'), '/'], [t('create_request')]])}
@@ -288,10 +291,10 @@ export async function request() {
   <div class="detail" style="grid-template-columns:1fr 340px">
     <form data-rf novalidate>
       <div class="box"><h3>${esc(t('what_looking'))}</h3>
-        <div class="seg" data-want>${[['equipment', t('want_equipment')], ['part', t('want_part')], ['service', t('want_service')]].map(([v, l], i) => `<button type="button" data-v="${v}" class="${i === 0 ? 'on' : ''}">${esc(l)}</button>`).join('')}</div>
+        <div class="seg" data-want>${[['equipment', t('want_equipment')], ['part', t('want_part')], ['service', t('want_service')]].map(([v, l]) => `<button type="button" data-v="${v}" class="${v === preWant ? 'on' : ''}">${esc(l)}</button>`).join('')}</div>
         <div class="form-grid">
           ${field(t('category'), sel('category', state.cats.map((c) => [c.slug, shortCat(c)]), root.slug), { req: true })}
-          ${field(t('subcategory'), `<select class="input" name="subcategory">${root.children.map((s) => `<option value="${s.slug}">${esc(s.name)}</option>`).join('')}</select>`, { req: true })}
+          ${field(t('subcategory'), `<select class="input" name="subcategory">${root.children.map((s) => `<option value="${s.slug}" ${s.slug === preSub ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select>`, { req: true })}
           ${field(t('request_title'), input('title', '', 'maxlength="120"'), { req: true, full: true })}
         </div>
       </div>

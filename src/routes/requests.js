@@ -119,6 +119,12 @@ r.get('/requests', (req, res) => {
     where.push('country = ?');
     params.push(String(req.query.country).toUpperCase());
   }
+  // Matn bo'yicha qidiruv (sarlavha, tavsif, shahar)
+  const q = String(req.query.q || '').trim().toLowerCase().slice(0, 80);
+  if (q) {
+    where.push("(LOWER(title) LIKE ? OR LOWER(description) LIKE ? OR LOWER(COALESCE(city, '')) LIKE ?)");
+    params.push(`%${q}%`, `%${q}%`, `%${q}%`);
+  }
   // Faqat sotuvchining e'lonlari bor bo'limlar
   if (req.query.mine_categories === '1' && req.user) {
     where.push(`subcategory_id IN (SELECT DISTINCT subcategory_id FROM listings WHERE user_id = ? AND status = 'active')`);

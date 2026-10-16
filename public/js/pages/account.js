@@ -499,21 +499,7 @@ export async function requests({ query }) {
           return;
         }
         const b = e.target.closest('[data-offer]');
-        if (!b) return;
-        if (!state.user) { document.querySelector('[data-login]')?.click(); return; }
-        const my = await api('/my/listings?status=active&per_page=60');
-        const m = openModal(`<h3>${esc(t('make_offer'))}</h3>
-          <form><label class="lbl" style="margin-top:12px">${esc(t('message'))}</label><textarea class="input" name="message" required minlength="5"></textarea>
-          <div class="row2i" style="margin-top:12px"><div><label class="lbl">${esc(t('price'))}</label><input class="input" name="price" inputmode="numeric"></div>
-          <div><label class="lbl">${esc(t('currency'))}</label><select class="input" name="currency">${state.meta.currencies.map((c) => `<option ${c.code === state.currency ? 'selected' : ''}>${c.code}</option>`).join('')}</select></div></div>
-          ${my.items.length ? `<label class="lbl" style="margin-top:12px">${esc(t('my_listings'))}</label><select class="input" name="listing_id"><option value="">—</option>${my.items.map((l) => `<option value="${l.id}">${esc(l.title)}</option>`).join('')}</select>` : ''}
-          <button class="btn btn-primary btn-block" style="margin-top:16px">${esc(t('send'))}</button></form>`);
-        m.querySelector('form').onsubmit = async (ev) => {
-          ev.preventDefault();
-          const f = ev.target;
-          await api(`/requests/${b.dataset.offer}/offers`, { method: 'POST', body: { message: f.message.value.trim(), price: f.price.value.replace(/\s/g, '') || undefined, currency: f.currency.value, listing_id: f.listing_id?.value || undefined } });
-          closeModal(); toast(t('sent'), 'ok'); refresh();
-        };
+        if (b) offerModal(b.dataset.offer, refresh);
       });
     },
   };
@@ -683,3 +669,21 @@ export async function about() {
 }
 
 export { card, factsLine, ratingHtml };
+
+// Buyurtmaga taklif yuborish (so'rovlar va xizmatlar lentasi)
+export async function offerModal(requestId, onDone) {
+        if (!state.user) { document.querySelector('[data-login]')?.click(); return; }
+        const my = await api('/my/listings?status=active&per_page=60');
+        const m = openModal(`<h3>${esc(t('make_offer'))}</h3>
+          <form><label class="lbl" style="margin-top:12px">${esc(t('message'))}</label><textarea class="input" name="message" required minlength="5"></textarea>
+          <div class="row2i" style="margin-top:12px"><div><label class="lbl">${esc(t('price'))}</label><input class="input" name="price" inputmode="numeric"></div>
+          <div><label class="lbl">${esc(t('currency'))}</label><select class="input" name="currency">${state.meta.currencies.map((c) => `<option ${c.code === state.currency ? 'selected' : ''}>${c.code}</option>`).join('')}</select></div></div>
+          ${my.items.length ? `<label class="lbl" style="margin-top:12px">${esc(t('my_listings'))}</label><select class="input" name="listing_id"><option value="">—</option>${my.items.map((l) => `<option value="${l.id}">${esc(l.title)}</option>`).join('')}</select>` : ''}
+          <button class="btn btn-primary btn-block" style="margin-top:16px">${esc(t('send'))}</button></form>`);
+        m.querySelector('form').onsubmit = async (ev) => {
+          ev.preventDefault();
+          const f = ev.target;
+          await api(`/requests/${requestId}/offers`, { method: 'POST', body: { message: f.message.value.trim(), price: f.price.value.replace(/\s/g, '') || undefined, currency: f.currency.value, listing_id: f.listing_id?.value || undefined } });
+          closeModal(); toast(t('sent'), 'ok'); onDone?.();
+        };
+}

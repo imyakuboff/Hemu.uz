@@ -92,11 +92,13 @@ const CATALOG = [
     ['Xizmatlar', 'Услуги', 'Services', 'Қызметтер', 'Кызматтар', 'Хизматрасониҳо', 'Hyzmatlar', 'Xidmətlər', 'خدمات', 'خدمتونه'],
     [
       S('equipment-rental', ['Maxsus texnika ijarasi', 'Аренда спецтехники', 'Equipment rental', 'Арнайы техниканы жалға алу', 'Атайын техниканы ижарага алуу', 'Иҷораи техникаи махсус', 'Ýörite tehnikany kärendesi', 'Xüsusi texnikanın icarəsi', 'کرایه ماشین‌آلات', 'د ماشینونو کرایه']),
-      S('equipment-works', ['Maxsus texnika ishlari', 'Работа спецтехники', 'Equipment works', 'Арнайы техника жұмыстары', 'Атайын техника иштери', 'Корҳои техникаи махсус', 'Ýörite tehnika işleri', 'Xüsusi texnika işləri', 'کار با ماشین‌آلات', 'د ماشینونو کار']),
-      S('repair', ["Ta'mirlash", 'Ремонт', 'Repair', 'Жөндеу', 'Оңдоо', 'Таъмир', 'Abatlaýyş', 'Təmir', 'ترمیم', 'ترمیم']),
+      S('tool-rental', ['Uskunalar ijarasi', 'Аренда оборудования', 'Tool rental', 'Жабдық жалға алу', 'Жабдууларды ижарага алуу', 'Иҷораи таҷҳизот', 'Enjamlary kärendesi', 'Avadanlıq icarəsi', 'کرایه تجهیزات', 'د وسایلو کرایه']),
+      S('delivery', ['Qurilish materiallarini yetkazish', 'Доставка стройматериалов', 'Building materials delivery', 'Құрылыс материалдарын жеткізу', 'Курулуш материалдарын жеткирүү', 'Расонидани масолеҳи сохтмонӣ', 'Gurluşyk materiallaryny eltip bermek', 'Tikinti materiallarının çatdırılması', 'تحویل مواد ساختمانی', 'د ساختماني توکو رسونه']),
+      S('apartment-repair', ["Kvartira ta'miri", 'Ремонт квартир', 'Apartment renovation', 'Пәтер жөндеу', 'Батир оңдоо', 'Таъмири хона', 'Kwartira abatlaýyş', 'Mənzil təmiri', 'بازسازی آپارتمان', 'د اپارتمان ترمیم']),
+      S('house-building', ["Uy qurilishi va ta'miri", 'Строительство и ремонт домов', 'House building and repair', 'Үй салу және жөндеу', 'Үй куруу жана оңдоо', 'Сохтмон ва таъмири хона', 'Jaý gurluşygy we abatlaýyş', 'Ev tikintisi və təmiri', 'ساخت و تعمیر خانه', 'د کور جوړونه او ترمیم']),
+      S('landscaping', ['Hududni obodonlashtirish', 'Благоустройство территории', 'Landscaping', 'Аумақты абаттандыру', 'Аймакты жайлаштыруу', 'Ободонии ҳудуд', 'Territoriýany abadanlaşdyrmak', 'Ərazinin abadlaşdırılması', 'محوطه‌سازی', 'د سیمې ښکلا']),
+      S('repair', ["Texnika ta'miri", 'Ремонт техники', 'Machinery repair', 'Техника жөндеу', 'Техника оңдоо', 'Таъмири техника', 'Tehnika abatlaýyş', 'Texnika təmiri', 'تعمیر ماشین‌آلات', 'د ماشینونو ترمیم']),
       S('maintenance', ['Servis xizmati', 'Сервис', 'Maintenance', 'Техникалық қызмет', 'Техникалык тейлөө', 'Хизматрасонии техникӣ', 'Tehniki hyzmat', 'Texniki xidmət', 'سرویس فنی', 'تخنیکي خدمت']),
-      S('delivery', ['Yetkazib berish', 'Доставка', 'Delivery', 'Жеткізу', 'Жеткирүү', 'Расонидан', 'Eltip bermek', 'Çatdırılma', 'تحویل‌دهی', 'رسول']),
-      S('freight', ['Yuk tashish', 'Перевозка', 'Freight transport', 'Жүк тасымалы', 'Жүк ташуу', 'Боркашонӣ', 'Ýük daşamak', 'Yükdaşıma', 'باربری', 'بار وړل']),
     ]),
 ];
 

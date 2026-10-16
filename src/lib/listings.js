@@ -9,6 +9,8 @@ const { parseJson } = require('./http');
 
 // '/img/...' — frontend bilan birga keladigan demo rasmlar
 const fileUrl = (p) => (!p ? null : /^https?:\/\//.test(p) || p.startsWith('/') ? p : `${config.publicUrl}/uploads/${p}`);
+// Kartochkalar uchun kichik nusxa (480px WebP); siqilmagan eski rasmlarda — aslining o'zi
+const thumbUrl = (p) => fileUrl(require('./images').thumbOf(p) || p);
 
 function buildSearchText(l) {
   const cat = cats.byId(l.category_id);
@@ -143,7 +145,7 @@ function card(l, ctx, cache = sellerCache()) {
     facts: facts(l, lang),
     location: location(l, lang),
     seller: { name: s.name, verified: s.verified, rating: s.rating, reviews_count: s.reviews_count, company_id: s.company_id, user_id: s.user_id },
-    cover: fileUrl(cover),
+    cover: thumbUrl(cover),
     photos_count: l.photos_count ?? undefined,
     status: l.status,
     status_label: t(lang, `ls.${l.status}`),
@@ -162,7 +164,7 @@ function card(l, ctx, cache = sellerCache()) {
 function detail(l, ctx) {
   const { lang } = ctx;
   const base = card(l, ctx);
-  const photos = db.all('SELECT id, path FROM listing_photos WHERE listing_id = ? ORDER BY sort, id', l.id).map((p) => ({ id: p.id, url: fileUrl(p.path) }));
+  const photos = db.all('SELECT id, path FROM listing_photos WHERE listing_id = ? ORDER BY sort, id', l.id).map((p) => ({ id: p.id, url: fileUrl(p.path), thumb: thumbUrl(p.path) }));
   const seller = sellerInfo(l.user_id, l.company_id);
   const delivery = parseJson(l.delivery, null);
   return {
@@ -371,4 +373,4 @@ function cardsByIds(sql, params, ctx) {
   return db.all(sql.replace('SELECT l.*', `SELECT ${CARD_COLS}`), ...params).map((r) => card(r, ctx, cache));
 }
 
-module.exports = { nearOf, distanceKm, fileUrl, buildSearchText, sellerInfo, responseMinutes, card, detail, search, facets, matchesQuery, favoritesSet, cardsByIds, CARD_COLS, SORTS };
+module.exports = { nearOf, distanceKm, fileUrl, thumbUrl, buildSearchText, sellerInfo, responseMinutes, card, detail, search, facets, matchesQuery, favoritesSet, cardsByIds, CARD_COLS, SORTS };

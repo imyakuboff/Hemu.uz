@@ -4,6 +4,7 @@ const crypto = require('node:crypto');
 const multer = require('multer');
 const config = require('../config');
 const { ApiError } = require('./http');
+const images = require('./images');
 
 const IMAGE = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' };
 const DOCS = { ...IMAGE, 'application/pdf': '.pdf' };
@@ -54,7 +55,11 @@ function verifyFiles(files) {
 function removeUpload(relPath) {
   if (!relPath || /^https?:/.test(relPath) || relPath.startsWith('/')) return;
   const full = path.join(config.uploadDir, relPath);
-  if (full.startsWith(config.uploadDir)) fs.rmSync(full, { force: true });
+  if (!full.startsWith(config.uploadDir)) return;
+  fs.rmSync(full, { force: true });
+  // Siqilgan rasmning kichik nusxasi ham o'chiriladi
+  const thumb = images.thumbOf(relPath);
+  if (thumb) fs.rmSync(path.join(config.uploadDir, thumb), { force: true });
 }
 
 module.exports = {
@@ -64,4 +69,6 @@ module.exports = {
   banners: make('banners', IMAGE),
   verifyFiles,
   removeUpload,
+  // Tekshirilgan rasmlarni WebP ga siqish (preset: listings | avatars | banners)
+  optimize: images.optimize,
 };

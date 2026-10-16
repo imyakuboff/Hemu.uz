@@ -853,13 +853,14 @@ admin.patch('/support/:id', async (req, res) => {
 });
 
 // ---------- Integratsiyalar: SMS (Eskiz.uz), Click, Payme ----------
-const INTEGRATION_KEYS = /^(siteUrl|otpDevEcho|otpTestRegistration|adminTwoFactor|smsProvider|eskiz\.|paymentsDev|click\.|payme\.|mapProvider|yandexMapsKey)/;
+const INTEGRATION_KEYS = /^(siteUrl|otpDevEcho|otpTestRegistration|adminTwoFactor|smsProvider|eskiz\.|mailProvider|smtp\.|paymentsDev|click\.|payme\.|mapProvider|yandexMapsKey)/;
 function integrationsView() {
   const base = `${config.siteUrl}/api/v1`;
   return {
     items: settings.all(INTEGRATION_KEYS),
     status: {
       sms: config.smsProvider === 'eskiz' ? Boolean(config.eskiz.email && config.eskiz.password) : false,
+      mail: require('../lib/mail').enabled(),
       click: Boolean(config.click.serviceId && config.click.merchantId && config.click.secretKey),
       payme: Boolean(config.payme.merchantId && config.payme.key),
       https: config.siteUrl.startsWith('https://'),
@@ -888,6 +889,16 @@ admin.post('/integrations/sms-test', async (req, res) => {
   if (!n?.e164) fail(422, 'err.validation', { phone: 'invalid' });
   try {
     const r2 = await require('../lib/sms').sendSms(n.e164, v.text || 'HEMU.UZ: test SMS');
+    res.json({ ok: true, provider: r2.provider });
+  } catch (e) {
+    res.json({ ok: false, error: e.message });
+  }
+});
+admin.post('/integrations/mail-test', async (req, res) => {
+  const v = validate(req.body, { email: { type: 'string', min: 5, max: 120, required: true, pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ } });
+  const mail = require('../lib/mail');
+  try {
+    const r2 = await mail.sendMail({ to: v.email.trim(), ...mail.codeEmail(req.lang, '123456') });
     res.json({ ok: true, provider: r2.provider });
   } catch (e) {
     res.json({ ok: false, error: e.message });
@@ -935,9 +946,10 @@ admin.put('/banners', (req, res) => {
   log(req, 'banners.update', null, null, { count: items.length, active: items.filter((x) => x.active).length });
   res.json({ items });
 });
-admin.post('/banners/image', (req, res, next) => require('../lib/upload').banners.single('image')(req, res, next), (req, res) => {
+admin.post('/banners/image', (req, res, next) => require('../lib/upload').banners.single('image')(req, res, next), async (req, res) => {
   if (!req.file) fail(422, 'err.validation', { image: 'required' });
-  const [f] = require('../lib/upload').verifyFiles([req.file]);
+  const up = require('../lib/upload');
+  const [f] = await up.optimize(up.verifyFiles([req.file]), 'banners');
   res.status(201).json({ url: `/uploads/banners/${f.filename}` });
 });
 

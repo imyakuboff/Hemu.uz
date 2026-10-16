@@ -74,6 +74,7 @@ export default async function listing({ params }) {
   const l = await api(`/listings/${params[0]}`, { headers: { 'X-View-Source': state.viewSource || 'direct' } });
   const part = l.kind === 'part';
   const photos = l.photos.length ? l.photos.map((p) => p.url) : [imgOf(l)];
+  const thumbs = l.photos.length ? l.photos.map((p) => p.thumb || p.url) : photos;
   const path = [shortCat({ slug: l.category.slug, name: l.category.name }), l.subcategory?.name, l.facts.brand].filter(Boolean).join(' / ');
   const meta = [l.location.city || l.location.region_name, fmtRel(l.published_at), `№ ${l.id}`].filter(Boolean).join(' · ');
   const statusTag = l.status !== 'active' ? `<span class="tag orange">${esc(l.status_label)}</span>` : '';
@@ -88,7 +89,7 @@ export default async function listing({ params }) {
 
   const gallery = `<div class="gallery">
     <div class="main ${part ? 'contain' : ''}"><img src="${esc(photos[0])}" alt="${esc(l.title)}" data-main></div>
-    ${photos.length > 1 && !part ? `<div class="thumbs">${photos.slice(0, 2).map((p, i) => `<button data-thumb="${i}"><img src="${esc(p)}" alt=""></button>`).join('')}${photos.length > 2 ? `<button data-thumb="2"><img src="${esc(photos[2])}" alt="">${photos.length > 3 ? `<span class="more">${esc(t('photos_more', { n: photos.length - 2 }))}</span>` : ''}</button>` : ''}</div>` : ''}
+    ${photos.length > 1 && !part ? `<div class="thumbs">${thumbs.slice(0, 2).map((p, i) => `<button data-thumb="${i}"><img src="${esc(p)}" alt="" loading="lazy" decoding="async"></button>`).join('')}${photos.length > 2 ? `<button data-thumb="2"><img src="${esc(thumbs[2])}" alt="" loading="lazy" decoding="async">${photos.length > 3 ? `<span class="more">${esc(t('photos_more', { n: photos.length - 2 }))}</span>` : ''}</button>` : ''}</div>` : ''}
     ${part ? `<div class="gallery-note"><span data-photo-of>${esc(t('photo_of', { i: 1, n: photos.length }))}</span><button class="btn btn-soft btn-sm" data-fav="${l.id}" data-label="1">${icon('heart')} <span>${esc(t(l.is_favorite ? 'in_favorites' : 'to_favorites'))}</span></button></div>` : ''}
   </div>`;
 

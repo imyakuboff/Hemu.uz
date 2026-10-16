@@ -194,13 +194,13 @@ r.patch('/my/company', requireAuth, (req, res) => {
   res.json(companyView(db.get('SELECT * FROM companies WHERE id = ?', c.id), req, { full: true }));
 });
 
-r.post('/my/company/logo', requireAuth, upload.avatars.single('file'), (req, res) => {
+r.post('/my/company/logo', requireAuth, upload.avatars.single('file'), async (req, res) => {
   const c = db.get('SELECT * FROM companies WHERE owner_id = ?', req.user.id);
   if (!c || !req.file) {
     if (req.file) upload.removeUpload(`avatars/${req.file.filename}`);
     fail(c ? 422 : 404, c ? 'err.file_type' : 'err.not_found');
   }
-  upload.verifyFiles([req.file]);
+  await upload.optimize(upload.verifyFiles([req.file]), 'avatars');
   upload.removeUpload(c.logo);
   db.update('companies', c.id, { logo: `avatars/${req.file.filename}` });
   res.json(companyView(db.get('SELECT * FROM companies WHERE id = ?', c.id), req, { full: true }));

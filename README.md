@@ -57,6 +57,8 @@ Build qadamisiz vanilla JS (ES modullar), backend bilan bitta serverda. Dizaynda
 | **Kengaytirilgan statistika** — voronka, manbalar, konversiya | `/analytics` | Ishlaydi |
 | **PWA** — telefonga o'rnatish, oflayn sahifa | Avtomatik | Ishlaydi (HTTPS kerak) |
 | **SEO** — server tomonda title/description/Open Graph, JSON-LD Product, `sitemap.xml`, `robots.txt` | — | Ishlaydi |
+| **Rasmlarni siqish** — yuklangan foto WebP ga o'giriladi (1600px), kartochkalar uchun 480px kichik nusxa, EXIF/GPS olib tashlanadi | Avtomatik (`sharp` kerak) | Ishlaydi. Eski rasmlar: `npm run images:optimize` |
+| **Email orqali tasdiqlash kodi** (Gmail/SMTP) — ro'yxatdan o'tishda "Email" yoki "SMS" tanlanadi | `/register`, `/admin` → Integratsiyalar → Email | Ishlaydi; Gmail "App password" kerak |
 | **Deploy** — `Dockerfile`, `docker-compose.yml`, `deploy/nginx.conf`, `deploy/hemu.service` | — | Tayyor |
 
 ### Hisob turlari va bo'limlar

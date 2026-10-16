@@ -796,6 +796,7 @@ const COLUMNS = [
   ['requests', 'expires_at', 'TEXT'],
   ['users', 'city', 'TEXT'],
   ['users', 'position', 'TEXT'],
+  ['users', 'email_verified_at', 'TEXT'], // email kod orqali tasdiqlangan vaqt
   ['companies', 'reg_number', 'TEXT'],
   ['messages', 'attachment_name', 'TEXT'],
   ['messages', 'attachment_size', 'INTEGER'],

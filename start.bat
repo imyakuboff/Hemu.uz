@@ -12,9 +12,11 @@ netstat -ano | findstr /r /c:":4700 .*LISTENING" >nul && (
   exit /b 0
 )
 
-if not exist node_modules (
+rem Yangi kutubxonalar (masalan, sharp — rasm siqish) qo'shilganda belgi raqami oshiriladi
+if not exist node_modules\.hemu-deps-2 (
   echo Kutubxonalar o'rnatilmoqda...
   call npm install --no-audit --no-fund || (echo [XATO] npm install muvaffaqiyatsiz. & pause & exit /b 1)
+  type nul > node_modules\.hemu-deps-2
 )
 if not exist data\movexgo.db (
   echo Demo baza yaratilmoqda...

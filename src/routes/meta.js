@@ -37,6 +37,8 @@ r.get('/meta', (req, res) => {
     sorts: ['new', 'price_asc', 'price_desc', 'popular', 'year_desc', 'distance'],
     escrow_fee_pct: require('../config').escrowFeePct,
     payment_providers: require('../lib/payments').providers(),
+    // Ro'yxatdan o'tishda kodni email (Gmail) orqali olish mumkinmi
+    auth: { email_otp: (() => { const c = require('../config'); return require('../lib/mail').enabled() || Boolean(c.otpDevEcho || c.otpTestRegistration); })() },
   });
 });
 

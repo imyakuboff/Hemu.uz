@@ -46,6 +46,7 @@ function userView(u) {
     phone: u.phone,
     name: u.name,
     email: u.email,
+    email_verified: Boolean(u.email_verified_at),
     role: u.role,
     account_type: u.account_type || 'client',
     has_password: Boolean(u.password_hash),
@@ -74,9 +75,21 @@ function userView(u) {
   };
 }
 
-// ---------- SMS-kod ----------
+// ---------- SMS / email kod ----------
+// Kod telefon raqamiga bog'lanadi; email orqali yuborilganda email ham xeshga kiradi (boshqa manzil bilan ishlatib bo'lmaydi)
+const otpHash = (phone, code, email) => sha(email ? `${phone}:${email}:${code}` : `${phone}:${code}`);
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Bo'sh — null; noto'g'ri — 422
+function emailOf(raw) {
+  const e = typeof raw === 'string' ? raw.trim().toLowerCase() : '';
+  if (!e) return null;
+  if (e.length > 120 || !EMAIL.test(e)) fail(422, 'err.validation', { email: 'invalid' });
+  return e;
+}
+
 // isNew — raqam hali ro'yxatdan o'tmagan: "test ro'yxatdan o'tish" rejimida kod faqat shunda ekranga chiqadi
-async function sendCode(req, phoneE164, smsKey = 'sms.otp', { isNew = false } = {}) {
+// email — kod SMS o'rniga shu manzilga (Gmail va h.k.) yuboriladi
+async function sendCode(req, phoneE164, smsKey = 'sms.otp', { isNew = false, email = null } = {}) {
   // Test rejimi: kod ekranga chiqadi. Admin/moderator hisoblari uchun HECH QACHON (serverda) — panelni egallab olishning oldini olish
   const staff = process.env.NODE_ENV === 'production' && Boolean(db.get(`SELECT 1 FROM users WHERE phone = ? AND role IN ('admin', 'moderator')`, phoneE164));
   const echo = !staff && (config.otpDevEcho || (config.otpTestRegistration && isNew));
@@ -87,22 +100,27 @@ async function sendCode(req, phoneE164, smsKey = 'sms.otp', { isNew = false } = 
   db.run(
     `INSERT INTO otp_codes (phone, code_hash, expires_at, attempts, sent_at) VALUES (?, ?, ?, 0, ?)
      ON CONFLICT(phone) DO UPDATE SET code_hash = excluded.code_hash, expires_at = excluded.expires_at, attempts = 0, sent_at = excluded.sent_at`,
-    phoneE164, sha(`${phoneE164}:${code}`), now + config.otpTtlSec * 1000, now,
+    phoneE164, otpHash(phoneE164, code, email), now + config.otpTtlSec * 1000, now,
   );
   try {
-    await sendSms(phoneE164, t(req.lang, smsKey, { code }));
+    if (email) {
+      const mail = require('../lib/mail');
+      await mail.sendMail({ to: email, ...mail.codeEmail(req.lang, code) });
+    } else {
+      await sendSms(phoneE164, t(req.lang, smsKey, { code }));
+    }
   } catch (e) {
-    // Sinov rejimida kod ekranga chiqadi — SMS xatosi kirishni to'xtatmaydi
-    if (!echo) fail(502, 'err.sms_failed');
+    // Sinov rejimida kod ekranga chiqadi — SMS/email xatosi kirishni to'xtatmaydi
+    if (!echo) fail(502, email ? 'err.mail_failed' : 'err.sms_failed');
   }
   return echo ? { dev_code: code } : {};
 }
 
-function consumeCode(phoneE164, code) {
+function consumeCode(phoneE164, code, email = null) {
   const row = db.get('SELECT * FROM otp_codes WHERE phone = ?', phoneE164);
   if (!row || row.expires_at < Date.now() || row.attempts >= 5) fail(422, 'err.otp_invalid');
   const a = Buffer.from(row.code_hash);
-  const b = Buffer.from(sha(`${phoneE164}:${String(code || '').trim()}`));
+  const b = Buffer.from(otpHash(phoneE164, String(code || '').trim(), email));
   if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
     db.run('UPDATE otp_codes SET attempts = attempts + 1 WHERE phone = ?', phoneE164);
     fail(422, 'err.otp_invalid');
@@ -124,9 +142,9 @@ function signIn(req, res, user, extra = {}) {
   res.json({ token, ...extra, user: userView(db.get('SELECT * FROM users WHERE id = ?', user.id)) });
 }
 
-// Ro'yxatdan o'tish chiptasi: telefon tasdiqlanganini 30 daqiqa saqlaydi
-const ticketFor = (phone) => {
-  const body = Buffer.from(JSON.stringify({ phone, exp: Date.now() + 30 * 60000 })).toString('base64url');
+// Ro'yxatdan o'tish chiptasi: telefon (yoki email) tasdiqlanganini 30 daqiqa saqlaydi
+const ticketFor = (phone, email = null) => {
+  const body = Buffer.from(JSON.stringify({ phone, email: email || undefined, exp: Date.now() + 30 * 60000 })).toString('base64url');
   return `${body}.${sha(`reg:${body}`)}`;
 };
 function readTicket(tk) {
@@ -134,8 +152,9 @@ function readTicket(tk) {
   if (!body || sig !== sha(`reg:${body}`)) fail(422, 'err.otp_invalid');
   const d = JSON.parse(Buffer.from(body, 'base64url').toString());
   if (d.exp < Date.now()) fail(422, 'err.otp_invalid');
-  return d.phone;
+  return { phone: d.phone, email: d.email || null };
 }
+const emailTaken = (email) => Boolean(email && db.get('SELECT 1 FROM users WHERE email = ? COLLATE NOCASE', email));
 
 // ---------- SMS orqali tezkor kirish (eski oqim, yangi foydalanuvchi — "mijoz") ----------
 r.post('/auth/otp/request', authLimit, async (req, res) => {
@@ -162,18 +181,23 @@ r.post('/auth/register/start', authLimit, async (req, res) => {
   if (config.registrationOpen === false) fail(403, 'err.registration_closed');
   const p = phoneOf(req);
   if (db.get('SELECT 1 FROM users WHERE phone = ?', p.e164)) fail(409, 'err.already_registered');
-  res.json({ phone: p.e164, country: p.country, expires_in: config.otpTtlSec, ...(await sendCode(req, p.e164, 'sms.otp', { isNew: true })) });
+  // Email kiritilgan bo'lsa — kod emailga (Gmail) yuboriladi, aks holda SMS
+  const email = emailOf(req.body?.email);
+  if (emailTaken(email)) fail(409, 'err.email_taken', { email: 'taken' });
+  const sent = await sendCode(req, p.e164, 'sms.otp', { isNew: true, email });
+  res.json({ phone: p.e164, country: p.country, channel: email ? 'email' : 'sms', email: email || undefined, expires_in: config.otpTtlSec, ...sent });
 });
 
 r.post('/auth/register/verify', authLimit, (req, res) => {
   const p = phoneOf(req);
   if (db.get('SELECT 1 FROM users WHERE phone = ?', p.e164)) fail(409, 'err.already_registered');
-  consumeCode(p.e164, req.body?.code);
-  res.json({ ticket: ticketFor(p.e164), phone: p.e164, country: p.country });
+  const email = emailOf(req.body?.email);
+  consumeCode(p.e164, req.body?.code, email);
+  res.json({ ticket: ticketFor(p.e164, email), phone: p.e164, country: p.country, email: email || undefined });
 });
 
 r.post('/auth/register', authLimit, (req, res) => {
-  const phone = readTicket(req.body?.ticket);
+  const { phone, email: verifiedEmail } = readTicket(req.body?.ticket);
   if (db.get('SELECT 1 FROM users WHERE phone = ?', phone)) fail(409, 'err.already_registered');
   const country = normalizePhone(phone).country;
   const v = validate(req.body, {
@@ -184,6 +208,9 @@ r.post('/auth/register', authLimit, (req, res) => {
     lang: { type: 'enum', values: LANGS },
   });
   if (v.password) assertStrong(v.password);
+  // Kod orqali tasdiqlangan email ustun turadi
+  if (verifiedEmail) v.email = verifiedEmail;
+  if (emailTaken(v.email)) fail(409, 'err.email_taken', { email: 'taken' });
   const b = req.body || {};
   // Kompaniya ma'lumotlarini oldindan tekshirish (foydalanuvchi yaratilishidan oldin)
   let company = null;
@@ -210,7 +237,7 @@ r.post('/auth/register', authLimit, (req, res) => {
   }
   const id = db.tx(() => {
     const uid = db.insert('users', {
-      phone, name: v.name, email: v.email, country, lang: v.lang || req.lang, currency: COUNTRY[country].currency,
+      phone, name: v.name, email: v.email, email_verified_at: verifiedEmail ? new Date().toISOString() : null, country, lang: v.lang || req.lang, currency: COUNTRY[country].currency,
       account_type: v.account_type, password_hash: v.password ? hashPassword(v.password) : null,
       password_set_at: v.password ? new Date().toISOString() : null, city: company?.city || b.specialist?.city,
     });
@@ -344,9 +371,9 @@ r.put('/me/interests', requireAuth, (req, res) => {
   res.json(userView(db.get('SELECT * FROM users WHERE id = ?', req.user.id)));
 });
 
-r.post('/me/avatar', requireAuth, upload.avatars.single('file'), (req, res) => {
+r.post('/me/avatar', requireAuth, upload.avatars.single('file'), async (req, res) => {
   if (!req.file) fail(422, 'err.file_type');
-  upload.verifyFiles([req.file]);
+  await upload.optimize(upload.verifyFiles([req.file]), 'avatars');
   upload.removeUpload(req.user.avatar);
   db.update('users', req.user.id, { avatar: `avatars/${req.file.filename}` });
   res.json(userView(db.get('SELECT * FROM users WHERE id = ?', req.user.id)));

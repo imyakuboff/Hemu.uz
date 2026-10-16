@@ -48,6 +48,13 @@ const DEFS = [
   ['eskiz.email', 'string', 0, 120],
   ['eskiz.password', 'secret', 0, 300],
   ['eskiz.from', 'string', 0, 20],
+  // Email (SMTP, masalan Gmail) — ro'yxatdan o'tishda tasdiqlash kodi
+  ['mailProvider', 'enum', ['off', 'smtp']],
+  ['smtp.host', 'string', 0, 120],
+  ['smtp.port', 'int', 1, 65535],
+  ['smtp.user', 'string', 0, 120],
+  ['smtp.pass', 'secret', 0, 300],
+  ['smtp.from', 'string', 0, 80],
   ['paymentsDev', 'bool'],
   ['click.serviceId', 'string', 0, 30],
   ['click.merchantId', 'string', 0, 30],
@@ -82,6 +89,8 @@ config.welcomeBonus ??= { enabled: process.env.WELCOME_BONUS !== '0', amount: Nu
 config.legalTin ??= '';
 config.legalAddress ??= '';
 config.adminTwoFactor ??= false;
+config.mailProvider ??= process.env.MAIL_PROVIDER || (process.env.SMTP_USER ? 'smtp' : 'off');
+config.smtp ??= { host: process.env.SMTP_HOST || 'smtp.gmail.com', port: Number(process.env.SMTP_PORT || 465), user: process.env.SMTP_USER || '', pass: process.env.SMTP_PASS || '', from: process.env.SMTP_FROM || 'HEMU.UZ' };
 config.eskiz ??= { email: process.env.ESKIZ_EMAIL || '', password: process.env.ESKIZ_PASSWORD || '', from: process.env.ESKIZ_FROM || '4546' };
 config.payme.testMode ??= process.env.PAYME_TEST === '1';
 config.prices.tier ??= { vip: 15, gold: 10, premium: 5 };

@@ -452,7 +452,7 @@ r.post('/listings/:id/photos', requireAuth, (req, res, next) => {
   if (!canManage(req, l)) forbidden();
   req.listing = l;
   next();
-}, upload.photos.array('files', 15), (req, res) => {
+}, upload.photos.array('files', 15), async (req, res) => {
   const l = req.listing;
   const files = upload.verifyFiles(req.files);
   const have = db.get('SELECT COUNT(*) AS n, COALESCE(MAX(sort), -1) AS mx FROM listing_photos WHERE listing_id = ?', l.id);
@@ -460,6 +460,8 @@ r.post('/listings/:id/photos', requireAuth, (req, res, next) => {
     for (const f of files) upload.removeUpload(`listings/${f.filename}`);
     fail(422, 'err.photo_limit');
   }
+  // WebP ga siqish + kichik nusxa (kartochkalar uchun)
+  await upload.optimize(files, 'listings');
   files.forEach((f, i) => db.insert('listing_photos', { listing_id: l.id, path: `listings/${f.filename}`, sort: have.mx + 1 + i }));
   res.status(201).json(db.all('SELECT id, path FROM listing_photos WHERE listing_id = ? ORDER BY sort, id', l.id).map((p) => ({ id: p.id, url: L.fileUrl(p.path) })));
 });

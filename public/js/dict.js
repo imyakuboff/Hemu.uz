@@ -510,6 +510,11 @@ login_sub|Telefon raqamingizga SMS-kod yuboramiz|Отправим SMS-код н�
 get_code|Kod olish|Получить код|Get code|Код алу|Код алуу|Гирифтани рамз|Kod almak|Kod al|دریافت کد|کوډ ترلاسه کړئ
 code|SMS-kod|Код из SMS|SMS code|SMS-код|SMS-код|Рамзи SMS|SMS-kod|SMS-kod|کد پیامک|SMS کوډ
 code_sent|Kod {p} raqamiga yuborildi|Код отправлен на {p}|Code sent to {p}|Код {p} нөміріне жіберілді|Код {p} номерине жөнөтүлдү|Рамз ба {p} фиристода шуд|Kod {p} belgä iberildi|Kod {p} nömrəsinə göndərildi|کد به {p} ارسال شد|کوډ {p} ته ولېږل شو
+code_sent_email|Kod {e} manziliga yuborildi. "Spam" papkasini ham tekshiring|Код отправлен на {e}. Проверьте также папку «Спам»|Code sent to {e}. Check your Spam folder too|Код {e} мекенжайына жіберілді. «Спам» қалтасын да тексеріңіз|Код {e} дарегине жөнөтүлдү. «Спам» папкасын да текшериңиз|Рамз ба {e} фиристода шуд. Ҷузвдони «Спам»-ро низ санҷед|Kod {e} salgysyna iberildi. «Spam» bukjasyny hem barlaň|Kod {e} ünvanına göndərildi. «Spam» qovluğunu da yoxlayın|کد به {e} ارسال شد. پوشه هرزنامه را هم بررسی کنید|کوډ {e} ته ولېږل شو. د سپام فولډر هم وګورئ
+code_where|Kodni qayerga olasiz?|Куда отправить код?|Where should we send the code?|Кодты қайда жіберейік?|Кодду кайда жөнөтөлү?|Рамзро ба куҷо фиристем?|Kody nirä ibereli?|Kodu hara göndərək?|کد را کجا بفرستیم؟|کوډ چېرته ولېږو؟
+via_email|Email (Gmail)|Email (Gmail)|Email (Gmail)|Email (Gmail)|Email (Gmail)|Email (Gmail)|Email (Gmail)|Email (Gmail)|ایمیل (Gmail)|برېښنالیک (Gmail)
+via_sms|SMS|SMS|SMS|SMS|SMS|SMS|SMS|SMS|پیامک|SMS
+email_code_hint|Tasdiqlash kodi shu pochtaga keladi|Код подтверждения придёт на эту почту|The verification code will be sent to this address|Растау коды осы поштаға келеді|Ырастоо коду ушул почтага келет|Рамзи тасдиқ ба ҳамин почта меояд|Tassyklama kody şu poçta geler|Təsdiq kodu bu poçtaya gələcək|کد تأیید به این ایمیل ارسال می‌شود|د تایید کوډ دې پتې ته راځي
 your_name|Ismingiz|Ваше имя|Your name|Атыңыз|Атыңыз|Номи шумо|Adyňyz|Adınız|نام شما|ستاسو نوم
 dev_code|Test kodi: {c}|Тестовый код: {c}|Test code: {c}|Тест коды: {c}|Тест коду: {c}|Рамзи санҷишӣ: {c}|Synag kody: {c}|Test kodu: {c}|کد آزمایشی: {c}|ازموینې کوډ: {c}
 change_number|Raqamni o'zgartirish|Изменить номер|Change number|Нөмірді өзгерту|Номерди өзгөртүү|Иваз кардани рақам|Belgini üýtgetmek|Nömrəni dəyiş|تغییر شماره|شمېره بدله کړئ

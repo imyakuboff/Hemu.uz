@@ -177,10 +177,10 @@ admin.get('/inspections', (req, res) => {
   res.json(rows.map((i) => ({ ...inspectionView(i, req), buyer: { name: i.buyer_name, phone: i.buyer_phone } })));
 });
 
-admin.post('/inspections/:id', upload.photos.array('files', 15), (req, res) => {
+admin.post('/inspections/:id', upload.photos.array('files', 15), async (req, res) => {
   const i = db.get('SELECT * FROM inspections WHERE id = ?', Number(req.params.id));
-  if (!i) notFound();
-  const files = upload.verifyFiles(req.files);
+  if (!i) { for (const f of req.files || []) upload.removeUpload(`listings/${f.filename}`); notFound(); }
+  const files = await upload.optimize(upload.verifyFiles(req.files), 'listings');
   const v = validate(req.body, {
     status: { type: 'enum', values: ['paid', 'scheduled', 'done', 'cancelled'] },
     inspector: { type: 'string', max: 120 }, scheduled_at: { type: 'string', max: 40 },

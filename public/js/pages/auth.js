@@ -19,6 +19,8 @@ const regionOptions = (regs, sel = '') => `<option value="">${esc(t('choose'))}<
 export async function register({ query }) {
   if (state.user) return { redirect: '/dashboard' };
   const opts = await api('/specialists/options');
+  // Kodni emailga (Gmail) yuborish server sozlamalarida yoqilgan bo'lsa
+  const emailOtp = Boolean(state.meta?.auth?.email_otp);
   const html = `
   ${crumbs([[t('home'), '/'], [t('register')]])}
   <div class="auth-card">
@@ -28,6 +30,12 @@ export async function register({ query }) {
 
     <form data-s1 class="auth-step">
       <label class="lbl">${esc(t('phone'))}</label>${phoneField()}
+      ${emailOtp ? `<label class="lbl" style="margin-top:14px">${esc(t('code_where'))}</label>
+      <div class="pick-grid">
+        <label class="pick big"><input type="radio" name="channel" value="email" checked><span>${icon('mail')} ${esc(t('via_email'))}</span></label>
+        <label class="pick big"><input type="radio" name="channel" value="sms"><span>${icon('phone')} ${esc(t('via_sms'))}</span></label>
+      </div>
+      <div data-email-box style="margin-top:12px"><label class="lbl">${esc(t('email'))} *</label><input class="input" name="email" type="email" inputmode="email" autocomplete="email" maxlength="120" placeholder="name@gmail.com"><div class="hint">${esc(t('email_code_hint'))}</div></div>` : ''}
       <button class="btn btn-primary btn-block" style="margin-top:16px">${esc(t('get_code'))}</button>
     </form>
 
@@ -64,26 +72,42 @@ export async function register({ query }) {
     async mount(main) {
       const s = { 1: $('[data-s1]', main), 2: $('[data-s2]', main), 3: $('[data-s3]', main), 4: $('[data-s4]', main) };
       const show = (n) => { Object.entries(s).forEach(([k, el]) => { el.hidden = Number(k) !== n; }); $('[data-steps]', main).innerHTML = stepper(n); };
-      let phone; let country; let ticket; let type;
+      let phone; let country; let ticket; let type; let email;
       if (query.phone) s[1].phone.value = query.phone;
+      const chan = () => (emailOtp ? $('[name="channel"]:checked', s[1]).value : 'sms');
+      if (emailOtp) {
+        s[1].addEventListener('change', (e) => {
+          if (e.target.name !== 'channel') return;
+          $('[data-email-box]', s[1]).hidden = chan() !== 'email';
+          if (chan() === 'email') s[1].email.focus();
+        });
+        s[1].email.addEventListener('input', () => s[1].email.classList.remove('err'));
+      }
 
       s[1].onsubmit = async (e) => {
         e.preventDefault();
         ({ phone, country } = readPhone(s[1]));
+        email = chan() === 'email' ? s[1].email.value.trim().toLowerCase() : undefined;
+        if (chan() === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { markErrors(s[1], { email: 1 }); s[1].email.focus(); return; }
         try {
-          const r = await api('/auth/register/start', { method: 'POST', body: { phone, country } });
-          phone = r.phone; country = r.country;
-          s[2].querySelector('[data-sent]').textContent = t('code_sent', { p: r.phone });
+          const r = await api('/auth/register/start', { method: 'POST', body: { phone, country, email } });
+          phone = r.phone; country = r.country; email = r.email;
+          s[2].querySelector('[data-sent]').textContent = r.channel === 'email' ? t('code_sent_email', { e: r.email }) : t('code_sent', { p: r.phone });
           if (r.dev_code) { s[2].querySelector('[data-dev]').textContent = t('dev_code', { c: r.dev_code }); s[2].code.value = r.dev_code; }
           show(2);
           s[2].code.focus();
-        } catch (err) { if (err.code === 'already_registered') document.querySelector('[data-login]')?.click(); }
+        } catch (err) {
+          if (err.code === 'already_registered') document.querySelector('[data-login]')?.click();
+          else if (err.details?.email) markErrors(s[1], { email: 1 });
+        }
       };
       $('[data-back1]', main).onclick = () => show(1);
       s[2].onsubmit = async (e) => {
         e.preventDefault();
-        const r = await api('/auth/register/verify', { method: 'POST', body: { phone, country, code: s[2].code.value.trim() } });
+        const r = await api('/auth/register/verify', { method: 'POST', body: { phone, country, email, code: s[2].code.value.trim() } });
         ticket = r.ticket;
+        // Tasdiqlangan email oxirgi qadamda qayta so'ralmaydi
+        if (r.email) { s[4].email.value = r.email; s[4].email.readOnly = true; }
         show(3);
       };
       $('[data-back3]', main).onclick = () => show(3);

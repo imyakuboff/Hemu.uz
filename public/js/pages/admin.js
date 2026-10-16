@@ -288,6 +288,17 @@ const D = {
   mp_osm: ['OpenStreetMap', 'OpenStreetMap', 'OpenStreetMap'],
   int_sms_hint: ["notify.eskiz.uz kabinetidagi email va parol. Eskiz faqat +998 raqamlarga yuboradi. Yangi hisobda faqat tasdiqlangan shablon matnlari ketadi — \"HEMU.UZ kodi: …\" shablonini Eskizda tasdiqlating.", 'Email и пароль от кабинета notify.eskiz.uz. Eskiz отправляет только на номера +998. На новом аккаунте уходят только одобренные шаблоны — утвердите в Eskiz шаблон «Код HEMU.UZ: …».', 'Email and password of your notify.eskiz.uz account. Eskiz sends to +998 numbers only. New accounts can only send approved templates — get the "HEMU.UZ code: …" template approved in Eskiz.'],
   smsProvider: ['SMS provayder', 'SMS-провайдер', 'SMS provider'],
+  int_mail: ['Email — Gmail / SMTP', 'Email — Gmail / SMTP', 'Email — Gmail / SMTP'],
+  int_mail_hint: ["Ro'yxatdan o'tishda tasdiqlash kodi shu pochta orqali yuboriladi. Gmail: server smtp.gmail.com, port 465, login — to'liq Gmail manzil, parol — Google hisobidagi 16 belgili \"Ilova paroli\" (App password; avval 2 bosqichli tasdiqlashni yoqing). Oddiy Gmail paroli ishlamaydi.", 'Через эту почту при регистрации отправляется код подтверждения. Gmail: сервер smtp.gmail.com, порт 465, логин — полный адрес Gmail, пароль — 16-значный «Пароль приложения» из аккаунта Google (App password; сначала включите двухэтапную аутентификацию). Обычный пароль Gmail не подойдёт.', 'The sign-up verification code is sent from this mailbox. Gmail: server smtp.gmail.com, port 465, login — full Gmail address, password — the 16-character Google "App password" (enable 2-Step Verification first). Your normal Gmail password will not work.'],
+  mailProvider: ['Email yuborish', 'Отправка email', 'Email sending'],
+  mp_off: ["O'chiq", 'Выключено', 'Off'],
+  mp_smtp: ['SMTP (Gmail va boshqalar)', 'SMTP (Gmail и др.)', 'SMTP (Gmail etc.)'],
+  'smtp.host': ['SMTP server', 'SMTP-сервер', 'SMTP server'],
+  'smtp.port': ['Port (465 — SSL, 587 — STARTTLS)', 'Порт (465 — SSL, 587 — STARTTLS)', 'Port (465 — SSL, 587 — STARTTLS)'],
+  'smtp.user': ['Login (Gmail manzil)', 'Логин (адрес Gmail)', 'Login (Gmail address)'],
+  'smtp.pass': ['Ilova paroli (App password)', 'Пароль приложения (App password)', 'App password'],
+  'smtp.from': ["Jo'natuvchi nomi", 'Имя отправителя', 'Sender name'],
+  test_mail: ['Sinov xati', 'Тестовое письмо', 'Test email'],
   sp_log: ["Sinov (SMS yuborilmaydi)", 'Тест (SMS не отправляются)', 'Test (no SMS sent)'],
   sp_eskiz: ['Eskiz.uz', 'Eskiz.uz', 'Eskiz.uz'],
   'eskiz.email': ['Eskiz email', 'Email Eskiz', 'Eskiz email'],
@@ -1552,6 +1563,18 @@ async function integrationsPage() {
         <div class="int-test"><input class="input" data-test-phone type="tel" placeholder="+998 90 123 45 67"><button type="button" class="btn btn-soft" data-test-sms>${icon('send')} ${esc(a('test_sms'))}</button><button type="button" class="btn btn-ghost" data-balance>${esc(a('sms_balance'))}</button><span class="small" data-int-out></span></div>
       </div>
 
+      <div class="box"><h3>${esc(a('int_mail'))} ${st(r.status.mail)}</h3><p class="tiny muted" style="margin:-4px 0 12px">${esc(a('int_mail_hint'))}</p>
+        <div class="form-grid">
+          ${field(a('mailProvider'), sel('mailProvider', [['off', a('mp_off')], ['smtp', a('mp_smtp')]], by.mailProvider.value, false))}
+          ${txt('smtp.from', 'placeholder="HEMU.UZ"')}
+          ${txt('smtp.host', 'placeholder="smtp.gmail.com"')}
+          ${txt('smtp.port', 'type="number" min="1" max="65535" placeholder="465"')}
+          ${txt('smtp.user', 'type="email" autocomplete="off" placeholder="hemu.uz@gmail.com"')}
+          ${txt('smtp.pass')}
+        </div>
+        <div class="int-test"><input class="input" data-test-email type="email" placeholder="test@gmail.com"><button type="button" class="btn btn-soft" data-test-mail>${icon('send')} ${esc(a('test_mail'))}</button><span class="small" data-mail-out></span></div>
+      </div>
+
       <div class="box"><h3>${esc(a('int_maps'))} ${st(r.status.maps)}</h3><p class="tiny muted" style="margin:-4px 0 12px">${esc(a('int_maps_hint'))}</p>
         <div class="form-grid">
           ${field(a('mapProvider'), sel('mapProvider', [['yandex', a('mp_yandex')], ['osm', a('mp_osm')]], by.mapProvider.value, false))}
@@ -1598,6 +1621,13 @@ async function integrationsPage() {
           out.textContent = '…';
           const res = await api('/admin/integrations/sms-test', { method: 'POST', body: { phone: $('[data-test-phone]', main).value.trim() } });
           out.innerHTML = res.ok ? `<span class="green">OK · ${esc(res.provider)}</span>` : `<span class="red">${esc(res.error)}</span>`;
+          return;
+        }
+        if (e.target.closest('[data-test-mail]')) {
+          const mo = $('[data-mail-out]', main);
+          mo.textContent = '…';
+          const res = await api('/admin/integrations/mail-test', { method: 'POST', body: { email: $('[data-test-email]', main).value.trim() } });
+          mo.innerHTML = res.ok ? `<span class="green">OK · ${esc(res.provider)}</span>` : `<span class="red">${esc(res.error)}</span>`;
           return;
         }
         if (e.target.closest('[data-balance]')) {

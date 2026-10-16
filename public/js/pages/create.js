@@ -65,7 +65,8 @@ export async function listing({ params }) {
     e = l.edit;
     photos = l.photos;
   } else {
-    e = { deal_type: 'sale', country: state.country || state.user.country, contact_name: state.user.name, contact_phone: state.user.phone, contact_email: state.user.email, accept_messages: 1, currency: state.meta.countries.find((c) => c.code === (state.country || state.user.country))?.currency };
+    const pre = new URLSearchParams(location.search);
+    e = { category: pre.get('category') || undefined, subcategory: pre.get('subcategory') || undefined, deal_type: 'sale', country: state.country || state.user.country, contact_name: state.user.name, contact_phone: state.user.phone, contact_email: state.user.email, accept_messages: 1, currency: state.meta.countries.find((c) => c.code === (state.country || state.user.country))?.currency };
   }
   const root = findRoot(e.category) || state.cats[0];
   const company = state.user.company;

@@ -207,7 +207,7 @@ const RULES = {
   description: { type: 'string', max: 5000 },
   price: { type: 'number', min: 0, max: 1e13 },
   currency: { type: 'enum', values: CURRENCY_CODES },
-  price_unit: { type: 'enum', values: ['total', 'hour', 'day', 'shift', 'ton', 'm3', 'piece'] },
+  price_unit: { type: 'enum', values: ['total', 'hour', 'day', 'shift', 'ton', 'm3', 'piece', 'bag', 'load'] },
   price_from: { type: 'bool' },
   negotiable: { type: 'bool' },
   vat_rate: { type: 'number', min: 0, max: 30 },

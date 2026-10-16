@@ -106,7 +106,7 @@ r.get('/my/listings/import/template', requireAuth, (req, res) => {
     ['condition', 'new', lang === 'uz' ? 'Yangi' : lang === 'ru' ? 'Новое' : 'New'],
     ['condition', 'used', lang === 'uz' ? 'Ishlatilgan' : lang === 'ru' ? 'Б/у' : 'Used'],
     ...CURRENCY_CODES.map((c) => ['currency', c, '']),
-    ...['total', 'hour', 'day', 'shift', 'ton', 'm3', 'piece'].map((u) => ['price_unit', u, '']),
+    ...['total', 'hour', 'day', 'shift', 'ton', 'm3', 'piece', 'bag', 'load'].map((u) => ['price_unit', u, '']),
     ...regions.map((g) => ['region (UZ)', g.code, nm(g.names)]),
   ];
   const buf = writeXlsx([

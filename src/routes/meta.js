@@ -30,7 +30,7 @@ r.get('/meta', (req, res) => {
     currencies: CURRENCY_CODES.map((code) => ({ code, name: currencyName(code, lang), per_usd: rates[code] })),
     deal_types: ['sale', 'rent', 'service'].map((v) => ({ value: v, label: t(lang, `deal.${v}`) })),
     conditions: ['new', 'used'].map((v) => ({ value: v, label: t(lang, `cond.${v}`) })),
-    price_units: ['total', 'hour', 'day', 'shift', 'ton', 'm3', 'piece'].map((v) => ({ value: v, label: v === 'total' ? null : t(lang, `unit.${v}`) })),
+    price_units: ['total', 'hour', 'day', 'shift', 'ton', 'm3', 'piece', 'bag', 'load'].map((v) => ({ value: v, label: v === 'total' ? null : t(lang, `unit.${v}`) })),
     listing_statuses: ['draft', 'moderation', 'active', 'rejected', 'archived', 'sold', 'deleted'].map((v) => ({ value: v, label: t(lang, `ls.${v}`) })),
     order_statuses: ['new', 'confirmed', 'shipped', 'delivered', 'completed', 'cancelled'].map((v) => ({ value: v, label: t(lang, `os.${v}`) })),
     lead_statuses: ['new', 'awaiting', 'negotiating', 'closed'].map((v) => ({ value: v, label: t(lang, `lead.${v}`) })),

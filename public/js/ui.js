@@ -61,7 +61,9 @@ export function header(path) {
       <div class="m-search"><form class="search" data-search>${icon('search')}<input name="q" value="${esc(q)}" placeholder="${esc(t('search_ph'))}">${voiceButton()}<button class="btn btn-primary">${esc(t('find'))}</button></form></div>
     </div>
     <div class="row2">
-      <nav>${cats.map((c) => `<a href="/catalog?category=${c.slug}" class="${new URLSearchParams(location.search).get('category') === c.slug ? 'on' : ''}">${esc(shortCat(c))}</a>`).join('')}<a href="/fura" class="${path.startsWith('/fura') ? 'on' : ''}">${esc(t('nav_logistics'))}</a></nav>
+      <nav>${cats.map((c) => (c.slug === 'materials'
+        ? `<a href="/materials" class="${path.startsWith('/materials') ? 'on' : ''}">${esc(shortCat(c))}</a>`
+        : `<a href="/catalog?category=${c.slug}" class="${new URLSearchParams(location.search).get('category') === c.slug ? 'on' : ''}">${esc(shortCat(c))}</a>`)).join('')}<a href="/fura" class="${path.startsWith('/fura') ? 'on' : ''}">${esc(t('nav_logistics'))}</a></nav>
       <a href="/create" class="post-cta">${icon('plus')} ${esc(t('post_listing'))}</a>
     </div>
   </div></header>${ann}`;

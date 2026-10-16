@@ -142,7 +142,23 @@ main.page { padding: 28px 0 56px; min-height: 60vh; }
 .hero > * { min-width: 0; }
 .hero h1 { overflow-wrap: break-word; }
 .search input { min-width: 0; flex: 1; }
-.hero .right .badge-white { position: absolute; left: 18px; bottom: 18px; }
+.hero .right .badge-white { position: absolute; left: 18px; bottom: 18px; z-index: 1; }
+/* Hero rasmi ustidagi HEMU.UZ reklamasi */
+.hero .right::before { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, rgba(7, 26, 46, .88) 0%, rgba(7, 26, 46, .62) 42%, rgba(7, 26, 46, .05) 78%); }
+.hero-ad { position: absolute; inset: 24px auto auto 26px; max-width: min(62%, 380px); color: #fff; z-index: 1; animation: heroAdIn .7s ease-out both; }
+.hero-ad-logo svg.mark { height: 34px; width: auto; display: block; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .35)); }
+.hero-ad h2 { margin: 14px 0 8px; font-size: 26px; line-height: 1.15; font-weight: 800; letter-spacing: -.01em; text-shadow: 0 2px 12px rgba(0, 0, 0, .35); }
+.hero-ad p { margin: 0 0 14px; font-size: 13px; line-height: 1.5; color: #d6e4f2; }
+.hero-ad ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.hero-ad li { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
+.hero-ad li svg.i { width: 18px; height: 18px; padding: 3px; border-radius: 50%; background: var(--yellow, #ffc61a); color: #0e3352; flex: none; }
+@keyframes heroAdIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@media (max-width: 760px) {
+  .hero-ad { inset: 16px 16px auto 16px; max-width: 78%; }
+  .hero-ad-logo svg.mark { height: 26px; }
+  .hero-ad h2 { font-size: 19px; margin: 10px 0 6px; }
+  .hero-ad p, .hero-ad ul { display: none; }
+}
 .badge-white { background: #fff; color: var(--ink); font-size: 12px; padding: 8px 14px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,.12); }
 
 /* ---------- Category tiles ---------- */

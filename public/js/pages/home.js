@@ -1,5 +1,5 @@
 import { state, t, esc, api, icon, num, qs } from '../core.js';
-import { cards, card, tierBadge, secHead, NAV_SLUGS, shortCat, catIcon, priceText } from '../ui.js';
+import { cards, card, tierBadge, secHead, NAV_SLUGS, shortCat, catIcon, priceText, LOGO } from '../ui.js';
 import { voiceButton } from '../features.js';
 import { sectionsGrid } from './sections.js';
 
@@ -19,7 +19,14 @@ export default async function home() {
         <a href="/catalog?category=equipment-rental">${esc(t('crane_rent'))}</a>
       </div>
     </div>
-    <div class="right" style="background-image:url('/img/demo/hero.jpg')"><span class="badge-white">${esc(t('hero_badge', { n: num(d.hero.total_active), d: d.hero.directions }))}</span></div>
+    <div class="right" style="background-image:url('/img/demo/hero.jpg')">
+      <div class="hero-ad">
+        <span class="hero-ad-logo">${LOGO}</span>
+        <h2>${esc(t('hero_ad_title'))}</h2>
+        <p>${esc(t('hero_ad_sub'))}</p>
+        <ul>${['hero_ad_p1', 'hero_ad_p2', 'hero_ad_p3'].map((k) => `<li>${icon('check')} ${esc(t(k))}</li>`).join('')}</ul>
+      </div>
+      <span class="badge-white">${esc(t('hero_badge', { n: num(d.hero.total_active), d: d.hero.directions }))}</span></div>
   </section>
 
   ${carousel(ads, d.tiers)}

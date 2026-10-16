@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'movexgo-acc-'));
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hemu-acc-'));
 process.env.NODE_ENV = 'test';
 process.env.DB_FILE = path.join(tmp, 'test.db');
 process.env.UPLOAD_DIR = path.join(tmp, 'uploads');
@@ -47,8 +47,8 @@ before(async () => {
   const app = boot(process.env.DB_FILE);
   await new Promise((r) => { server = app.listen(0, r); });
   base = `http://127.0.0.1:${server.address().port}`;
-  S.seller = (await api('POST', '/api/v1/auth/login', { body: { phone: '+998901234567', password: 'Movex2026' } })).body;
-  S.buyer = (await api('POST', '/api/v1/auth/login', { body: { phone: '+998907654321', password: 'Movex2026' } })).body;
+  S.seller = (await api('POST', '/api/v1/auth/login', { body: { phone: '+998901234567', password: 'Hemu2026' } })).body;
+  S.buyer = (await api('POST', '/api/v1/auth/login', { body: { phone: '+998907654321', password: 'Hemu2026' } })).body;
 });
 
 after(() => {

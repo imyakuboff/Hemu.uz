@@ -67,7 +67,7 @@ function parseCsv(text) {
 r.get('/my/listings/import/template', requireAuth, (_req, res) => {
   const sample = ['sale', 'parts', 'filters', 'Фильтр топливный JCB 32/925869', 'Оригинальный топливный фильтр JCB. Заводская упаковка, отгрузка в день оплаты.', '350000', 'UZS', 'total', 'new', 'JCB', '', '', '', '', '32/925869', 'JCB', '15', '12', 'JCB 3CX;JCB 4CX', 'tashkent', 'Ташкент', '', ''];
   const esc = (s) => (/[",;\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s);
-  res.set({ 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': 'attachment; filename="movexgo-import.csv"' });
+  res.set({ 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': 'attachment; filename="hemu-import.csv"' });
   res.send(`﻿${COLS.join(',')}\n${sample.map(esc).join(',')}\n`);
 });
 

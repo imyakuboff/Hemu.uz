@@ -177,7 +177,7 @@ export async function importPage() {
         const r = await fetch('/api/v1/my/listings/import/template', { headers: { Authorization: `Bearer ${state.token}` } });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(await r.blob());
-        a.download = 'movexgo-import.csv';
+        a.download = 'hemu-import.csv';
         a.click();
       };
       $('[data-imp]', main).onsubmit = async (e) => {

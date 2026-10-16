@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 cd /d "%~dp0"
-title MovexGo Market API
+title HEMU.UZ
 
 where node >nul 2>nul || (echo [XATO] Node.js topilmadi. https://nodejs.org dan 22+ versiyani o'rnating. & pause & exit /b 1)
 

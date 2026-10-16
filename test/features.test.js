@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'movexgo-feat-'));
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hemu-feat-'));
 process.env.NODE_ENV = 'test';
 process.env.DB_FILE = path.join(tmp, 'test.db');
 process.env.UPLOAD_DIR = path.join(tmp, 'uploads');

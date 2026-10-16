@@ -30,7 +30,7 @@ async function api(method, url, { token, body, lang = 'ru' } = {}) {
   try { json = JSON.parse(text); } catch { json = text; }
   return { status: res.status, body: json };
 }
-const login = async (phone) => (await api('POST', '/api/v1/auth/login', { body: { phone, password: 'Movex2026' } })).body;
+const login = async (phone) => (await api('POST', '/api/v1/auth/login', { body: { phone, password: 'Hemu2026' } })).body;
 
 before(async () => {
   seed(process.env.DB_FILE);

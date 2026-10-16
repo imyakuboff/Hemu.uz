@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'movexgo-adm-'));
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hemu-adm-'));
 process.env.NODE_ENV = 'test';
 process.env.DB_FILE = path.join(tmp, 'test.db');
 process.env.UPLOAD_DIR = path.join(tmp, 'uploads');
@@ -30,7 +30,7 @@ async function api(method, url, { token, body, lang = 'ru', currency } = {}) {
   try { json = JSON.parse(text); } catch { json = text; }
   return { status: res.status, body: json, headers: res.headers };
 }
-const login = async (phone, password = 'Movex2026') => (await api('POST', '/api/v1/auth/login', { body: { phone, password } })).body;
+const login = async (phone, password = 'Hemu2026') => (await api('POST', '/api/v1/auth/login', { body: { phone, password } })).body;
 
 before(async () => {
   seed(process.env.DB_FILE);

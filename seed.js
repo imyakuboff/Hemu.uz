@@ -95,7 +95,7 @@ function seed(file = config.dbFile) {
     return id;
   };
 
-  // Dizayndagi e'lonlar (Figma "Movex Market"), Markaziy Osiyo bo'ylab taqsimlangan
+  // Dizayndagi e'lonlar (HEMU.UZ), Markaziy Osiyo bo'ylab taqsimlangan
   const P = (...names) => names.map((n) => `/img/demo/${n}.jpg`);
 
   // --- O'zbekiston: TexnoPark ---
@@ -259,7 +259,7 @@ function seed(file = config.dbFile) {
   // ---------- Ro'yxatdan o'tish, bo'limlar, biznes kabinet ----------
   const { hashPassword } = require('./src/routes/auth');
   const { upsertSpecialist } = require('./src/lib/people');
-  const demoPass = hashPassword('Movex2026');
+  const demoPass = hashPassword('Hemu2026');
   db.run(`UPDATE users SET password_hash = ?, password_set_at = datetime('now')`, demoPass);
   db.run(`UPDATE users SET account_type = 'company' WHERE id IN (SELECT owner_id FROM companies)`);
   const act = { [cTexno]: ['equipment_sale', 'parts', 'repair'], [cAlmaty]: ['equipment_sale', 'equipment_rent', 'materials'], [cBishkek]: ['equipment_sale'], [cAshgabat]: ['equipment_sale', 'logistics'], [cBaku]: ['equipment_sale'], [cMoscow]: ['equipment_rent', 'logistics'] };
@@ -359,7 +359,7 @@ if (require.main === module) {
   console.log('  sotuvchi +998901234567 (TexnoPark, Toshkent)');
   console.log('  xaridor  +998907654321');
   console.log('  mexanik +998935551122, haydovchi +998977778899');
-  console.log("  Hammasining paroli: Movex2026");
+  console.log("  Hammasining paroli: Hemu2026");
 }
 
 module.exports = { seed, seedFreightDemo };

@@ -735,7 +735,7 @@ admin.get('/system', (_req, res) => {
 
 // Bazaning nusxasi (zaxira) — yuklab olish
 admin.get('/system/backup', (req, res) => {
-  const tmp = path.join(os.tmpdir(), `movexgo-backup-${Date.now()}.db`);
+  const tmp = path.join(os.tmpdir(), `hemu-backup-${Date.now()}.db`);
   db.exec(`VACUUM INTO '${tmp.replace(/'/g, "''")}'`);
   log(req, 'system.backup');
   res.download(tmp, `hemu-${new Date().toISOString().slice(0, 10)}.db`, () => fs.rm(tmp, { force: true }, () => {}));

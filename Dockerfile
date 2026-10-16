@@ -1,4 +1,4 @@
-# MovexGo Market — bitta konteyner (API + frontend)
+# HEMU.UZ — bitta konteyner (API + frontend)
 FROM node:24-alpine
 WORKDIR /app
 ENV NODE_ENV=production PORT=4700 DB_FILE=/data/movexgo.db UPLOAD_DIR=/data/uploads

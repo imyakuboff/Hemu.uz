@@ -32,7 +32,7 @@ async function api(method, url, { token, body, lang = 'ru', currency } = {}) {
   try { json = JSON.parse(text); } catch { json = text; }
   return { status: res.status, body: json };
 }
-const login = async (phone, password = 'Movex2026') => (await api('POST', '/api/v1/auth/login', { body: { phone, password } })).body;
+const login = async (phone, password = 'Hemu2026') => (await api('POST', '/api/v1/auth/login', { body: { phone, password } })).body;
 
 before(async () => {
   seed(process.env.DB_FILE);
@@ -128,14 +128,14 @@ test("integratsiyalar: kalitlar yashirin saqlanadi, Click/Payme yoqiladi, test S
 
 test('admin uchun ikki bosqichli kirish (SMS-kod)', async () => {
   await A('PUT', '/integrations', { adminTwoFactor: true });
-  const first = await api('POST', '/api/v1/auth/login', { body: { phone: '+998900000001', password: 'Movex2026' } });
+  const first = await api('POST', '/api/v1/auth/login', { body: { phone: '+998900000001', password: 'Hemu2026' } });
   assert.equal(first.body.two_factor, true);
   assert.equal(first.body.token, undefined, "kodsiz token berilmaydi");
-  assert.equal((await api('POST', '/api/v1/auth/login', { body: { phone: '+998900000001', password: 'Movex2026', code: '000000' } })).status, 422);
-  const ok = await api('POST', '/api/v1/auth/login', { body: { phone: '+998900000001', password: 'Movex2026', code: first.body.dev_code } });
+  assert.equal((await api('POST', '/api/v1/auth/login', { body: { phone: '+998900000001', password: 'Hemu2026', code: '000000' } })).status, 422);
+  const ok = await api('POST', '/api/v1/auth/login', { body: { phone: '+998900000001', password: 'Hemu2026', code: first.body.dev_code } });
   assert.ok(ok.body.token);
   // Oddiy foydalanuvchiga ta'sir qilmaydi
-  assert.ok((await api('POST', '/api/v1/auth/login', { body: { phone: '+998901234567', password: 'Movex2026' } })).body.token);
+  assert.ok((await api('POST', '/api/v1/auth/login', { body: { phone: '+998901234567', password: 'Hemu2026' } })).body.token);
   S.admin = ok.body;
   await A('PUT', '/integrations', { adminTwoFactor: false });
 });

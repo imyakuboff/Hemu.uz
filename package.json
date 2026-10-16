@@ -1,7 +1,7 @@
 {
-  "name": "movexgo-market-api",
+  "name": "hemu-uz",
   "version": "1.0.0",
-  "description": "MovexGo Market backend — Markaziy Osiyo uchun texnika, ehtiyot qism, material va xizmatlar bozori (REST API)",
+  "description": "HEMU.UZ — Markaziy Osiyo uchun texnika, ehtiyot qism, material va xizmatlar bozori (REST API)",
   "private": true,
   "main": "src/server.js",
   "engines": {

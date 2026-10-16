@@ -1,8 +1,8 @@
 # HEMU.UZ
 
-Brend: **HEMU.UZ** (logo: `public/img/logo.svg`; ranglar — navy, ko'k, sariq aksent). Loyiha papkasi va baza fayli eski nomda qolgan (`movexgo-market-api`, `data/movexgo.db`).
+Brend: **HEMU.UZ** (logo: `public/img/logo.svg`; ranglar — navy, ko'k, sariq aksent). Baza fayli: `data/movexgo.db` (ichki nom).
 
-Figma "Movex Market" dizayni asosidagi to'liq platforma (frontend + backend): Markaziy Osiyo bo'yicha maxsus texnika, ehtiyot qismlar, qurilish materiallari va xizmatlar bozori.
+HEMU.UZ — to'liq platforma (frontend + backend): Markaziy Osiyo bo'yicha maxsus texnika, ehtiyot qismlar, qurilish materiallari va xizmatlar bozori.
 
 **Ishga tushirish:** `start.bat` → brauzerda http://localhost:4700/ ochiladi. API havolalari: http://localhost:4700/api
 
@@ -57,7 +57,7 @@ Build qadamisiz vanilla JS (ES modullar), backend bilan bitta serverda. Dizaynda
 | **Kengaytirilgan statistika** — voronka, manbalar, konversiya | `/analytics` | Ishlaydi |
 | **PWA** — telefonga o'rnatish, oflayn sahifa | Avtomatik | Ishlaydi (HTTPS kerak) |
 | **SEO** — server tomonda title/description/Open Graph, JSON-LD Product, `sitemap.xml`, `robots.txt` | — | Ishlaydi |
-| **Deploy** — `Dockerfile`, `docker-compose.yml`, `deploy/nginx.conf`, `deploy/movexgo.service` | — | Tayyor |
+| **Deploy** — `Dockerfile`, `docker-compose.yml`, `deploy/nginx.conf`, `deploy/hemu.service` | — | Tayyor |
 
 ### Hisob turlari va bo'limlar
 | Funksiya | Qayerda |
@@ -74,7 +74,7 @@ Build qadamisiz vanilla JS (ES modullar), backend bilan bitta serverda. Dizaynda
 
 Inter shrifti lokal (`public/vendor/inter`) — tashqi CDN kerak emas.
 ### Platforma admin paneli (`/admin`)
-Faqat `role = admin` uchun. Kirish: `+998900000001` / `Movex2026`.
+Faqat `role = admin` uchun. Kirish: `+998900000001` / `Hemu2026`.
 
 | Bo'lim | Imkoniyatlar |
 |---|---|
@@ -107,10 +107,10 @@ Click va Payme faqat so'mda qabul qiladi — boshqa valyutadagi narxlar to'lov p
 SQLite (WAL rejimida) bir necha ming faol foydalanuvchiga yetadi. Kattaroq yuklama uchun PostgreSQL'ga ko'chirish keyingi bosqich sifatida tavsiya etiladi.
 
 ### Testlar
-`npm test` — 44 ta e2e test (`test/admin.test.js` — admin panel, hamyon, push, sozlamalar; `test/api.test.js` — asosiy oqimlar, `test/features.test.js` — to'lovlar, escrow, ijara, xarita, SEO; `test/accounts.test.js` — ro'yxatdan o'tish turlari, parol, biznes kabinet, bo'limlar, PDF).
+`npm test` — 60 ta e2e test (`test/admin.test.js` — admin panel, hamyon, push, sozlamalar; `test/api.test.js` — asosiy oqimlar, `test/features.test.js` — to'lovlar, escrow, ijara, xarita, SEO; `test/accounts.test.js` — ro'yxatdan o'tish turlari, parol, biznes kabinet, bo'limlar, PDF).
 
 ## Backend API
-Figma "Movex Market" dizayni uchun backend: Markaziy Osiyo bo'yicha maxsus texnika, ehtiyot qismlar, qurilish materiallari va xizmatlar bozori.
+HEMU.UZ backend: Markaziy Osiyo bo'yicha maxsus texnika, ehtiyot qismlar, qurilish materiallari va xizmatlar bozori.
 
 - **Mamlakatlar (8):** O'zbekiston, Qozog'iston, Qirg'iziston, Tojikiston, Turkmaniston, Afg'oniston, Ozarbayjon, Rossiya
 - **Tillar (10):** `uz` o'zbek, `ru` rus, `en` ingliz, `kk` qozoq, `ky` qirg'iz, `tg` tojik, `tk` turkman, `az` ozarbayjon, `prs` dari (RTL), `ps` pashto (RTL)

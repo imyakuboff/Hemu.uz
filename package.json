@@ -1,0 +1,23 @@
+{
+  "name": "movexgo-market-api",
+  "version": "1.0.0",
+  "description": "MovexGo Market backend — Markaziy Osiyo uchun texnika, ehtiyot qism, material va xizmatlar bozori (REST API)",
+  "private": true,
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning src/server.js",
+    "dev": "node --disable-warning=ExperimentalWarning --watch src/server.js",
+    "seed": "node --disable-warning=ExperimentalWarning seed.js",
+    "test": "node --disable-warning=ExperimentalWarning --test \"test/**/*.test.js\""
+  },
+  "dependencies": {
+    "dejavu-fonts-ttf": "2.37.3",
+    "express": "5.1.0",
+    "multer": "2.4.0",
+    "pdfkit": "0.15.2",
+    "web-push": "3.6.7"
+  }
+}

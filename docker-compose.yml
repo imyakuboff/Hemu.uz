@@ -1,0 +1,14 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      NODE_ENV: production
+    volumes:
+      - movexgo-data:/data
+    ports:
+      - "127.0.0.1:4700:4700"
+
+volumes:
+  movexgo-data:

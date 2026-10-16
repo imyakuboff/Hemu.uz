@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 40" role="img" aria-label="HEMU.UZ">
+  <!-- HEMU.UZ: texnika brendlari (JCB, CAT, Komatsu) uslubidagi qiya plashka, qalin kursiv harflar -->
+  <polygon points="8,0 108,0 100,40 0,40" fill="#FFC61A"/>
+  <polygon points="112,0 150,0 142,40 104,40" fill="#0E3352"/>
+  <g transform="translate(12 9) skewX(-12)" fill="#111">
+    <path d="M0 0h6v8h6V0h6v22h-6v-8H6v8H0z"/>
+    <path d="M22 0h17v5.5H28v2.75h9v5.5h-9v2.75h11V22H22z"/>
+    <path d="M43 0h6.5l4.5 8 4.5-8H65v22h-6v-11l-5 8-5-8v11h-6z"/>
+    <path d="M69 0h6v13a3 3 0 0 0 6 0V0h6v13a9 9 0 0 1-18 0z"/>
+  </g>
+  <g transform="translate(112 13.4) skewX(-12) scale(.6)" fill="#FFC61A">
+    <rect x="0" y="16" width="6" height="6"/>
+    <path d="M10 0h6v13a3 3 0 0 0 6 0V0h6v13a9 9 0 0 1-18 0z"/>
+    <path d="M32 0h18v5L39.5 17H50v5H32v-5L42.5 5H32z"/>
+  </g>
+</svg>

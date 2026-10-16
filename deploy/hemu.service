@@ -1,0 +1,25 @@
+# /etc/systemd/system/hemu.service
+# O'rnatish: sudo cp deploy/hemu.service /etc/systemd/system/ && sudo systemctl enable --now hemu
+[Unit]
+Description=HEMU.UZ market
+After=network.target
+
+[Service]
+Type=simple
+User=hemu
+WorkingDirectory=/opt/hemu
+EnvironmentFile=/opt/hemu/.env
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node --disable-warning=ExperimentalWarning src/server.js
+Restart=always
+RestartSec=3
+# Xavfsizlik: faqat data/ papkasiga yozish mumkin
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/hemu/data
+PrivateTmp=true
+MemoryMax=600M
+
+[Install]
+WantedBy=multi-user.target

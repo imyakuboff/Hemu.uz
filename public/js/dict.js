@@ -1,0 +1,952 @@
+// Interfeys matnlari. Har qator: kalit|uz|ru|en|kk|ky|tg|tk|az|prs|ps
+const RAW = `
+loc_all|Butun mintaqa|Весь регион|Whole region|Бүкіл аймақ|Бүт аймак|Тамоми минтақа|Ähli sebit|Bütün region|تمام منطقه|ټوله سیمه
+for_business|Biznes uchun|Для бизнеса|For business|Бизнес үшін|Бизнес үчүн|Барои тиҷорат|Biznes üçin|Biznes üçün|برای کسب‌وکار|د سوداګرۍ لپاره
+help|Yordam|Помощь|Help|Көмек|Жардам|Кӯмак|Kömek|Kömək|کمک|مرسته
+about|Platforma haqida|О площадке|About|Алаң туралы|Аянтча жөнүндө|Дар бораи платформа|Platforma barada|Platforma haqqında|درباره پلتفرم|د پلاتفورم په اړه
+catalog|Katalog|Каталог|Catalog|Каталог|Каталог|Каталог|Katalog|Kataloq|کاتالوگ|کتلاګ
+search_ph|Texnika, ehtiyot qismlar, xizmatlar — hammasi topiladi|Техника, запчасти, услуги — найдётся всё|Equipment, parts, services — find it all|Техника, бөлшектер, қызметтер — бәрі табылады|Техника, бөлүктөр, кызматтар — баары табылат|Техника, қисмҳо, хизматҳо — ҳама ёфт мешавад|Tehnika, şaýlar, hyzmatlar — hemmesi tapylar|Texnika, hissələr, xidmətlər — hamısı tapılar|ماشین‌آلات، پرزه‌جات، خدمات — همه پیدا می‌شود|ماشینونه، پرزې، خدمتونه — هر څه پیدا کېږي
+find_listings|E'lonlarni topish|Найти объявления|Find listings|Хабарландыру табу|Жарнама табуу|Ёфтани эълонҳо|Bildiriş tapmak|Elan tap|یافتن آگهی‌ها|اعلانونه ومومئ
+search_resumes|Rezyumelar bo'yicha qidiruv: ism, texnika, marka|Поиск по резюме: имя, техника, марка|Search resumes: name, machine, brand|Түйіндемелер бойынша іздеу: аты, техника, марка|Резюмелерден издөө: аты, техника, марка|Ҷустуҷӯ дар резюмеҳо: ном, техника, тамға|Rezýumelerde gözleg: ady, tehnika, marka|Rezümelərdə axtarış: ad, texnika, marka|جستجوی رزومه: نام، ماشین، برند|په سوانحو کې لټون: نوم، ماشین، برانډ
+search_jobs|Vakansiyalar bo'yicha qidiruv|Поиск по вакансиям|Search vacancies|Бос орындар бойынша іздеу|Вакансиялардан издөө|Ҷустуҷӯи ҷойҳои корӣ|Boş iş orunlarynda gözleg|Vakansiyalarda axtarış|جستجوی آگهی‌های استخدام|د دندو لټون
+found_items|Topildi: {n}|Найдено: {n}|Found: {n}|Табылды: {n}|Табылды: {n}|Ёфт шуд: {n}|Tapyldy: {n}|Tapıldı: {n}|یافت شد: {n}|وموندل شول: {n}
+followers_lbl|Obunachilar|Подписчики|Followers|Жазылушылар|Жазылуучулар|Обуначиён|Yzarlaýjylar|İzləyicilər|دنبال‌کنندگان|تعقیبوونکي
+imp_as|Siz {name} nomidan kirgansiz|Вы вошли как {name}|You are logged in as {name}|Сіз {name} ретінде кірдіңіз|Сиз {name} катары кирдиңиз|Шумо ҳамчун {name} ворид шудед|Siz {name} hökmünde girdiňiz|Siz {name} kimi daxil olmusunuz|شما به‌عنوان {name} وارد شده‌اید|تاسو د {name} په توګه ننوتلي یاست
+imp_back|Admin panelga qaytish|Вернуться в админ-панель|Back to admin|Әкімші панеліне оралу|Админ панелге кайтуу|Бозгашт ба панели маъмур|Admin paneline dolanmak|Admin panelə qayıt|بازگشت به پنل مدیر|مدیر پینل ته ستنېدل
+wallet|Balans|Баланс|Balance|Баланс|Баланс|Тавозун|Balans|Balans|موجودی|بیلانس
+wallet_sub|Xizmatlarni balansdan bir bosishda to'lang|Оплачивайте услуги с баланса в один клик|Pay for services from your balance in one click|Қызметтерді баланстан бір басумен төлеңіз|Кызматтарды баланстан бир басуу менен төлөңүз|Хизматҳоро аз тавозун бо як клик пардохт кунед|Hyzmatlary balansdan bir basyşda töläň|Xidmətləri balansdan bir kliklə ödəyin|خدمات را با یک کلیک از موجودی بپردازید|خدمتونه له بیلانس څخه په یوه کلیک تادیه کړئ
+topup_btn|Balansni to'ldirish|Пополнить баланс|Top up balance|Балансты толтыру|Балансты толуктоо|Пур кардани тавозун|Balansy doldurmak|Balansı artır|شارژ موجودی|بیلانس ډک کړئ
+wallet_history|Balans tarixi|История баланса|Balance history|Баланс тарихы|Баланс тарыхы|Таърихи тавозун|Balans taryhy|Balans tarixçəsi|تاریخچه موجودی|د بیلانس تاریخ
+pay_balance|Balansdan|С баланса|From balance|Баланстан|Баланстан|Аз тавозун|Balansdan|Balansdan|از موجودی|له بیلانس
+push_browser|Brauzer bildirishnomalari (sayt yopiq bo'lsa ham)|Push-уведомления в браузере (даже если сайт закрыт)|Browser push notifications (even when the site is closed)|Браузердегі хабарландырулар (сайт жабық болса да)|Браузердеги билдирүүлөр (сайт жабык болсо да)|Огоҳиномаҳои браузер (ҳатто агар сайт баста бошад)|Brauzer habarnamalary (saýt ýapyk bolsa-da)|Brauzer bildirişləri (sayt bağlı olsa belə)|اعلان‌های مرورگر (حتی وقتی سایت بسته است)|د براوزر خبرتیاوې (حتی کله چې سایټ بند وي)
+push_denied|Brauzerda bildirishnomalar taqiqlangan — sozlamalardan ruxsat bering|Уведомления запрещены в браузере — разрешите их в настройках|Notifications are blocked in the browser — allow them in settings|Браузерде хабарландыруларға тыйым салынған|Браузерде билдирүүлөргө тыюу салынган|Огоҳиномаҳо дар браузер манъ шудаанд|Brauzerde habarnamalar gadagan edilen|Brauzerdə bildirişlər qadağandır|اعلان‌ها در مرورگر مسدود است|په براوزر کې خبرتیاوې بندې دي
+push_unsupported|Bu brauzer push-bildirishnomalarni qo'llamaydi|Этот браузер не поддерживает push-уведомления|This browser does not support push notifications|Бұл браузер push-хабарландыруларды қолдамайды|Бул браузер push-билдирүүлөрдү колдобойт|Ин браузер push-ро дастгирӣ намекунад|Bu brauzer push habarnamalaryny goldamaýar|Bu brauzer push bildirişlərini dəstəkləmir|این مرورگر از اعلان پشتیبانی نمی‌کند|دا براوزر خبرتیاوې نه ملاتړ کوي
+legal_form|Tashkiliy-huquqiy shakl|Организационно-правовая форма|Legal form|Ұйымдық-құқықтық нысан|Уюштуруу-укуктук форма|Шакли ташкилию ҳуқуқӣ|Guramaçylyk-hukuk görnüşi|Təşkilati-hüquqi forma|شکل حقوقی|حقوقي بڼه
+requisites|Rekvizitlar|Реквизиты|Requisites|Деректемелер|Реквизиттер|Реквизитҳо|Rekwizitler|Rekvizitlər|مشخصات حقوقی و بانکی|حقوقي او بانکي معلومات
+requisites_hint|Mamlakatingiz talablariga ko'ra to'ldiring — tekshiruv uchun kerak|Заполните по требованиям вашей страны — нужно для проверки|Fill in according to your country's rules — required for verification|Еліңіздің талаптарына сай толтырыңыз|Өлкөңүздүн талаптарына ылайык толтуруңуз|Мувофиқи талаботи кишвар пур кунед|Ýurduňyzyň talaplaryna laýyklykda dolduryň|Ölkənizin tələblərinə uyğun doldurun|مطابق قوانین کشورتان پر کنید|د خپل هېواد د قواعدو سره سم ډک کړئ
+bank_details|Bank rekvizitlari|Банковские реквизиты|Bank details|Банк деректемелері|Банк реквизиттери|Реквизитҳои бонкӣ|Bank rekwizitleri|Bank rekvizitləri|مشخصات بانکی|بانکي معلومات
+docs_title|Hujjatlar|Документы|Documents|Құжаттар|Документтер|Ҳуҷҷатҳо|Resminamalar|Sənədlər|مدارک|اسناد
+docs_hint|PDF, JPG yoki PNG, 10 MB gacha. Guvohnoma — majburiy|PDF, JPG или PNG до 10 МБ. Свидетельство — обязательно|PDF, JPG or PNG up to 10 MB. Certificate is required|PDF, JPG немесе PNG, 10 МБ дейін. Куәлік міндетті|PDF, JPG же PNG, 10 МБ чейин. Күбөлүк милдеттүү|PDF, JPG ё PNG то 10 МБ. Шаҳодатнома ҳатмист|PDF, JPG ýa-da PNG, 10 MB çenli. Şahadatnama hökmany|PDF, JPG və ya PNG, 10 MB-dək. Şəhadətnamə məcburidir|PDF، JPG یا PNG تا ۱۰ مگابایت. گواهی الزامی است|PDF، JPG یا PNG تر ۱۰ MB. سند اړین دی
+doc_upload|Yuklash|Загрузить|Upload|Жүктеу|Жүктөө|Бор кардан|Ýüklemek|Yüklə|بارگذاری|پورته کول
+doc_uploaded|Yuklangan|Загружено|Uploaded|Жүктелді|Жүктөлдү|Бор шуд|Ýüklendi|Yükləndi|بارگذاری شد|پورته شو
+required_mark|majburiy|обязательно|required|міндетті|милдеттүү|ҳатмӣ|hökmany|məcburi|الزامی|اړین
+reject_reason_lbl|Rad etish sababi: {r}|Причина отказа: {r}|Rejection reason: {r}|Бас тарту себебі: {r}|Баш тартуу себеби: {r}|Сабаби рад: {r}|Ret etmegiň sebäbi: {r}|İmtina səbəbi: {r}|دلیل رد: {r}|د ردولو لامل: {r}
+docs_sent|Hujjatlar tekshiruvga yuborildi|Документы отправлены на проверку|Documents sent for review|Құжаттар тексеруге жіберілді|Документтер текшерүүгө жөнөтүлдү|Ҳуҷҷатҳо барои санҷиш фиристода шуданд|Resminamalar barlaga iberildi|Sənədlər yoxlamaya göndərildi|مدارک برای بررسی ارسال شد|اسناد د کتنې لپاره ولېږل شول
+post_short|Joylash|Подать|Post|Беру|Берүү|Ҷойгир|Goýmak|Yerləşdir|ثبت|ورکول
+download|Yuklab olish|Скачать|Download|Жүктеу|Жүктөө|Боргирӣ|Ýüklemek|Yüklə|دانلود|ښکته کول
+print|Chop etish|Печать|Print|Басып шығару|Басып чыгаруу|Чоп|Çap etmek|Çap et|چاپ|چاپ
+find|Topish|Найти|Search|Табу|Табуу|Ёфтан|Tapmak|Tap|جستجو|لټون
+post_listing|E'lon joylash|Разместить объявление|Post a listing|Хабарландыру беру|Жарнама берүү|Ҷойгир кардани эълон|Bildiriş ýerleşdirmek|Elan yerləşdir|ثبت آگهی|اعلان ورکړئ
+login|Kirish|Войти|Sign in|Кіру|Кирүү|Ворид шудан|Girmek|Daxil ol|ورود|ننوتل
+nav_home|Bosh sahifa|Главная|Home|Басты бет|Башкы бет|Асосӣ|Baş sahypa|Ana səhifə|خانه|کور
+nav_fav|Saralangan|Избранное|Favorites|Таңдаулы|Тандалган|Интихобшуда|Saýlananlar|Seçilmişlər|علاقه‌مندی‌ها|خوښې
+nav_msgs|Xabarlar|Сообщения|Messages|Хабарламалар|Билдирүүлөр|Паёмҳо|Hatlar|Mesajlar|پیام‌ها|پیغامونه
+nav_profile|Profil|Профиль|Profile|Профиль|Профиль|Профил|Profil|Profil|پروفایل|پروفایل
+footer_tag|Biznesingiz uchun texnika.|Техника для вашего бизнеса.|Equipment for your business.|Бизнесіңізге арналған техника.|Бизнесиңиз үчүн техника.|Техника барои тиҷорати шумо.|Siziň işiňiz üçin tehnika.|Biznesiniz üçün texnika.|ماشین‌آلات برای کسب‌وکار شما.|ستاسو سوداګرۍ لپاره ماشینونه.
+safe_deals|Xavfsiz bitimlar|Безопасные сделки|Safe deals|Қауіпсіз мәмілелер|Коопсуз бүтүмдөр|Аҳдҳои бехатар|Howpsuz ylalaşyklar|Təhlükəsiz sövdələşmələr|معاملات امن|خوندي معاملې
+rules|Joylashtirish qoidalari|Правила размещения|Posting rules|Орналастыру ережелері|Жайгаштыруу эрежелери|Қоидаҳои ҷойгиркунӣ|Ýerleşdiriş düzgünleri|Yerləşdirmə qaydaları|قوانین ثبت آگهی|د خپرولو قواعد
+privacy|Maxfiylik siyosati|Политика конфиденциальности|Privacy policy|Құпиялылық саясаты|Купуялык саясаты|Сиёсати махфият|Gizlinlik syýasaty|Məxfilik siyasəti|سیاست حریم خصوصی|د محرمیت تګلاره
+hero_kicker|TEXNIKA. DETALLAR. YECHIMLAR.|ТЕХНИКА. ДЕТАЛИ. РЕШЕНИЯ.|EQUIPMENT. PARTS. SOLUTIONS.|ТЕХНИКА. БӨЛШЕКТЕР. ШЕШІМДЕР.|ТЕХНИКА. БӨЛҮКТӨР. ЧЕЧИМДЕР.|ТЕХНИКА. ҚИСМҲО. ҲАЛЛҲО.|TEHNIKA. ŞAÝLAR. ÇÖZGÜTLER.|TEXNİKA. HİSSƏLƏR. HƏLLƏR.|ماشین‌آلات. پرزه‌جات. راه‌حل‌ها.|ماشینونه. پرزې. حلونه.
+hero_title|Biznesingizni harakatlantiradigan hamma narsa|Всё, что движет ваш бизнес|Everything that moves your business|Бизнесіңізді алға жылжытатын бәрі|Бизнесиңизди алга жылдырган баары|Ҳар он чи тиҷорати шуморо ба пеш мебарад|Işiňizi öňe süýşürýän hemme zat|Biznesinizi irəli aparan hər şey|هر آنچه کسب‌وکار شما را به پیش می‌برد|هر هغه څه چې ستاسو سوداګري پرمخ وړي
+hero_sub|Butun Markaziy Osiyo bo'ylab sotib oling, ijaraga oling va ta'minotchilarni toping. Ekskavatordan kerakli ehtiyot qismgacha.|Покупайте, арендуйте и находите поставщиков по всей Центральной Азии. От экскаватора до нужной запчасти.|Buy, rent and find suppliers across Central Asia. From excavators to the right spare part.|Орталық Азия бойынша сатып алыңыз, жалға алыңыз, жеткізушілерді табыңыз. Экскаватордан қажетті бөлшекке дейін.|Борбордук Азия боюнча сатып алыңыз, ижарага алыңыз жана жеткирүүчүлөрдү табыңыз. Экскаватордон керектүү бөлүккө чейин.|Дар саросари Осиёи Марказӣ харед, иҷора гиред ва таъминкунандаҳоро ёбед. Аз экскаватор то қисми лозимӣ.|Merkezi Aziýa boýunça satyn alyň, kärendä alyň we üpjünçileri tapyň. Ekskawatordan zerur şaýa çenli.|Bütün Mərkəzi Asiya üzrə alın, icarəyə götürün və təchizatçıları tapın. Ekskavatordan lazımi hissəyə qədər.|در سراسر آسیای میانه بخرید، کرایه کنید و تأمین‌کنندگان را پیدا کنید. از بیل مکانیکی تا پرزه مورد نیاز.|په ټوله منځنۍ اسیا کې واخلئ، کرایه کړئ او عرضه کوونکي ومومئ. له اکسکاواتور تر اړینې پرزې پورې.
+often_searched|Ko'p qidiriladi:|Часто ищут:|Popular searches:|Жиі іздейді:|Көп издешет:|Бисёр ҷустуҷӯ мекунанд:|Köp gözlenýär:|Tez-tez axtarılır:|جستجوهای پرتکرار:|ډېر لټول کېږي:
+hero_badge|{n} ta e'lon · {d} yo'nalish|{n} объявлений · {d} направлений|{n} listings · {d} categories|{n} хабарландыру · {d} бағыт|{n} жарнама · {d} багыт|{n} эълон · {d} самт|{n} bildiriş · {d} ugur|{n} elan · {d} istiqamət|{n} آگهی · {d} بخش|{n} اعلانونه · {d} برخې
+find_direction|Kerakli yo'nalishni toping|Найдите нужное направление|Find the right category|Қажетті бағытты табыңыз|Керектүү багытты табыңыз|Самти лозимиро ёбед|Gerekli ugry tapyň|Lazımi istiqaməti tapın|بخش مورد نظر را پیدا کنید|اړینه برخه ومومئ
+all_categories|Barcha kategoriyalar|Все категории|All categories|Барлық санаттар|Бардык категориялар|Ҳамаи категорияҳо|Ähli kategoriýalar|Bütün kateqoriyalar|همه دسته‌ها|ټولې کټګورۍ
+listings_count|{n} ta e'lon|{n} объявлений|{n} listings|{n} хабарландыру|{n} жарнама|{n} эълон|{n} bildiriş|{n} elan|{n} آگهی|{n} اعلانونه
+trust_verified|Tekshirilgan sotuvchilar|Проверенные продавцы|Verified sellers|Тексерілген сатушылар|Текшерилген сатуучулар|Фурӯшандагони тасдиқшуда|Barlanan satyjylar|Yoxlanılmış satıcılar|فروشندگان تأییدشده|تایید شوي پلورونکي
+trust_region|Butun mintaqa bo'ylab ta'minotchilar|Поставщики по всей Центральной Азии|Suppliers across Central Asia|Бүкіл аймақтағы жеткізушілер|Бүт аймактагы жеткирүүчүлөр|Таъминкунандагон дар тамоми минтақа|Ähli sebitdäki üpjünçiler|Bütün regionda təchizatçılar|تأمین‌کنندگان در سراسر منطقه|په ټوله سیمه کې عرضه کوونکي
+trust_direct|To'g'ridan-to'g'ri, vositachilarsiz|Напрямую, без посредников|Direct, no middlemen|Тікелей, делдалсыз|Түз, ортомчусуз|Мустақим, бе миёнарав|Göni, araçysyz|Birbaşa, vasitəçisiz|مستقیم، بدون واسطه|مستقیم، پرته له منځګړي
+popular|Ommabop e'lonlar|Популярные объявления|Popular listings|Танымал хабарландырулар|Популярдуу жарнамалар|Эълонҳои маъмул|Meşhur bildirişler|Populyar elanlar|آگهی‌های محبوب|مشهور اعلانونه
+popular_sub|Eng ko'p tanlanayotgan texnika|Техника, которую выбирают чаще всего|Equipment chosen most often|Ең жиі таңдалатын техника|Эң көп тандалган техника|Техникае, ки бештар интихоб мекунанд|Iň köp saýlanýan tehnika|Ən çox seçilən texnika|ماشین‌آلاتی که بیشتر انتخاب می‌شوند|هغه ماشینونه چې ډېر غوره کېږي
+see_all|Hammasini ko'rish|Смотреть все|See all|Барлығын көру|Баарын көрүү|Ҳамаро дидан|Hemmesini görmek|Hamısına bax|دیدن همه|ټول وګورئ
+cta_title|Xaridoringiz allaqachon shu yerda|Ваш покупатель уже здесь|Your buyer is already here|Сатып алушыңыз осында|Сатып алуучуңуз ушул жерде|Харидори шумо аллакай дар ин ҷост|Alyjyňyz eýýäm şu ýerde|Alıcınız artıq buradadır|خریدار شما همین‌جاست|ستاسو پېرودونکی دلته دی
+cta_sub|Texnika, ehtiyot qism yoki xizmatni joylang. Birinchi e'lon — bepul.|Разместите технику, запчасти или услуги. Первое объявление — бесплатно.|Post equipment, parts or services. Your first listing is free.|Техника, бөлшек не қызметті орналастырыңыз. Алғашқы хабарландыру — тегін.|Техника, бөлүк же кызматты жайгаштырыңыз. Биринчи жарнама — акысыз.|Техника, қисм ё хизматро ҷойгир кунед. Эълони аввал — ройгон.|Tehnika, şaý ýa-da hyzmat ýerleşdiriň. Ilkinji bildiriş — mugt.|Texnika, hissə və ya xidmət yerləşdirin. İlk elan — pulsuz.|ماشین، پرزه یا خدمات را ثبت کنید. اولین آگهی رایگان است.|ماشین، پرزه یا خدمت خپور کړئ. لومړی اعلان وړیا دی.
+recommended|Sizga tavsiya etamiz|Рекомендуем вам|Recommended for you|Сізге ұсынамыз|Сизге сунуштайбыз|Ба шумо тавсия медиҳем|Size maslahat berýäris|Sizə tövsiyə edirik|پیشنهاد برای شما|تاسو ته وړاندیز
+recommended_sub|Biznesingiz uchun tanlov|Подборка для вашего бизнеса|Picked for your business|Бизнесіңізге арналған іріктеме|Бизнесиңиз үчүн тандоо|Интихоб барои тиҷорати шумо|Işiňiz üçin saýlanan|Biznesiniz üçün seçim|منتخب برای کسب‌وکار شما|ستاسو سوداګرۍ لپاره ټاکل شوي
+more_offers|Ko'proq takliflar|Больше предложений|More offers|Көбірек ұсыныс|Көбүрөөк сунуш|Пешниҳодҳои бештар|Has köp teklip|Daha çox təklif|پیشنهادهای بیشتر|نور وړاندیزونه
+recent|Yaqinda qo'shilganlar|Недавно добавленные|Recently added|Жақында қосылғандар|Жакында кошулгандар|Навакак иловашуда|Ýakynda goşulanlar|Son əlavə edilənlər|تازه اضافه‌شده|نوي اضافه شوي
+recent_sub|Tekshirilgan kompaniyalardan yangi takliflar|Свежие предложения от проверенных компаний|Fresh offers from verified companies|Тексерілген компаниялардан жаңа ұсыныстар|Текшерилген компаниялардан жаңы сунуштар|Пешниҳодҳои нав аз ширкатҳои тасдиқшуда|Barlanan kompaniýalardan täze teklipler|Yoxlanılmış şirkətlərdən təzə təkliflər|پیشنهادهای تازه از شرکت‌های تأییدشده|له تایید شویو شرکتونو نوي وړاندیزونه
+all_new|Barcha yangilari|Все новые|All new|Барлық жаңалары|Бардык жаңылары|Ҳамаи навҳо|Ähli täzeler|Bütün yenilər|همه تازه‌ها|ټول نوي
+not_found_title|Kerakli texnikani topmadingizmi?|Не нашли нужную технику?|Didn't find what you need?|Қажетті техниканы таппадыңыз ба?|Керектүү техниканы таппадыңызбы?|Техникаи лозимиро наёфтед?|Gerekli tehnikany tapmadyňyzmy?|Lazımi texnikanı tapmadınız?|ماشین مورد نیاز را پیدا نکردید؟|اړین ماشین مو ونه موند؟
+not_found_sub|So'rov yarating — mos ta'minotchilar o'zlari variant taklif qilishadi.|Создайте заявку — подходящие поставщики сами предложат варианты.|Create a request — suitable suppliers will offer options.|Өтінім жасаңыз — лайықты жеткізушілер өздері нұсқа ұсынады.|Арыз түзүңүз — ылайыктуу жеткирүүчүлөр өздөрү сунуштайт.|Дархост созед — таъминкунандагони мувофиқ худашон пешниҳод мекунанд.|Haýyş dörediň — laýyk üpjünçiler özleri teklip eder.|Sorğu yaradın — uyğun təchizatçılar özləri təklif edəcək.|درخواست ایجاد کنید — تأمین‌کنندگان مناسب خودشان پیشنهاد می‌دهند.|غوښتنه جوړه کړئ — مناسب عرضه کوونکي به پخپله وړاندیز وکړي.
+create_request|So'rov yaratish|Создать заявку|Create a request|Өтінім жасау|Арыз түзүү|Сохтани дархост|Haýyş döretmek|Sorğu yarat|ایجاد درخواست|غوښتنه جوړول
+details|Batafsil|Подробнее|Details|Толығырақ|Кененирээк|Муфассал|Jikme-jik|Ətraflı|جزئیات|تفصیل
+reviews|{n} ta sharh|{n} отзывов|{n} reviews|{n} пікір|{n} пикир|{n} тақриз|{n} teswir|{n} rəy|{n} نظر|{n} نظرونه
+today|Bugun, {t}|Сегодня, {t}|Today, {t}|Бүгін, {t}|Бүгүн, {t}|Имрӯз, {t}|Şu gün, {t}|Bu gün, {t}|امروز، {t}|نن، {t}
+yesterday|Kecha, {t}|Вчера, {t}|Yesterday, {t}|Кеше, {t}|Кечээ, {t}|Дирӯз, {t}|Düýn, {t}|Dünən, {t}|دیروز، {t}|پرون، {t}
+u_hp|o.k.|л.с.|hp|а.к.|а.к.|қ.а.|a.g.|a.g.|اسب بخار|اس قوه
+u_mh|m/s|м/ч|h|м/с|м/с|м/с|m/s|m/s|ساعت کار|د کار ساعت
+u_km|km|км|km|км|км|км|km|km|کیلومتر|کیلومتره
+u_t|t|т|t|т|т|т|t|t|تن|ټن
+in_stock_short|omborda {n} dona|в наличии {n} шт.|{n} in stock|қоймада {n} дана|кампада {n} даана|дар анбор {n} дона|ammarda {n} sany|anbarda {n} əd.|{n} عدد موجود|{n} دانې موجودې
+with_operator|operator bilan|с оператором|with operator|оператормен|оператор менен|бо оператор|operator bilen|operatorla|با اپراتور|له اپراتور سره
+negotiable|Kelishiladi|Договорная|Negotiable|Келісімді|Келишим боюнча|Бо мувофиқа|Ylalaşyk boýunça|Razılaşma ilə|توافقی|د خبرو له مخې
+home|Bosh sahifa|Главная|Home|Басты бет|Башкы бет|Асосӣ|Baş sahypa|Ana səhifə|خانه|کور
+catalog_sub|Ish uchun texnika va tovarlar — tekshirilgan ta'minotchilardan|Техника и товары для работы — от проверенных поставщиков|Equipment and goods for work — from verified suppliers|Жұмысқа арналған техника мен тауарлар — тексерілген жеткізушілерден|Иш үчүн техника жана товарлар — текшерилген жеткирүүчүлөрдөн|Техника ва мол барои кор — аз таъминкунандагони тасдиқшуда|Iş üçin tehnika we harytlar — barlanan üpjünçilerden|İş üçün texnika və mallar — yoxlanılmış təchizatçılardan|ماشین‌آلات و کالا برای کار — از تأمین‌کنندگان تأییدشده|د کار لپاره ماشینونه او توکي — له تایید شویو عرضه کوونکو
+filters|Filtrlar|Фильтры|Filters|Сүзгілер|Чыпкалар|Филтрҳо|Süzgüçler|Filtrlər|فیلترها|فلټرونه
+category|Kategoriya|Категория|Category|Санат|Категория|Категория|Kategoriýa|Kateqoriya|دسته|کټګوري
+subcategory|Bo'lim|Подкатегория|Subcategory|Ішкі санат|Бөлүм|Зеркатегория|Bölüm|Alt kateqoriya|زیردسته|فرعي کټګوري
+region|Hudud|Регион|Region|Аймақ|Аймак|Минтақа|Sebit|Region|ولایت|ولایت
+country|Mamlakat|Страна|Country|Ел|Өлкө|Кишвар|Ýurt|Ölkə|کشور|هېواد
+price|Narx|Цена|Price|Баға|Баа|Нарх|Baha|Qiymət|قیمت|بیه
+from|dan|от|from|бастап|баштап|аз|başlap|başlayaraq|از|له
+to|gacha|до|to|дейін|чейин|то|çenli|qədər|تا|تر
+condition|Holati|Состояние|Condition|Күйі|Абалы|Ҳолат|Ýagdaýy|Vəziyyət|وضعیت|حالت
+brand|Marka|Марка|Brand|Марка|Марка|Тамға|Marka|Marka|برند|برانډ
+any_brand|Istalgan marka|Любая марка|Any brand|Кез келген марка|Каалаган марка|Ҳар гуна тамға|Islendik marka|İstənilən marka|هر برند|هر برانډ
+year|Ishlab chiqarilgan yil|Год выпуска|Year|Шығарылған жылы|Чыгарылган жылы|Соли истеҳсол|Öndürilen ýyly|Buraxılış ili|سال تولید|د تولید کال
+verified_only|Tekshirilgan sotuvchilar|Проверенные продавцы|Verified sellers|Тексерілген сатушылар|Текшерилген сатуучулар|Фурӯшандагони тасдиқшуда|Barlanan satyjylar|Yoxlanılmış satıcılar|فروشندگان تأییدشده|تایید شوي پلورونکي
+all_filters|Barcha filtrlar|Все фильтры|All filters|Барлық сүзгілер|Бардык чыпкалар|Ҳамаи филтрҳо|Ähli süzgüçler|Bütün filtrlər|همه فیلترها|ټول فلټرونه
+reset_filters|Filtrlarni tozalash|Сбросить фильтры|Reset filters|Сүзгілерді тазалау|Чыпкаларды тазалоо|Тоза кардани филтрҳо|Süzgüçleri arassalamak|Filtrləri sıfırla|پاک کردن فیلترها|فلټرونه پاک کړئ
+any|Istalgan|Любое|Any|Кез келген|Каалаган|Ҳар гуна|Islendik|İstənilən|هر|هر
+all_countries|Barcha mamlakatlar|Все страны|All countries|Барлық елдер|Бардык өлкөлөр|Ҳамаи кишварҳо|Ähli ýurtlar|Bütün ölkələr|همه کشورها|ټول هېوادونه
+all_regions|Barcha hududlar|Все регионы|All regions|Барлық аймақтар|Бардык аймактар|Ҳамаи минтақаҳо|Ähli sebitler|Bütün regionlar|همه ولایات|ټول ولایتونه
+sort_new|Avval yangilari|Сначала новые|Newest first|Алдымен жаңалары|Адегенде жаңылары|Аввал навҳо|Ilki täzeler|Əvvəlcə yenilər|جدیدترین|لومړی نوي
+sort_price_asc|Avval arzonlari|Сначала дешёвые|Cheapest first|Алдымен арзандары|Адегенде арзандары|Аввал арзонҳо|Ilki arzanlar|Əvvəlcə ucuzlar|ارزان‌ترین|لومړی ارزانه
+sort_price_desc|Avval qimmatlari|Сначала дорогие|Most expensive first|Алдымен қымбаттары|Адегенде кымбаттары|Аввал гаронҳо|Ilki gymmatlar|Əvvəlcə bahalılar|گران‌ترین|لومړی ګران
+sort_popular|Ommaboplari|Популярные|Most popular|Танымалдары|Популярдуулары|Маъмулҳо|Meşhurlar|Populyarlar|محبوب‌ترین|مشهور
+sort_year_desc|Yangi yildagilar|Новее по году|Newest year|Жылы жаңалары|Жылы жаңылары|Аз рӯи сол навтар|Ýyly täzeler|İlə görə yenilər|سال جدیدتر|نوی کال
+next|Keyingi|Далее|Next|Келесі|Кийинки|Баъдӣ|Indiki|Növbəti|بعدی|بل
+buy_confidently|Ishonch bilan xarid qiling|Покупайте уверенно|Buy with confidence|Сеніммен сатып алыңыз|Ишеним менен сатып алыңыз|Бо боварӣ харед|Ynamly satyn alyň|Əminliklə alın|با اطمینان خرید کنید|په ډاډ سره واخلئ
+buy_confidently_sub|Texnika hujjatlarini tekshiring, ko'rik va bitim shartlarini HEMU.UZ xabarlarida kelishing. Tekshiruvdan o'tgan kompaniyalarni belgilaymiz.|Проверяйте документы на технику, обсуждайте осмотр и условия сделки в сообщениях HEMU.UZ. Мы отмечаем компании, прошедшие проверку.|Check documents, agree on inspection and terms in HEMU.UZ messages. We mark companies that passed verification.|Техника құжаттарын тексеріңіз, тексеріс пен шарттарды HEMU.UZ хабарламаларында келісіңіз. Тексерілген компанияларды белгілейміз.|Техниканын документтерин текшериңиз, кароо жана шарттарды HEMU.UZ билдирүүлөрүндө макулдашыңыз. Текшерилген компанияларды белгилейбиз.|Ҳуҷҷатҳои техникаро санҷед, муоина ва шартҳоро дар паёмҳои HEMU.UZ мувофиқа кунед. Ширкатҳои санҷидашударо қайд мекунем.|Tehnikanyň resminamalaryny barlaň, gözden geçirişi we şertleri HEMU.UZ hatlarynda ylalaşyň. Barlanan kompaniýalary belleýäris.|Texnika sənədlərini yoxlayın, baxış və şərtləri HEMU.UZ mesajlarında razılaşdırın. Yoxlanılmış şirkətləri qeyd edirik.|اسناد ماشین را بررسی کنید و شرایط معامله را در پیام‌های HEMU.UZ توافق کنید. شرکت‌های تأییدشده را علامت می‌زنیم.|د ماشین اسناد وګورئ او شرطونه د HEMU.UZ په پیغامونو کې ومنئ. تایید شوي شرکتونه په نښه کوو.
+nothing_found|Hech narsa topilmadi|Ничего не найдено|Nothing found|Ештеңе табылмады|Эч нерсе табылган жок|Ҳеҷ чиз ёфт нашуд|Hiç zat tapylmady|Heç nə tapılmadı|چیزی پیدا نشد|هیڅ ونه موندل شو
+nothing_found_sub|Filtrlarni o'zgartiring yoki so'rov yarating|Измените фильтры или создайте заявку|Change filters or create a request|Сүзгілерді өзгертіңіз не өтінім жасаңыз|Чыпкаларды өзгөртүңүз же арыз түзүңүз|Филтрҳоро иваз кунед ё дархост созед|Süzgüçleri üýtgediň ýa-da haýyş dörediň|Filtrləri dəyişin və ya sorğu yaradın|فیلترها را تغییر دهید یا درخواست بسازید|فلټرونه بدل کړئ یا غوښتنه جوړه کړئ
+search_results|«{q}» bo'yicha natijalar|Результаты по «{q}»|Results for “{q}”|«{q}» бойынша нәтижелер|«{q}» боюнча натыйжалар|Натиҷаҳо барои «{q}»|«{q}» boýunça netijeler|«{q}» üzrə nəticələr|نتایج برای «{q}»|د «{q}» پایلې
+save_search|Qidiruvni saqlash|Сохранить поиск|Save search|Іздеуді сақтау|Издөөнү сактоо|Нигоҳ доштани ҷустуҷӯ|Gözlegi ýatda saklamak|Axtarışı saxla|ذخیره جستجو|لټون خوندي کړئ
+saved|Saqlandi|Сохранено|Saved|Сақталды|Сакталды|Нигоҳ дошта шуд|Ýatda saklandy|Saxlanıldı|ذخیره شد|خوندي شو
+buy|Sotib olish|Купить|Buy|Сатып алу|Сатып алуу|Харидан|Satyn almak|Almaq|خرید|اخیستل
+rent_v|Ijaraga olish|Арендовать|Rent|Жалға алу|Ижарага алуу|Иҷора гирифтан|Kärendä almak|İcarəyə götür|کرایه گرفتن|کرایه کول
+services|Xizmatlar|Услуги|Services|Қызметтер|Кызматтар|Хизматҳо|Hyzmatlar|Xidmətlər|خدمات|خدمتونه
+leasing|Lizing mumkin|Возможен лизинг|Leasing available|Лизинг мүмкін|Лизинг мүмкүн|Лизинг имконпазир|Lizing mümkin|Lizinq mümkündür|لیزینگ ممکن است|لیزینګ شته
+categories_title|Kategoriyalar|Категории|Categories|Санаттар|Категориялар|Категорияҳо|Kategoriýalar|Kateqoriyalar|دسته‌ها|کټګورۍ
+categories_sub|HEMU.UZ'ning barcha yo'nalishlari — vazifangiz uchun texnika, detallar va xizmatlarni toping|Все направления HEMU.UZ — найдите технику, детали и услуги для вашей задачи|All HEMU.UZ categories — find equipment, parts and services for your task|HEMU.UZ-ның барлық бағыттары — міндетіңізге техника, бөлшек және қызмет табыңыз|HEMU.UZ'нун бардык багыттары — милдетиңиз үчүн техника, бөлүк жана кызмат табыңыз|Ҳамаи самтҳои HEMU.UZ — барои вазифаатон техника, қисм ва хизмат ёбед|HEMU.UZ-nyň ähli ugurlary — meseläňiz üçin tehnika, şaý we hyzmat tapyň|HEMU.UZ-nun bütün istiqamətləri — tapşırığınız üçün texnika, hissə və xidmət tapın|همه بخش‌های HEMU.UZ — ماشین، پرزه و خدمات برای کار خود پیدا کنید|د HEMU.UZ ټولې برخې — د خپل کار لپاره ماشین، پرزې او خدمتونه ومومئ
+search_categories|Kategoriyalar bo'yicha qidiruv|Поиск по категориям|Search categories|Санаттар бойынша іздеу|Категориялар боюнча издөө|Ҷустуҷӯ аз рӯи категорияҳо|Kategoriýalar boýunça gözleg|Kateqoriyalar üzrə axtarış|جستجو در دسته‌ها|په کټګوریو کې لټون
+all_in_category|Kategoriyadagi barcha e'lonlar|Все объявления в категории|All listings in category|Санаттағы барлық хабарландыру|Категориядагы бардык жарнамалар|Ҳамаи эълонҳои категория|Kategoriýadaky ähli bildirişler|Kateqoriyadakı bütün elanlar|همه آگهی‌های دسته|د کټګورۍ ټول اعلانونه
+need_specific|Aniq tovar yoki xizmat kerakmi?|Нужен конкретный товар или услуга?|Need a specific item or service?|Нақты тауар не қызмет керек пе?|Так товар же кызмат керекпи?|Моли мушаххас ё хизмат лозим аст?|Anyk haryt ýa-da hyzmat gerekmi?|Konkret mal və ya xidmət lazımdır?|کالا یا خدمت مشخصی لازم دارید؟|ځانګړی توکی یا خدمت اړین دی؟
+need_specific_sub|Vazifani so'rovda yozing. Sotuvchilar mos yechimni taklif qilishadi.|Опишите задачу в заявке. Продавцы подберут подходящее решение.|Describe the task in a request. Sellers will offer a solution.|Міндетті өтінімде сипаттаңыз. Сатушылар шешім ұсынады.|Милдетти арызда жазыңыз. Сатуучулар чечим сунушташат.|Вазифаро дар дархост нависед. Фурӯшандагон ҳалли мувофиқ пешниҳод мекунанд.|Meseläni haýyşda ýazyň. Satyjylar laýyk çözgüt hödürlär.|Tapşırığı sorğuda yazın. Satıcılar uyğun həll təklif edəcək.|کار را در درخواست شرح دهید. فروشندگان راه‌حل مناسب پیشنهاد می‌دهند.|کار په غوښتنه کې ولیکئ. پلورونکي به مناسب حل وړاندې کړي.
+filters_sub|Parametrlarni aniqlashtiring — faqat mos texnikani ko'rsatamiz|Уточните параметры — покажем только подходящую технику|Refine parameters — we will show only matching equipment|Параметрлерді нақтылаңыз — тек лайықты техниканы көрсетеміз|Параметрлерди тактаңыз — ылайыктуу техниканы гана көрсөтөбүз|Параметрҳоро дақиқ кунед — танҳо техникаи мувофиқро нишон медиҳем|Parametrleri takyklaň — diňe laýyk tehnikany görkezeris|Parametrləri dəqiqləşdirin — yalnız uyğun texnikanı göstərəcəyik|پارامترها را مشخص کنید — فقط ماشین مناسب را نشان می‌دهیم|پارامترونه مشخص کړئ — یوازې مناسب ماشینونه ښیو
+cat_and_offer|Kategoriya va taklif|Категория и предложение|Category and offer|Санат және ұсыныс|Категория жана сунуш|Категория ва пешниҳод|Kategoriýa we teklip|Kateqoriya və təklif|دسته و نوع پیشنهاد|کټګوري او وړاندیز
+location|Joylashuv|Местоположение|Location|Орналасқан жері|Жайгашкан жери|Ҷойгиршавӣ|Ýerleşýän ýeri|Yerləşmə|موقعیت|ځای
+seller|Sotuvchi|Продавец|Seller|Сатушы|Сатуучу|Фурӯшанда|Satyjy|Satıcı|فروشنده|پلورونکی
+matches|{n} ta e'lon mos keladi|Подходит {n} объявлений|{n} listings match|{n} хабарландыру сәйкес|{n} жарнама ылайык|{n} эълон мувофиқ аст|{n} bildiriş laýyk|{n} elan uyğundur|{n} آگهی مطابقت دارد|{n} اعلانونه برابر دي
+matches_sub|Parametrlar qidiruv natijalariga qo'llanadi|Параметры применятся к результатам поиска|Parameters will apply to the search results|Параметрлер іздеу нәтижелеріне қолданылады|Параметрлер издөө натыйжаларына колдонулат|Параметрҳо ба натиҷаҳои ҷустуҷӯ татбиқ мешаванд|Parametrler gözleg netijelerine ulanylar|Parametrlər axtarış nəticələrinə tətbiq olunacaq|پارامترها روی نتایج جستجو اعمال می‌شوند|پارامترونه په پایلو پلي کېږي
+show_n|{n} ta e'lonni ko'rsatish|Показать {n} объявлений|Show {n} listings|{n} хабарландыруды көрсету|{n} жарнаманы көрсөтүү|Нишон додани {n} эълон|{n} bildirişi görkezmek|{n} elanı göstər|نمایش {n} آگهی|{n} اعلانونه وښایاست
+feed_title|E'lonlar|Объявления|Listings|Хабарландырулар|Жарнамалар|Эълонҳо|Bildirişler|Elanlar|آگهی‌ها|اعلانونه
+feed_sub|Sotuv, ijara va xizmatlar — barcha takliflar bitta lentada|Продажа, аренда и услуги — все предложения в одной ленте|Sale, rent and services — all offers in one feed|Сату, жалға беру және қызметтер — барлық ұсыныс бір лентада|Сатуу, ижара жана кызматтар — бардык сунуштар бир лентада|Фурӯш, иҷора ва хизматҳо — ҳамаи пешниҳодҳо дар як лента|Satuw, kärende we hyzmatlar — ähli teklipler bir lentada|Satış, icarə və xidmətlər — bütün təkliflər bir lentdə|فروش، کرایه و خدمات — همه پیشنهادها در یک فهرست|پلور، کرایه او خدمتونه — ټول وړاندیزونه په یوه لړ کې
+feed_offers|Yangi lenta · {n} ta taklif|Свежая лента · {n} предложений|Fresh feed · {n} offers|Жаңа лента · {n} ұсыныс|Жаңы лента · {n} сунуш|Лентаи нав · {n} пешниҳод|Täze lenta · {n} teklip|Yeni lent · {n} təklif|فهرست تازه · {n} پیشنهاد|تازه لړ · {n} وړاندیزونه
+rent_banner_title|Texnika faqat bir smenaga kerakmi?|Техника нужна только на смену?|Need equipment for just one shift?|Техника тек бір ауысымға керек пе?|Техника бир эле сменага керекпи?|Техника танҳо барои як баст лозим аст?|Tehnika diňe bir smena gerekmi?|Texnika yalnız bir növbəyə lazımdır?|ماشین فقط برای یک شیفت لازم است؟|ماشین یوازې د یوه شفټ لپاره اړین دی؟
+rent_banner_sub|Operator bilan va operatorsiz ijara. Obyektingiz yonidagi bo'sh texnikani toping.|Аренда с оператором и без. Найдите свободную технику рядом с объектом.|Rental with or without an operator. Find available equipment near your site.|Оператормен және операторсыз жалға алу. Нысан маңындағы бос техниканы табыңыз.|Оператор менен жана операторсуз ижара. Объектиңиздин жанындагы бош техниканы табыңыз.|Иҷора бо оператор ва бе он. Техникаи озодро дар наздикии объект ёбед.|Operatorly we operatorsyz kärende. Desgaňyzyň golaýyndaky boş tehnikany tapyň.|Operatorla və operatorsuz icarə. Obyektin yaxınlığında boş texnika tapın.|کرایه با و بدون اپراتور. ماشین آزاد نزدیک محل کار را پیدا کنید.|له اپراتور سره او پرته له هغه کرایه. د خپل ځای ته نږدې وزګار ماشین ومومئ.
+find_rent|Ijarani topish|Найти аренду|Find rental|Жалға алу табу|Ижара табуу|Ёфтани иҷора|Kärende tapmak|İcarə tap|یافتن کرایه|کرایه ومومئ
+last_7|Oxirgi 7 kun|За последние 7 дней|Last 7 days|Соңғы 7 күн|Акыркы 7 күн|7 рӯзи охир|Soňky 7 gün|Son 7 gün|۷ روز اخیر|وروستۍ ۷ ورځې
+quality_tip|Sifatli e'lon xaridorni tezroq topadi|Качественное объявление быстрее находит покупателя|A quality listing finds a buyer faster|Сапалы хабарландыру сатып алушыны тез табады|Сапаттуу жарнама сатып алуучуну тезирээк табат|Эълони босифат харидорро зудтар меёбад|Hilli bildiriş alyjyny çalt tapýar|Keyfiyyətli elan alıcını tez tapır|آگهی باکیفیت سریع‌تر خریدار پیدا می‌کند|ښه اعلان ژر پېرودونکی پیدا کوي
+quality_tip_sub|Haqiqiy rasmlar, xarakteristikalar va dolzarb narxni qo'shing.|Добавьте реальные фотографии, характеристики и актуальную цену.|Add real photos, specifications and an up-to-date price.|Нақты фото, сипаттамалар мен өзекті бағаны қосыңыз.|Чыныгы сүрөттөрдү, мүнөздөмөлөрдү жана актуалдуу бааны кошуңуз.|Аксҳои воқеӣ, хусусиятҳо ва нархи ҷориро илова кунед.|Hakyky suratlary, häsiýetnamalary we häzirki bahany goşuň.|Real şəkillər, xüsusiyyətlər və aktual qiymət əlavə edin.|عکس‌های واقعی، مشخصات و قیمت به‌روز اضافه کنید.|ریښتیني عکسونه، ځانګړتیاوې او تازه بیه اضافه کړئ.
+card_equipment|Texnika kartochkasi|Карточка товара/техники|Equipment card|Техника карточкасы|Техника карточкасы|Корти техника|Tehnika kartoçkasy|Texnika kartı|کارت ماشین|د ماشین کارت
+card_part|Ehtiyot qism kartochkasi|Карточка запчасти|Spare part card|Бөлшек карточкасы|Бөлүк карточкасы|Корти қисм|Şaý kartoçkasy|Hissə kartı|کارت پرزه|د پرزې کارت
+docs_verified|Hujjatlar tekshirilgan|Проверенные документы|Verified documents|Құжаттар тексерілген|Документтер текшерилген|Ҳуҷҷатҳо санҷида шудаанд|Resminamalar barlanan|Sənədlər yoxlanılıb|اسناد تأییدشده|تایید شوي اسناد
+views_n|{n} marta ko'rilgan|{n} просмотров|{n} views|{n} қаралым|{n} көрүү|{n} бозид|{n} gezek görüldi|{n} baxış|{n} بازدید|{n} کتنې
+photos_more|+{n} rasm|+{n} фото|+{n} photos|+{n} фото|+{n} сүрөт|+{n} акс|+{n} surat|+{n} foto|+{n} عکس|+{n} عکسونه
+specs|Xarakteristikalar|Характеристики|Specifications|Сипаттамалар|Мүнөздөмөлөр|Хусусиятҳо|Häsiýetnamalar|Xüsusiyyətlər|مشخصات|ځانګړتیاوې
+description|Tavsif|Описание|Description|Сипаттама|Сүрөттөмө|Тавсиф|Düşündiriş|Təsvir|توضیحات|تشریح
+location_title|Joylashuv|Расположение|Location|Орналасуы|Жайгашуусу|Ҷойгиршавӣ|Ýerleşişi|Yerləşmə|موقعیت|ځای
+show_on_map|Xaritada ko'rsatish|Показать на карте|Show on map|Картада көрсету|Картада көрсөтүү|Дар харита нишон додан|Kartada görkezmek|Xəritədə göstər|نمایش روی نقشه|په نقشه کې وښایاست
+similar|O'xshash texnika|Похожая техника|Similar equipment|Ұқсас техника|Окшош техника|Техникаи монанд|Meňzeş tehnika|Oxşar texnika|ماشین‌های مشابه|ورته ماشینونه
+all_in|Barchasi: {c}|Все: {c}|All: {c}|Барлығы: {c}|Баары: {c}|Ҳама: {c}|Hemmesi: {c}|Hamısı: {c}|همه: {c}|ټول: {c}
+price_vat|QQS bilan|Цена с НДС|VAT included|ҚҚС-пен|КНС менен|Бо ААИ|GBS bilen|ƏDV ilə|با مالیات|له مالیې سره
+leasing_possible|lizing mumkin|возможен лизинг|leasing available|лизинг мүмкін|лизинг мүмкүн|лизинг имконпазир|lizing mümkin|lizinq mümkündür|لیزینگ ممکن|لیزینګ شته
+available|Maydonchada mavjud|В наличии на площадке|Available on site|Алаңда бар|Аянтчада бар|Дар майдонча мавҷуд|Meýdançada bar|Meydançada mövcuddur|در محل موجود است|په ځای کې شته
+to_favorites|Saralanganga|В избранное|Add to favorites|Таңдаулыға|Тандалганга|Ба интихобшуда|Saýlananlara|Seçilmişlərə|افزودن به علاقه‌مندی|خوښو ته
+in_favorites|Saralanganda|В избранном|In favorites|Таңдаулыда|Тандалганда|Дар интихобшуда|Saýlananlarda|Seçilmişlərdə|در علاقه‌مندی‌ها|په خوښو کې
+company_verified|Kompaniya tekshirilgan|Компания проверена|Verified company|Компания тексерілген|Компания текшерилген|Ширкат тасдиқ шудааст|Kompaniýa barlanan|Şirkət yoxlanılıb|شرکت تأییدشده|تایید شوی شرکت
+on_since|HEMU.UZ'da {y} yildan|На HEMU.UZ с {y} года|On HEMU.UZ since {y}|HEMU.UZ-да {y} жылдан|HEMU.UZ'до {y} жылдан|Дар HEMU.UZ аз соли {y}|HEMU.UZ-da {y} ýyldan bäri|{y}-ci ildən HEMU.UZ-da|در HEMU.UZ از سال {y}|له {y} کال راهیسې په HEMU.UZ کې
+show_phone|Telefonni ko'rsatish|Показать телефон|Show phone|Телефонды көрсету|Телефонду көрсөтүү|Нишон додани телефон|Telefony görkezmek|Telefonu göstər|نمایش تلفن|تلیفون وښایاست
+write_seller|Sotuvchiga yozish|Написать продавцу|Message seller|Сатушыға жазу|Сатуучуга жазуу|Ба фурӯшанда навиштан|Satyja ýazmak|Satıcıya yaz|پیام به فروشنده|پلورونکي ته ولیکئ
+send_request|Ariza yuborish|Отправить заявку|Send a request|Өтінім жіберу|Арыз жөнөтүү|Фиристодани дархост|Ýüzlenme ibermek|Müraciət göndər|ارسال درخواست|غوښتنه ولېږئ
+replies_in|odatda {m} daqiqada javob beradi|ответ обычно за {m} минут|usually replies in {m} min|әдетте {m} минутта жауап береді|адатта {m} мүнөттө жооп берет|одатан дар {m} дақиқа ҷавоб медиҳад|adatça {m} minutda jogap berýär|adətən {m} dəqiqəyə cavab verir|معمولاً در {m} دقیقه پاسخ می‌دهد|معمولاً په {m} دقیقو کې ځواب ورکوي
+safety|Bitim xavfsizligi|Безопасность сделки|Deal safety|Мәміле қауіпсіздігі|Бүтүмдүн коопсуздугу|Бехатарии аҳд|Ylalaşygyň howpsuzlygy|Sövdələşmənin təhlükəsizliyi|امنیت معامله|د معاملې خوندیتوب
+safety_sub|Sotuvchi va hujjatlarni tekshirmaguningizcha oldindan to'lov qilmang.|Не переводите предоплату до проверки продавца и документов на технику.|Do not prepay before checking the seller and documents.|Сатушы мен құжаттарды тексермейінше алдын ала төлем жасамаңыз.|Сатуучуну жана документтерди текшермейинче алдын ала төлөбөңүз.|То санҷиши фурӯшанда ва ҳуҷҷатҳо пешпардохт накунед.|Satyjyny we resminamalary barlamazdan öňünden töleg etmäň.|Satıcını və sənədləri yoxlamadan qabaqcadan ödəniş etməyin.|قبل از بررسی فروشنده و اسناد پیش‌پرداخت نکنید.|د پلورونکي او اسنادو تر کتنې مخکې مخکینی تادیه مه کوئ.
+sp_brand_model|Marka / model|Марка / модель|Brand / model|Марка / модель|Марка / модель|Тамға / модел|Marka / model|Marka / model|برند / مدل|برانډ / ماډل
+sp_hours|Motosoat|Наработка|Operating hours|Моторесурс|Иштеген сааты|Соатҳои корӣ|Motosagat|Motosaat|ساعت کارکرد|د کار ساعتونه
+sp_mileage|Yurgan masofasi|Пробег|Mileage|Жүрісі|Жүрүшү|Масофаи тайшуда|Ýöreýşi|Yürüş|کارکرد|مزل
+sp_power|Dvigatel quvvati|Мощность двигателя|Engine power|Қозғалтқыш қуаты|Кыймылдаткычтын кубаттуулугу|Иқтидори муҳаррик|Hereketlendirijiniň kuwwaty|Mühərrik gücü|قدرت موتور|د انجن ځواک
+sp_weight|Ekspluatatsion massa|Эксплуатационная масса|Operating weight|Пайдалану салмағы|Иштөө салмагы|Вазни истифода|Ulanyş agramy|İstismar çəkisi|وزن عملیاتی|عملیاتي وزن
+sp_capacity|Yuk ko'tarish qobiliyati|Грузоподъёмность|Load capacity|Жүк көтергіштігі|Жүк көтөрүмдүүлүгү|Боркашӣ|Ýük göterijiligi|Yükgötürmə qabiliyyəti|ظرفیت بار|د بار ظرفیت
+sp_drive|Privod|Привод|Drive|Жетек|Жетек|Ҳаракатдиҳанда|Hereketlendiriji|Ötürücü|سیستم انتقال|ډرایو
+sp_docs|Hujjatlar|Документы|Documents|Құжаттар|Документтер|Ҳуҷҷатҳо|Resminamalar|Sənədlər|اسناد|اسناد
+sp_vat|QQS|НДС|VAT|ҚҚС|КНС|ААИ|GBS|ƏDV|مالیات|مالیه
+per_piece|dona uchun|за штуку|per piece|данасы үшін|даанасы үчүн|барои як дона|bir sany üçin|ədədi üçün|هر عدد|هره دانه
+in_stock_n|Omborda {n} dona|В наличии {n} шт.|{n} in stock|Қоймада {n} дана|Кампада {n} даана|Дар анбор {n} дона|Ammarda {n} sany|Anbarda {n} əd.|{n} عدد موجود|{n} دانې موجودې
+out_of_stock|Omborda yo'q|Нет в наличии|Out of stock|Қоймада жоқ|Кампада жок|Дар анбор нест|Ammarda ýok|Anbarda yoxdur|موجود نیست|موجود نه دی
+quantity|Miqdor|Количество|Quantity|Саны|Саны|Миқдор|Mukdar|Miqdar|تعداد|شمېر
+total|Jami|Итого|Total|Барлығы|Бардыгы|Ҳамагӣ|Jemi|Cəmi|مجموع|ټول
+order_part|Ehtiyot qismni buyurtma qilish|Заказать запчасть|Order part|Бөлшекке тапсырыс беру|Бөлүккө буйрутма берүү|Фармоиши қисм|Şaýy sargyt etmek|Hissəni sifariş et|سفارش پرزه|پرزه فرمایش کړئ
+check_compat|Moslikni aniqlash|Уточнить совместимость|Check compatibility|Сәйкестікті нақтылау|Шайкештикти тактоо|Санҷиши мувофиқат|Laýyklygy anyklamak|Uyğunluğu dəqiqləşdir|بررسی سازگاری|سمون وګورئ
+request_invoice|Hisob so'rash|Запросить счёт|Request invoice|Шот сұрау|Эсеп суроо|Дархости ҳисоб|Hasap soramak|Hesab istə|درخواست فاکتور|بل وغواړئ
+about_part|Ehtiyot qism haqida|О запчасти|About the part|Бөлшек туралы|Бөлүк жөнүндө|Дар бораи қисм|Şaý barada|Hissə haqqında|درباره پرزه|د پرزې په اړه
+article|Artikul|Артикул|Part number|Артикул|Артикул|Артикул|Artikul|Artikul|شماره قطعه|د پرزې شمېره
+manufacturer|Ishlab chiqaruvchi|Производитель|Manufacturer|Өндіруші|Өндүрүүчү|Истеҳсолкунанда|Öndüriji|İstehsalçı|تولیدکننده|جوړونکی
+sp_type|Turi|Тип|Type|Түрі|Түрү|Навъ|Görnüşi|Növ|نوع|ډول
+warranty|Kafolat|Гарантия|Warranty|Кепілдік|Кепилдик|Кафолат|Kepillik|Zəmanət|ضمانت|تضمین
+months|{n} oy|{n} мес.|{n} months|{n} ай|{n} ай|{n} моҳ|{n} aý|{n} ay|{n} ماه|{n} میاشتې
+analogs|Analoglar|Аналоги|Analogues|Баламалар|Аналогдор|Монандҳо|Analoglar|Analoqlar|معادل‌ها|ورته پرزې
+compat|Moslik|Совместимость|Compatibility|Сәйкестік|Шайкештик|Мувофиқат|Laýyklyk|Uyğunluq|سازگاری|سمون
+desc_delivery|Tavsif va yetkazib berish|Описание и доставка|Description and delivery|Сипаттама және жеткізу|Сүрөттөмө жана жеткирүү|Тавсиф ва расонидан|Düşündiriş we eltip bermek|Təsvir və çatdırılma|توضیحات و تحویل|تشریح او رسول
+pickup|Olib ketish|Самовывоз|Pickup|Өзі алып кету|Өзү алып кетүү|Худбарорӣ|Özüň almak|Özün götür|تحویل حضوری|پخپله اخیستل
+delivery_local|Shahar bo'ylab|По городу|Local delivery|Қала бойынша|Шаар боюнча|Дар шаҳр|Şäher boýunça|Şəhər üzrə|داخل شهر|په ښار کې
+delivery_national|Mamlakat bo'ylab|По стране|Nationwide|Ел бойынша|Өлкө боюнча|Дар кишвар|Ýurt boýunça|Ölkə üzrə|در سراسر کشور|په ټول هېواد کې
+payment|To'lov|Оплата|Payment|Төлем|Төлөм|Пардохт|Töleg|Ödəniş|پرداخت|تادیه
+seen_together|Shu qism bilan birga ko'rishadi|Вместе с этой запчастью смотрят|Also viewed with this part|Осы бөлшекпен бірге қарайды|Бул бөлүк менен кошо карашат|Бо ин қисм инчунин мебинанд|Bu şaý bilen bile görýärler|Bu hissə ilə birlikdə baxırlar|همراه این پرزه می‌بینند|له دې پرزې سره یې ګوري
+photo_of|Rasm {i} / {n}|Фото {i} из {n}|Photo {i} of {n}|Фото {i} / {n}|Сүрөт {i} / {n}|Акс {i} аз {n}|Surat {i} / {n}|Foto {i} / {n}|عکس {i} از {n}|عکس {i} له {n}
+delivery_method|Yetkazib berish usuli|Способ доставки|Delivery method|Жеткізу тәсілі|Жеткирүү ыкмасы|Тарзи расонидан|Eltip bermek usuly|Çatdırılma üsulu|روش تحویل|د رسولو طریقه
+dm_pickup|Olib ketish|Самовывоз|Pickup|Өзі алып кету|Өзү алып кетүү|Худбарорӣ|Özüň almak|Özün götür|تحویل حضوری|پخپله اخیستل
+dm_courier|Kuryer|Курьер|Courier|Курьер|Курьер|Курйер|Kurýer|Kuryer|پیک|کوریر
+dm_carrier|Transport kompaniyasi|Транспортная компания|Carrier|Көлік компаниясы|Транспорттук компания|Ширкати нақлиётӣ|Ulag kompaniýasy|Nəqliyyat şirkəti|شرکت حمل‌ونقل|د ترانسپورت شرکت
+address|Manzil|Адрес|Address|Мекенжай|Дарек|Суроға|Salgy|Ünvan|آدرس|پته
+comment|Izoh|Комментарий|Comment|Түсініктеме|Комментарий|Шарҳ|Teswir|Şərh|توضیح|تبصره
+place_order|Buyurtma berish|Оформить заказ|Place order|Тапсырыс беру|Буйрутма берүү|Фармоиш додан|Sargyt etmek|Sifariş ver|ثبت سفارش|فرمایش ورکړئ
+order_placed|Buyurtma qabul qilindi|Заказ оформлен|Order placed|Тапсырыс қабылданды|Буйрутма кабыл алынды|Фармоиш қабул шуд|Sargyt kabul edildi|Sifariş qəbul edildi|سفارش ثبت شد|فرمایش ثبت شو
+lk_general|Umumiy savol|Общий вопрос|General question|Жалпы сұрақ|Жалпы суроо|Саволи умумӣ|Umumy sorag|Ümumi sual|سؤال عمومی|عمومي پوښتنه
+lk_inspection|Ko'rikka yozilish|Записаться на осмотр|Book an inspection|Тексеріске жазылу|Кароого жазылуу|Сабт барои муоина|Gözden geçirişe ýazylmak|Baxışa yazıl|رزرو بازدید|کتنې ته نوم لیکنه
+lk_invoice|Hisob-faktura|Счёт|Invoice|Шот|Эсеп|Ҳисоб|Hasap|Hesab|فاکتور|بل
+lk_compatibility|Moslik|Совместимость|Compatibility|Сәйкестік|Шайкештик|Мувофиқат|Laýyklyk|Uyğunluq|سازگاری|سمون
+lk_rent|Ijara|Аренда|Rental|Жалға алу|Ижара|Иҷора|Kärende|İcarə|کرایه|کرایه
+request_type|Ariza turi|Тип заявки|Request type|Өтінім түрі|Арыздын түрү|Навъи дархост|Ýüzlenmäniň görnüşi|Müraciət növü|نوع درخواست|د غوښتنې ډول
+message|Xabar|Сообщение|Message|Хабарлама|Билдирүү|Паём|Hat|Mesaj|پیام|پیغام
+preferred_time|Qulay vaqt|Удобное время|Preferred time|Ыңғайлы уақыт|Ыңгайлуу убакыт|Вақти мувофиқ|Amatly wagt|Uyğun vaxt|زمان مناسب|مناسب وخت
+send|Yuborish|Отправить|Send|Жіберу|Жөнөтүү|Фиристодан|Ibermek|Göndər|ارسال|ولېږئ
+sent|Yuborildi|Отправлено|Sent|Жіберілді|Жөнөтүлдү|Фиристода шуд|Iberildi|Göndərildi|ارسال شد|ولېږل شو
+create_title|E'lon yaratish|Создать объявление|Create listing|Хабарландыру жасау|Жарнама түзүү|Сохтани эълон|Bildiriş döretmek|Elan yarat|ایجاد آگهی|اعلان جوړول
+edit_title|E'lonni tahrirlash|Редактировать объявление|Edit listing|Хабарландыруды өңдеу|Жарнаманы түзөтүү|Таҳрири эълон|Bildirişi üýtgetmek|Elanı redaktə et|ویرایش آگهی|اعلان سمول
+create_sub|Ma'lumotlarni to'ldiring — xaridorlar taklifingizni tezroq topadi|Заполните данные — покупатели быстрее найдут ваше предложение|Fill in the details — buyers will find your offer faster|Деректерді толтырыңыз — сатып алушылар ұсынысыңызды тезірек табады|Маалыматтарды толтуруңуз — сатып алуучулар сунушуңузду тезирээк табышат|Маълумотро пур кунед — харидорон пешниҳоди шуморо зудтар меёбанд|Maglumatlary dolduryň — alyjylar teklibiňizi çalt tapar|Məlumatları doldurun — alıcılar təklifinizi daha tez tapacaq|اطلاعات را پر کنید — خریداران پیشنهاد شما را سریع‌تر پیدا می‌کنند|معلومات ډک کړئ — پېرودونکي به ستاسو وړاندیز ژر ومومي
+draft_saved|Qoralama {t} da saqlandi|Черновик сохранён в {t}|Draft saved at {t}|Жоба {t} уақытта сақталды|Долбоор {t} сакталды|Сиёҳнавис дар {t} нигоҳ дошта шуд|Garalama {t}-da ýatda saklandy|Qaralama {t}-da saxlanıldı|پیش‌نویس در {t} ذخیره شد|مسوده په {t} خوندي شوه
+basic_info|Asosiy ma'lumot|Основная информация|Basic information|Негізгі ақпарат|Негизги маалымат|Маълумоти асосӣ|Esasy maglumat|Əsas məlumat|اطلاعات اصلی|اصلي معلومات
+listing_title|E'lon nomi|Название объявления|Listing title|Хабарландыру атауы|Жарнаманын аталышы|Номи эълон|Bildirişiň ady|Elanın adı|عنوان آگهی|د اعلان سرلیک
+title_hint|Marka, model va yilni ko'rsating. Telefon va reklama iboralarisiz.|Укажите марку, модель и год. Без телефона и рекламных фраз.|State brand, model and year. No phone numbers or ad phrases.|Марка, модель және жылын көрсетіңіз. Телефонсыз және жарнамасыз.|Марка, модель жана жылын көрсөтүңүз. Телефонсуз жана жарнамасыз.|Тамға, модел ва солро нишон диҳед. Бе телефон ва ибораҳои рекламавӣ.|Markany, modeli we ýyly görkeziň. Telefonsyz we mahabatsyz.|Marka, model və ili göstərin. Telefonsuz və reklamsız.|برند، مدل و سال را بنویسید. بدون تلفن و عبارات تبلیغاتی.|برانډ، ماډل او کال ولیکئ. پرته له تلیفون او اعلاني جملو.
+photos|Rasmlar|Фотографии|Photos|Фотосуреттер|Сүрөттөр|Аксҳо|Suratlar|Şəkillər|عکس‌ها|عکسونه
+photos_hint|15 tagacha rasm qo'shing. Birinchisi muqova bo'ladi. JPG, PNG, WEBP — 10 MB gacha.|Добавьте до 15 фото. Первое станет обложкой. JPG, PNG, WEBP — до 10 МБ.|Add up to 15 photos. The first becomes the cover. JPG, PNG, WEBP — up to 10 MB.|15 фотоға дейін қосыңыз. Біріншісі мұқаба болады. JPG, PNG, WEBP — 10 МБ дейін.|15 сүрөткө чейин кошуңуз. Биринчиси мукаба болот. JPG, PNG, WEBP — 10 МБ чейин.|То 15 акс илова кунед. Аввалӣ муқова мешавад. JPG, PNG, WEBP — то 10 МБ.|15 surata çenli goşuň. Birinjisi gapak bolar. JPG, PNG, WEBP — 10 MB çenli.|15 şəklə qədər əlavə edin. Birincisi üz qabığı olacaq. JPG, PNG, WEBP — 10 MB-a qədər.|تا ۱۵ عکس اضافه کنید. اولی تصویر اصلی می‌شود. JPG، PNG، WEBP تا ۱۰ مگابایت.|تر ۱۵ عکسونو اضافه کړئ. لومړی به پوښ وي. JPG، PNG، WEBP تر ۱۰ MB.
+add_photo|Rasm qo'shish|Добавить фото|Add photo|Фото қосу|Сүрөт кошуу|Илова кардани акс|Surat goşmak|Şəkil əlavə et|افزودن عکس|عکس اضافه کړئ
+cover|Muqova|Обложка|Cover|Мұқаба|Мукаба|Муқова|Gapak|Üz qabığı|تصویر اصلی|پوښ
+tell_about|Texnika haqida aytib bering|Расскажите о технике|Tell about the item|Техника туралы айтыңыз|Техника жөнүндө айтып бериңиз|Дар бораи техника нақл кунед|Tehnika barada aýdyň|Texnika haqqında danışın|درباره ماشین توضیح دهید|د ماشین په اړه ووایاست
+desc_hint|{n} / 5000 belgi. Tavsifda kontaktlarni ko'rsatmang.|{n} / 5000 символов. Не указывайте контакты в описании.|{n} / 5000 characters. No contacts in the description.|{n} / 5000 таңба. Сипаттамада байланыс көрсетпеңіз.|{n} / 5000 белги. Сүрөттөмөдө байланыш көрсөтпөңүз.|{n} / 5000 аломат. Дар тавсиф тамос нанависед.|{n} / 5000 nyşan. Düşündirişde aragatnaşyk görkezmäň.|{n} / 5000 simvol. Təsvirdə əlaqə göstərməyin.|{n} / ۵۰۰۰ حرف. معلومات تماس ننویسید.|{n} / ۵۰۰۰ توري. د اړیکې معلومات مه لیکئ.
+price_location|Narx va joylashuv|Цена и местоположение|Price and location|Баға және орналасуы|Баа жана жайгашуусу|Нарх ва ҷойгиршавӣ|Baha we ýerleşişi|Qiymət və yerləşmə|قیمت و موقعیت|بیه او ځای
+currency|Valyuta|Валюта|Currency|Валюта|Валюта|Асъор|Walýuta|Valyuta|ارز|اسعار
+price_unit|Narx birligi|Единица цены|Price unit|Баға бірлігі|Баанын бирдиги|Воҳиди нарх|Baha birligi|Qiymət vahidi|واحد قیمت|د بیې واحد
+unit_total|Umumiy|За всё|Total|Барлығына|Баарына|Барои ҳама|Hemmesine|Hamısına|کل|ټول
+price_from_lbl|Narx "dan" boshlanadi|Цена «от»|Price “from”|Баға «бастап»|Баа «баштап»|Нарх «аз»|Baha «başlap»|Qiymət «başlayaraq»|قیمت «از»|بیه «له»
+vat_none|QQSsiz|Без НДС|No VAT|ҚҚС-сыз|КНСсиз|Бе ААИ|GBS-siz|ƏDV-siz|بدون مالیات|پرته له مالیې
+city|Shahar|Город|City|Қала|Шаар|Шаҳр|Şäher|Şəhər|شهر|ښار
+site_address|Maydoncha manzili|Адрес площадки|Site address|Алаң мекенжайы|Аянтчанын дареги|Суроғаи майдонча|Meýdançanyň salgysy|Meydançanın ünvanı|آدرس محل|د ځای پته
+seller_contacts|Sotuvchi va kontaktlar|Продавец и контакты|Seller and contacts|Сатушы және байланыс|Сатуучу жана байланыш|Фурӯшанда ва тамосҳо|Satyjy we aragatnaşyk|Satıcı və əlaqə|فروشنده و تماس|پلورونکی او اړیکې
+company|Kompaniya|Компания|Company|Компания|Компания|Ширкат|Kompaniýa|Şirkət|شرکت|شرکت
+contact_person|Aloqa uchun shaxs|Контактное лицо|Contact person|Байланыс тұлғасы|Байланыш адамы|Шахси тамос|Aragatnaşyk adamy|Əlaqə şəxsi|شخص تماس|د اړیکې کس
+phone|Telefon|Телефон|Phone|Телефон|Телефон|Телефон|Telefon|Telefon|تلفن|تلیفون
+email|Email|Email|Email|Email|Email|Email|Email|Email|ایمیل|برېښنالیک
+accept_msgs|HEMU.UZ'da xabarlarni qabul qilish|Принимать сообщения на HEMU.UZ|Accept messages on HEMU.UZ|HEMU.UZ-да хабарлама қабылдау|HEMU.UZ'до билдирүү кабыл алуу|Қабули паём дар HEMU.UZ|HEMU.UZ-da hat kabul etmek|HEMU.UZ-da mesaj qəbul et|دریافت پیام در HEMU.UZ|په HEMU.UZ کې پیغامونه منل
+ready|Nashrga tayyor|Готово к публикации|Ready to publish|Жариялауға дайын|Жарыялоого даяр|Барои нашр омода|Çap etmäge taýýar|Dərcə hazırdır|آماده انتشار|خپرولو ته چمتو
+ready_sub|Birinchi e'lon bepul. Tekshiruvdan so'ng katalogda paydo bo'ladi — odatda 30 daqiqada.|Первое объявление бесплатно. После проверки оно появится в каталоге — обычно в течение 30 минут.|The first listing is free. It appears in the catalog after review — usually within 30 minutes.|Алғашқы хабарландыру тегін. Тексерістен кейін каталогта шығады — әдетте 30 минутта.|Биринчи жарнама акысыз. Текшерүүдөн кийин каталогдо чыгат — адатта 30 мүнөттө.|Эълони аввал ройгон. Пас аз санҷиш дар каталог пайдо мешавад — одатан дар 30 дақиқа.|Ilkinji bildiriş mugt. Barlagdan soň katalogda peýda bolar — adatça 30 minutda.|İlk elan pulsuzdur. Yoxlamadan sonra kataloqda görünəcək — adətən 30 dəqiqəyə.|اولین آگهی رایگان است. پس از بررسی در کاتالوگ نمایش داده می‌شود — معمولاً ظرف ۳۰ دقیقه.|لومړی اعلان وړیا دی. له کتنې وروسته په کتلاګ کې ښکاري — معمولاً په ۳۰ دقیقو کې.
+accept_rules|Joylashtirish qoidalari va ma'lumotlarni qayta ishlashga roziman|Принимаю правила размещения и обработки данных|I accept the posting and data processing rules|Орналастыру және деректерді өңдеу ережелерін қабылдаймын|Жайгаштыруу жана маалымат иштетүү эрежелерин кабыл алам|Қоидаҳои ҷойгиркунӣ ва коркарди маълумотро қабул дорам|Ýerleşdiriş we maglumat işleýiş düzgünlerini kabul edýärin|Yerləşdirmə və məlumat emalı qaydalarını qəbul edirəm|قوانین ثبت و پردازش داده را می‌پذیرم|د خپرولو او معلوماتو د پروسس قواعد منم
+publish|E'lonni nashr qilish|Опубликовать объявление|Publish listing|Хабарландыруды жариялау|Жарнаманы жарыялоо|Нашри эълон|Bildirişi çap etmek|Elanı dərc et|انتشار آگهی|اعلان خپور کړئ
+preview|Oldindan ko'rish|Предпросмотр|Preview|Алдын ала қарау|Алдын ала көрүү|Пешнамоиш|Öňünden görmek|Önizləmə|پیش‌نمایش|مخکتنه
+save_draft|Qoralamani saqlash|Сохранить черновик|Save draft|Жобаны сақтау|Долбоорду сактоо|Нигоҳ доштани сиёҳнавис|Garalamany saklamak|Qaralamanı saxla|ذخیره پیش‌نویس|مسوده خوندي کړئ
+model|Model|Модель|Model|Модель|Модель|Модел|Model|Model|مدل|ماډل
+stock|Omborda, dona|Наличие, шт.|In stock, pcs|Қоймада, дана|Кампада, даана|Дар анбор, дона|Ammarda, sany|Anbarda, əd.|موجودی، عدد|موجود، دانې
+compat_hint|Mos texnika (vergul bilan)|Совместимость (через запятую)|Compatible models (comma separated)|Сәйкес техника (үтір арқылы)|Шайкеш техника (үтүр менен)|Техникаи мувофиқ (бо вергул)|Laýyk tehnika (otur bilen)|Uyğun texnika (vergüllə)|ماشین‌های سازگار (با ویرگول)|سمون لرونکي ماشینونه (په کامې)
+min_order|Minimal buyurtma|Минимальный заказ|Minimum order|Ең аз тапсырыс|Минималдуу буйрутма|Фармоиши ҳадди ақал|Iň az sargyt|Minimum sifariş|حداقل سفارش|لږ تر لږه فرمایش
+sent_moderation|E'lon moderatsiyaga yuborildi|Объявление отправлено на модерацию|Listing sent for review|Хабарландыру модерацияға жіберілді|Жарнама модерацияга жөнөтүлдү|Эълон ба модератсия фиристода шуд|Bildiriş moderasiýa iberildi|Elan moderasiyaya göndərildi|آگهی برای بررسی ارسال شد|اعلان بیاکتنې ته ولېږل شو
+published|E'lon nashr qilindi|Объявление опубликовано|Listing published|Хабарландыру жарияланды|Жарнама жарыяланды|Эълон нашр шуд|Bildiriş çap edildi|Elan dərc edildi|آگهی منتشر شد|اعلان خپور شو
+fill_required|Majburiy maydonlarni to'ldiring|Заполните обязательные поля|Fill in required fields|Міндетті өрістерді толтырыңыз|Милдеттүү талааларды толтуруңуз|Майдонҳои ҳатмиро пур кунед|Hökmany meýdanlary dolduryň|Məcburi sahələri doldurun|فیلدهای الزامی را پر کنید|اړین ځایونه ډک کړئ
+request_sub|Nima kerakligini yozing. Mos ta'minotchilar takliflar bilan javob berishadi.|Опишите, что вам нужно. Подходящие поставщики ответят с предложениями.|Describe what you need. Suitable suppliers will reply with offers.|Не керек екенін жазыңыз. Лайықты жеткізушілер ұсыныспен жауап береді.|Эмне керек экенин жазыңыз. Ылайыктуу жеткирүүчүлөр сунуш менен жооп беришет.|Нависед, ки чӣ лозим аст. Таъминкунандагони мувофиқ бо пешниҳод ҷавоб медиҳанд.|Näme gerekdigini ýazyň. Laýyk üpjünçiler teklip bilen jogap berer.|Nə lazım olduğunu yazın. Uyğun təchizatçılar təkliflə cavab verəcək.|بنویسید چه لازم دارید. تأمین‌کنندگان مناسب با پیشنهاد پاسخ می‌دهند.|ولیکئ چې څه مو اړتیا ده. مناسب عرضه کوونکي به په وړاندیز ځواب ورکړي.
+what_looking|Nima qidiryapsiz?|Что вы ищете?|What are you looking for?|Не іздеп жүрсіз?|Эмне издеп жатасыз?|Шумо чӣ меҷӯед?|Näme gözleýärsiňiz?|Nə axtarırsınız?|دنبال چه هستید؟|څه لټوئ؟
+want_equipment|Texnika|Технику|Equipment|Техника|Техника|Техника|Tehnika|Texnika|ماشین‌آلات|ماشینونه
+want_part|Ehtiyot qism|Запчасти|Parts|Бөлшектер|Бөлүктөр|Қисмҳо|Şaýlar|Hissələr|پرزه‌جات|پرزې
+want_service|Xizmat|Услуги|Services|Қызметтер|Кызматтар|Хизматҳо|Hyzmatlar|Xidmətlər|خدمات|خدمتونه
+request_title|So'rov nomi|Название заявки|Request title|Өтінім атауы|Арыздын аталышы|Номи дархост|Haýyşyň ady|Sorğunun adı|عنوان درخواست|د غوښتنې سرلیک
+requirements|Taklifga talablar|Требования к предложению|Offer requirements|Ұсынысқа талаптар|Сунушка талаптар|Талабот ба пешниҳод|Teklibe talaplar|Təklifə tələblər|شرایط پیشنهاد|د وړاندیز شرطونه
+describe_task|Vazifani yozing|Опишите задачу|Describe the task|Міндетті сипаттаңыз|Милдетти жазыңыз|Вазифаро тавсиф кунед|Meseläni ýazyň|Tapşırığı təsvir edin|کار را شرح دهید|کار تشریح کړئ
+budget|Byudjet (gacha)|Бюджет (до)|Budget (up to)|Бюджет (дейін)|Бюджет (чейин)|Буҷет (то)|Býudjet (çenli)|Büdcə (qədər)|بودجه (تا)|بودیجه (تر)
+needed_by|Qachongacha kerak|Срок|Needed by|Мерзімі|Мөөнөтү|Мӯҳлат|Möhleti|Müddət|مهلت|موده
+send_request_btn|So'rovni yuborish|Отправить заявку|Send request|Өтінім жіберу|Арыз жөнөтүү|Фиристодани дархост|Haýyş ibermek|Sorğu göndər|ارسال درخواست|غوښتنه ولېږئ
+suppliers_come|Ta'minotchilar o'zi keladi|Поставщики придут к вам|Suppliers come to you|Жеткізушілер өздері келеді|Жеткирүүчүлөр өздөрү келишет|Таъминкунандагон худашон меоянд|Üpjünçiler özleri geler|Təchizatçılar özləri gələcək|تأمین‌کنندگان خودشان می‌آیند|عرضه کوونکي پخپله درځي
+step1|Ehtiyojni yozing|Опишите потребность|Describe your need|Қажеттілікті сипаттаңыз|Муктаждыкты жазыңыз|Ниёзро тавсиф кунед|Zerurlygy ýazyň|Ehtiyacı təsvir edin|نیاز را شرح دهید|اړتیا تشریح کړئ
+step1s|Parametrlar qancha aniq bo'lsa, takliflar shuncha foydali.|Чем точнее параметры, тем полезнее предложения.|The more precise, the more useful the offers.|Параметрлер нақты болса, ұсыныстар пайдалы.|Параметрлер так болсо, сунуштар пайдалуу.|Ҳар қадар дақиқтар, пешниҳодҳо муфидтар.|Näçe takyk bolsa, teklipler şonça peýdaly.|Nə qədər dəqiq, təkliflər o qədər faydalı.|هرچه دقیق‌تر، پیشنهادها مفیدتر.|څومره دقیق، وړاندیزونه هومره ګټور.
+step2|Javoblarni oling|Получите ответы|Get replies|Жауаптар алыңыз|Жооп алыңыз|Ҷавобҳо гиред|Jogaplary alyň|Cavabları alın|پاسخ‌ها را دریافت کنید|ځوابونه ترلاسه کړئ
+step2s|Mos sotuvchilar so'rovingizni ko'rishadi.|Подходящие продавцы увидят вашу заявку.|Matching sellers will see your request.|Лайықты сатушылар өтініміңізді көреді.|Ылайыктуу сатуучулар арызыңызды көрүшөт.|Фурӯшандагони мувофиқ дархостро мебинанд.|Laýyk satyjylar haýyşyňyzy görer.|Uyğun satıcılar sorğunuzu görəcək.|فروشندگان مناسب درخواست شما را می‌بینند.|مناسب پلورونکي به ستاسو غوښتنه وګوري.
+step3|Hamkorni tanlang|Выберите партнёра|Choose a partner|Серіктесті таңдаңыз|Өнөктөштү тандаңыз|Шарикро интихоб кунед|Hyzmatdaşy saýlaň|Tərəfdaşı seçin|شریک را انتخاب کنید|ملګری وټاکئ
+step3s|Narx, muddat va reytingni solishtiring.|Сравните цены, сроки и рейтинг компаний.|Compare prices, timing and ratings.|Бағаны, мерзімді және рейтингті салыстырыңыз.|Бааны, мөөнөттү жана рейтингди салыштырыңыз.|Нарх, мӯҳлат ва рейтингро муқоиса кунед.|Bahany, möhleti we reýtingi deňeşdiriň.|Qiymət, müddət və reytinqi müqayisə edin.|قیمت، زمان و امتیاز را مقایسه کنید.|بیه، موده او درجه پرتله کړئ.
+request_sent|So'rov yuborildi. {n} ta sotuvchiga xabar berildi.|Заявка отправлена. Уведомлено продавцов: {n}.|Request sent. {n} sellers notified.|Өтінім жіберілді. {n} сатушыға хабарланды.|Арыз жөнөтүлдү. {n} сатуучуга кабарланды.|Дархост фиристода шуд. Ба {n} фурӯшанда хабар дода шуд.|Haýyş iberildi. {n} satyja habar berildi.|Sorğu göndərildi. {n} satıcıya bildirildi.|درخواست ارسال شد. به {n} فروشنده اطلاع داده شد.|غوښتنه ولېږل شوه. {n} پلورونکو ته خبر ورکړل شو.
+dashboard|Sotuvchi kabineti|Личный кабинет продавца|Seller dashboard|Сатушы кабинеті|Сатуучунун кабинети|Утоқи фурӯшанда|Satyjynyň kabineti|Satıcı kabineti|پنل فروشنده|د پلورونکي پینل
+my_listings|E'lonlarim|Мои объявления|My listings|Хабарландыруларым|Жарнамаларым|Эълонҳои ман|Bildirişlerim|Elanlarım|آگهی‌های من|زما اعلانونه
+my_orders|Buyurtmalarim|Мои заказы|My orders|Тапсырыстарым|Буйрутмаларым|Фармоишҳои ман|Sargytlarym|Sifarişlərim|سفارش‌های من|زما فرمایشونه
+buyer_requests|Xaridor so'rovlari|Заявки покупателей|Buyer requests|Сатып алушы өтінімдері|Сатып алуучулардын арыздары|Дархостҳои харидорон|Alyjylaryň haýyşlary|Alıcı sorğuları|درخواست‌های خریداران|د پېرودونکو غوښتنې
+admin|Moderatsiya|Модерация|Moderation|Модерация|Модерация|Модератсия|Moderasiýa|Moderasiya|مدیریت محتوا|څارنه
+logout|Chiqish|Выйти|Sign out|Шығу|Чыгуу|Баромадан|Çykmak|Çıxış|خروج|وتل
+my_listings_sub|Takliflarni boshqaring, narxlarni yangilang va javoblarni kuzating|Управляйте предложениями, обновляйте цены и следите за откликами|Manage offers, update prices and track responses|Ұсыныстарды басқарыңыз, бағаны жаңартыңыз, жауаптарды бақылаңыз|Сунуштарды башкарыңыз, бааларды жаңыртыңыз, жоопторду көзөмөлдөңүз|Пешниҳодҳоро идора кунед, нархҳоро нав кунед ва ҷавобҳоро пайгирӣ кунед|Teklipleri dolandyryň, bahalary täzeläň we jogaplary yzarlaň|Təklifləri idarə edin, qiymətləri yeniləyin və cavabları izləyin|پیشنهادها را مدیریت کنید، قیمت‌ها را به‌روز و پاسخ‌ها را دنبال کنید|وړاندیزونه اداره کړئ، بیې تازه کړئ او ځوابونه وڅارئ
+edit|Tahrirlash|Редактировать|Edit|Өңдеу|Түзөтүү|Таҳрир|Üýtgetmek|Redaktə et|ویرایش|سمول
+bump|Uzaytirish|Продлить|Extend|Ұзарту|Узартуу|Тамдид|Uzaltmak|Uzat|تمدید|اوږدول
+publish_short|Nashr qilish|Опубликовать|Publish|Жариялау|Жарыялоо|Нашр|Çap etmek|Dərc et|انتشار|خپرول
+archive|Arxivga|В архив|Archive|Мұрағатқа|Архивге|Ба бойгонӣ|Arhiwe|Arxivə|بایگانی|ارشیف
+mark_sold|Sotildi|Продано|Sold|Сатылды|Сатылды|Фурӯхта шуд|Satyldy|Satıldı|فروخته شد|پلورل شو
+delete|O'chirish|Удалить|Delete|Жою|Өчүрүү|Нест кардан|Pozmak|Sil|حذف|ړنګول
+views|Ko'rishlar: {n}|Просмотры: {n}|Views: {n}|Қаралым: {n}|Көрүүлөр: {n}|Бозидҳо: {n}|Görülen: {n}|Baxışlar: {n}|بازدید: {n}|کتنې: {n}
+chats|Xabarlar: {n}|Сообщения: {n}|Messages: {n}|Хабарламалар: {n}|Билдирүүлөр: {n}|Паёмҳо: {n}|Hatlar: {n}|Mesajlar: {n}|پیام‌ها: {n}|پیغامونه: {n}
+all|Hammasi|Все|All|Барлығы|Баары|Ҳама|Hemmesi|Hamısı|همه|ټول
+confirm_delete|E'lonni o'chirasizmi?|Удалить объявление?|Delete this listing?|Хабарландыруды жоясыз ба?|Жарнаманы өчүрөсүзбү?|Эълонро нест мекунед?|Bildirişi pozmalymy?|Elan silinsin?|آگهی حذف شود؟|اعلان ړنګ شي؟
+reject_reason|Rad etish sababi: {r}|Причина отклонения: {r}|Rejection reason: {r}|Қабылдамау себебі: {r}|Четке кагуунун себеби: {r}|Сабаби радкунӣ: {r}|Ret etmegiň sebäbi: {r}|Rədd səbəbi: {r}|دلیل رد: {r}|د رد لامل: {r}
+my_orders_sub|Xaridlar, ijara va ta'minotchilarga so'rovlaringiz|Покупки, аренда и ваши заявки поставщикам|Purchases, rentals and your requests to suppliers|Сатып алулар, жалға алу және жеткізушілерге өтінімдер|Сатып алуулар, ижара жана жеткирүүчүлөргө арыздар|Харидҳо, иҷора ва дархостҳо ба таъминкунандагон|Satyn almalar, kärende we üpjünçilere haýyşlar|Alışlar, icarə və təchizatçılara sorğular|خریدها، کرایه و درخواست‌های شما|پېرودونه، کرایه او ستاسو غوښتنې
+orders_tab|Buyurtmalar|Заказы|Orders|Тапсырыстар|Буйрутмалар|Фармоишҳо|Sargytlar|Sifarişlər|سفارش‌ها|فرمایشونه
+my_requests_tab|Mening so'rovlarim|Мои заявки|My requests|Менің өтінімдерім|Менин арыздарым|Дархостҳои ман|Meniň haýyşlarym|Sorğularım|درخواست‌های من|زما غوښتنې
+completed_tab|Yakunlangan|Завершённые|Completed|Аяқталған|Аякталган|Анҷомёфта|Tamamlanan|Tamamlanmış|تکمیل‌شده|بشپړ شوي
+sales_tab|Sotuvlar|Продажи|Sales|Сатылымдар|Сатуулар|Фурӯшҳо|Satuwlar|Satışlar|فروش‌ها|پلور
+order_no|Buyurtma № {n} · {d}|Заказ № {n} · {d}|Order № {n} · {d}|Тапсырыс № {n} · {d}|Буйрутма № {n} · {d}|Фармоиш № {n} · {d}|Sargyt № {n} · {d}|Sifariş № {n} · {d}|سفارش شماره {n} · {d}|فرمایش شمېره {n} · {d}
+order_details|Buyurtma tafsilotlari|Детали заказа|Order details|Тапсырыс мәліметтері|Буйрутманын чоо-жайы|Тафсилоти фармоиш|Sargydyň jikme-jiklikleri|Sifarişin təfərrüatları|جزئیات سفارش|د فرمایش جزیات
+documents|Hujjatlar|Документы|Documents|Құжаттар|Документтер|Ҳуҷҷатҳо|Resminamalar|Sənədlər|اسناد|اسناد
+act_confirm|Tasdiqlash|Подтвердить|Confirm|Растау|Ырастоо|Тасдиқ|Tassyklamak|Təsdiqlə|تأیید|تایید
+act_ship|Jo'natish|Отправить|Ship|Жөнелту|Жөнөтүү|Фиристодан|Ibermek|Göndər|ارسال|لېږل
+act_deliver|Yetkazildi|Доставлен|Delivered|Жеткізілді|Жеткирилди|Расонида шуд|Eltildi|Çatdırıldı|تحویل شد|ورسول شو
+act_complete|Qabul qildim|Получил|Received|Қабылдадым|Алдым|Гирифтам|Aldym|Aldım|دریافت کردم|ترلاسه مې کړ
+act_cancel|Bekor qilish|Отменить|Cancel|Бас тарту|Жокко чыгаруу|Бекор кардан|Ýatyrmak|Ləğv et|لغو|لغوه کول
+act_review|Sharh qoldirish|Оставить отзыв|Leave a review|Пікір қалдыру|Пикир калтыруу|Тақриз гузоштан|Teswir galdyrmak|Rəy yaz|ثبت نظر|نظر ورکړئ
+tracking|Trek raqami|Трек-номер|Tracking number|Трек нөмірі|Трек номери|Рақами пайгирӣ|Trek belgisi|İzləmə nömrəsi|شماره پیگیری|د تعقیب شمېره
+carrier|Tashuvchi|Перевозчик|Carrier|Тасымалдаушы|Ташуучу|Интиқолдиҳанда|Daşaýjy|Daşıyıcı|حمل‌کننده|لېږدوونکی
+eta|Yetkazish muddati|Срок доставки|Delivery time|Жеткізу мерзімі|Жеткирүү мөөнөтү|Мӯҳлати расонидан|Eltip bermek möhleti|Çatdırılma müddəti|زمان تحویل|د رسولو وخت
+delivery_cost|Yetkazish narxi|Стоимость доставки|Delivery cost|Жеткізу құны|Жеткирүү баасы|Нархи расонидан|Eltip bermegiň bahasy|Çatdırılma qiyməti|هزینه تحویل|د رسولو لګښت
+offers_n|Takliflar: {n}|Предложений: {n}|Offers: {n}|Ұсыныстар: {n}|Сунуштар: {n}|Пешниҳодҳо: {n}|Teklipler: {n}|Təkliflər: {n}|پیشنهادها: {n}|وړاندیزونه: {n}
+close_request|So'rovni yopish|Закрыть заявку|Close request|Өтінімді жабу|Арызды жабуу|Бастани дархост|Haýyşy ýapmak|Sorğunu bağla|بستن درخواست|غوښتنه بندول
+accept|Qabul qilish|Принять|Accept|Қабылдау|Кабыл алуу|Қабул кардан|Kabul etmek|Qəbul et|پذیرفتن|منل
+reject|Rad etish|Отклонить|Reject|Қабылдамау|Четке кагуу|Рад кардан|Ret etmek|Rədd et|رد کردن|ردول
+invoice|Hisob-faktura|Счёт|Invoice|Шот-фактура|Эсеп-фактура|Ҳисобнома|Hasap-faktura|Hesab-faktura|فاکتور|بل
+rating|Baho|Оценка|Rating|Баға|Баа|Баҳо|Baha|Qiymət|امتیاز|درجه
+fav_sub|Saqlangan takliflar — tayyor bo'lganingizda ularga qayting|Сохранённые предложения — вернитесь к ним, когда будете готовы|Saved offers — come back when you are ready|Сақталған ұсыныстар — дайын болғанда оралыңыз|Сакталган сунуштар — даяр болгондо кайтыңыз|Пешниҳодҳои нигоҳдошта — ҳангоми омодагӣ баргардед|Ýatda saklanan teklipler — taýýar bolanyňyzda gaýdyp geliň|Saxlanılmış təkliflər — hazır olanda qayıdın|پیشنهادهای ذخیره‌شده — هر وقت آماده بودید برگردید|خوندي وړاندیزونه — کله چې چمتو یاست بېرته راشئ
+saved_searches|Saqlangan qidiruvlar|Сохранённые поиски|Saved searches|Сақталған іздеулер|Сакталган издөөлөр|Ҷустуҷӯҳои нигоҳдошта|Ýatda saklanan gözlegler|Saxlanılmış axtarışlar|جستجوهای ذخیره‌شده|خوندي لټونونه
+new_n|{n} ta yangi e'lon · bildirishnomalar yoqilgan|{n} новых объявлений · уведомления включены|{n} new listings · notifications on|{n} жаңа хабарландыру · хабарламалар қосулы|{n} жаңы жарнама · билдирмелер күйүк|{n} эълони нав · огоҳиномаҳо фаъол|{n} täze bildiriş · duýduryşlar açyk|{n} yeni elan · bildirişlər aktivdir|{n} آگهی جدید · اعلان‌ها فعال|{n} نوي اعلانونه · خبرتیاوې فعالې
+view|Ko'rish|Посмотреть|View|Қарау|Көрүү|Дидан|Görmek|Bax|مشاهده|کتل
+price_changed|Narx o'zgardi|Цена изменилась|Price changed|Баға өзгерді|Баа өзгөрдү|Нарх тағйир ёфт|Baha üýtgedi|Qiymət dəyişdi|قیمت تغییر کرد|بیه بدله شوه
+empty|Hozircha bo'sh|Пока пусто|Nothing here yet|Әзірге бос|Азырынча бош|Ҳоло холӣ|Häzirlikçe boş|Hələ boşdur|هنوز خالی است|تر اوسه خالي
+msgs_sub|Bitim tafsilotlarini to'g'ridan-to'g'ri platformada muhokama qiling|Обсуждайте детали сделки прямо на площадке|Discuss deal details right on the platform|Мәміле мәліметтерін алаңда талқылаңыз|Бүтүмдүн чоо-жайын аянтчада талкуулаңыз|Тафсилоти аҳдро дар платформа муҳокима кунед|Ylalaşygyň jikme-jikliklerini platformada ara alyp maslahatlaşyň|Sövdələşmə detallarını platformada müzakirə edin|جزئیات معامله را در پلتفرم بحث کنید|د معاملې جزیات په پلاتفورم کې وغږېږئ
+dialogs|Dialoglar|Диалоги|Conversations|Диалогтар|Диалогдор|Гуфтугӯҳо|Gepleşikler|Dialoqlar|گفتگوها|خبرې اترې
+search_msgs|Xabarlar bo'yicha qidiruv|Поиск по сообщениям|Search messages|Хабарламалар бойынша іздеу|Билдирүүлөр боюнча издөө|Ҷустуҷӯ дар паёмҳо|Hatlar boýunça gözleg|Mesajlarda axtarış|جستجو در پیام‌ها|په پیغامونو کې لټون
+type_msg|Xabar yozing...|Напишите сообщение...|Write a message...|Хабарлама жазыңыз...|Билдирүү жазыңыз...|Паём нависед...|Hat ýazyň...|Mesaj yazın...|پیام بنویسید...|پیغام ولیکئ...
+select_dialog|Dialogni tanlang|Выберите диалог|Select a conversation|Диалогты таңдаңыз|Диалогду тандаңыз|Гуфтугӯро интихоб кунед|Gepleşigi saýlaň|Dialoq seçin|یک گفتگو انتخاب کنید|خبرې اترې وټاکئ
+all_dialogs|Barcha dialoglar|Все диалоги|All conversations|Барлық диалогтар|Бардык диалогдор|Ҳамаи гуфтугӯҳо|Ähli gepleşikler|Bütün dialoqlar|همه گفتگوها|ټولې خبرې اترې
+unread_n|{n} ta o'qilmagan|{n} непрочитанных|{n} unread|{n} оқылмаған|{n} окулбаган|{n} хонданашуда|{n} okalmadyk|{n} oxunmamış|{n} خوانده‌نشده|{n} نالوستي
+listing_no|E'lon № {n}|Объявление № {n}|Listing № {n}|Хабарландыру № {n}|Жарнама № {n}|Эълон № {n}|Bildiriş № {n}|Elan № {n}|آگهی شماره {n}|اعلان شمېره {n}
+profile_sub|Shaxsiy ma'lumotlar, kompaniya va hisob sozlamalari|Личные данные, компания и настройки аккаунта|Personal data, company and account settings|Жеке деректер, компания және аккаунт баптаулары|Жеке маалыматтар, компания жана аккаунт жөндөөлөрү|Маълумоти шахсӣ, ширкат ва танзимоти ҳисоб|Şahsy maglumatlar, kompaniýa we hasap sazlamalary|Şəxsi məlumatlar, şirkət və hesab ayarları|اطلاعات شخصی، شرکت و تنظیمات حساب|شخصي معلومات، شرکت او د حساب ترتیبات
+personal|Shaxsiy ma'lumotlar|Личные данные|Personal data|Жеке деректер|Жеке маалыматтар|Маълумоти шахсӣ|Şahsy maglumatlar|Şəxsi məlumatlar|اطلاعات شخصی|شخصي معلومات
+name|Ism|Имя|Name|Аты|Аты|Ном|Ady|Ad|نام|نوم
+language|Til|Язык|Language|Тіл|Тил|Забон|Dil|Dil|زبان|ژبه
+company_data|Kompaniya ma'lumotlari|Данные компании|Company details|Компания деректері|Компаниянын маалыматтары|Маълумоти ширкат|Kompaniýanyň maglumatlary|Şirkət məlumatları|اطلاعات شرکت|د شرکت معلومات
+company_name|Kompaniya nomi|Название компании|Company name|Компания атауы|Компаниянын аталышы|Номи ширкат|Kompaniýanyň ady|Şirkətin adı|نام شرکت|د شرکت نوم
+tin|STIR / INN|ИНН / БИН|Tax ID|БСН / ЖСН|ИНН|РМА|SBB|VÖEN|شماره مالیاتی|د مالیې شمېره
+activity|Faoliyat|Деятельность|Activity|Қызмет түрі|Ишмердүүлүк|Фаъолият|Işi|Fəaliyyət|فعالیت|فعالیت
+about_company|Kompaniya haqida|О компании|About the company|Компания туралы|Компания жөнүндө|Дар бораи ширкат|Kompaniýa barada|Şirkət haqqında|درباره شرکت|د شرکت په اړه
+work_hours|Ish vaqti|График работы|Working hours|Жұмыс уақыты|Иш убактысы|Вақти корӣ|Iş wagty|İş qrafiki|ساعات کاری|د کار وخت
+reverify_note|Rekvizitlarni o'zgartirish uchun hujjatlarni qayta tekshirish kerak bo'ladi.|Для изменения реквизитов понадобится повторная проверка документов.|Changing company details requires re-verification.|Деректемелерді өзгерту үшін құжаттарды қайта тексеру қажет.|Реквизиттерди өзгөртүү үчүн документтерди кайра текшерүү керек.|Барои тағйири реквизитҳо санҷиши дубораи ҳуҷҷатҳо лозим аст.|Rekwizitleri üýtgetmek üçin resminamalary gaýtadan barlamaly.|Rekvizitləri dəyişmək üçün sənədlər yenidən yoxlanılmalıdır.|برای تغییر مشخصات، بررسی مجدد اسناد لازم است.|د مشخصاتو بدلولو لپاره د اسنادو بیا کتنه اړینه ده.
+update_company|Kompaniya ma'lumotlarini yangilash|Обновить данные компании|Update company details|Компания деректерін жаңарту|Компаниянын маалыматтарын жаңыртуу|Навсозии маълумоти ширкат|Kompaniýanyň maglumatlaryny täzelemek|Şirkət məlumatlarını yenilə|به‌روزرسانی اطلاعات شرکت|د شرکت معلومات تازه کړئ
+create_company|Kompaniya qo'shish|Добавить компанию|Add company|Компания қосу|Компания кошуу|Илова кардани ширкат|Kompaniýa goşmak|Şirkət əlavə et|افزودن شرکت|شرکت اضافه کړئ
+ver_none|Tekshirilmagan|Не проверена|Not verified|Тексерілмеген|Текшерилген эмес|Санҷида нашуда|Barlanmadyk|Yoxlanılmayıb|تأیید نشده|نه دی تایید شوی
+ver_pending|Tekshiruvda|На проверке|Under review|Тексерілуде|Текшерүүдө|Дар санҷиш|Barlagda|Yoxlanılır|در حال بررسی|د کتنې لاندې
+ver_verified|Tekshirilgan|Проверена|Verified|Тексерілген|Текшерилген|Тасдиқшуда|Barlanan|Yoxlanılıb|تأیید شده|تایید شوی
+ver_rejected|Rad etilgan|Отклонена|Rejected|Қабылданбады|Четке кагылды|Рад шуд|Ret edildi|Rədd edilib|رد شده|رد شوی
+upload_docs|Hujjatlarni tekshiruvga yuborish|Отправить документы на проверку|Submit documents for verification|Құжаттарды тексеруге жіберу|Документтерди текшерүүгө жөнөтүү|Фиристодани ҳуҷҷатҳо барои санҷиш|Resminamalary barlaga ibermek|Sənədləri yoxlamaya göndər|ارسال اسناد برای بررسی|اسناد کتنې ته ولېږئ
+notifications|Bildirishnomalar|Уведомления|Notifications|Хабарламалар|Билдирмелер|Огоҳиномаҳо|Duýduryşlar|Bildirişlər|اعلان‌ها|خبرتیاوې
+n_messages|Yangi xabarlar va arizalar|Новые сообщения и заявки|New messages and requests|Жаңа хабарламалар мен өтінімдер|Жаңы билдирүүлөр жана арыздар|Паёмҳо ва дархостҳои нав|Täze hatlar we ýüzlenmeler|Yeni mesajlar və müraciətlər|پیام‌ها و درخواست‌های جدید|نوي پیغامونه او غوښتنې
+n_orders|Buyurtma va yetkazish holati|Статусы заказов и доставка|Order and delivery status|Тапсырыс және жеткізу күйі|Буйрутма жана жеткирүү абалы|Ҳолати фармоиш ва расонидан|Sargyt we eltip bermek ýagdaýy|Sifariş və çatdırılma statusu|وضعیت سفارش و تحویل|د فرمایش او رسولو حالت
+n_prices|Saralangandagi narx o'zgarishi|Изменение цен в избранном|Price changes in favorites|Таңдаулыдағы баға өзгерісі|Тандалгандагы баа өзгөрүүсү|Тағйири нарх дар интихобшуда|Saýlananlarda baha üýtgemesi|Seçilmişlərdə qiymət dəyişikliyi|تغییر قیمت در علاقه‌مندی‌ها|په خوښو کې د بیې بدلون
+n_news|HEMU.UZ yangiliklari va takliflari|Новости и предложения HEMU.UZ|HEMU.UZ news and offers|HEMU.UZ жаңалықтары мен ұсыныстары|HEMU.UZ жаңылыктары жана сунуштары|Хабарҳо ва пешниҳодҳои HEMU.UZ|HEMU.UZ habarlary we teklipleri|HEMU.UZ xəbərləri və təklifləri|اخبار و پیشنهادهای HEMU.UZ|د HEMU.UZ خبرونه او وړاندیزونه
+security|Hisob xavfsizligi|Безопасность аккаунта|Account security|Аккаунт қауіпсіздігі|Аккаунттун коопсуздугу|Бехатарии ҳисоб|Hasabyň howpsuzlygy|Hesab təhlükəsizliyi|امنیت حساب|د حساب خوندیتوب
+active_devices|Faol qurilmalar|Активные устройства|Active devices|Белсенді құрылғылар|Активдүү түзмөктөр|Дастгоҳҳои фаъол|Işjeň enjamlar|Aktiv cihazlar|دستگاه‌های فعال|فعال وسایل
+this_device|Shu qurilma|Это устройство|This device|Осы құрылғы|Бул түзмөк|Ин дастгоҳ|Şu enjam|Bu cihaz|این دستگاه|دا وسیله
+end_session|Tugatish|Завершить|End|Аяқтау|Аяктоо|Анҷом|Tamamlamak|Bitir|پایان|پای ته رسول
+end_others|Boshqa qurilmalardan chiqish|Выйти на других устройствах|Sign out other devices|Басқа құрылғылардан шығу|Башка түзмөктөрдөн чыгуу|Баромад аз дигар дастгоҳҳо|Beýleki enjamlardan çykmak|Digər cihazlardan çıx|خروج از دستگاه‌های دیگر|له نورو وسایلو وتل
+save_changes|Saqlash|Сохранить|Save|Сақтау|Сактоо|Нигоҳ доштан|Ýatda saklamak|Saxla|ذخیره|خوندي کول
+dash_greeting|Xayrli kun, {name}! Biznesingiz qanday ketayotgani:|Добрый день, {name}! Вот как идут дела у вашего бизнеса.|Good day, {name}! Here is how your business is doing.|Қайырлы күн, {name}! Бизнесіңіздің жағдайы:|Кутман күн, {name}! Бизнесиңиздин абалы:|Рӯз ба хайр, {name}! Аҳволи тиҷорати шумо:|Hayırly gün, {name}! Işiňiziň ýagdaýy:|Günortanız xeyir, {name}! Biznesinizin vəziyyəti:|روز بخیر، {name}! وضعیت کسب‌وکار شما:|ورځ مو په خیر، {name}! ستاسو د سوداګرۍ حالت:
+verified_seller|Tekshirilgan sotuvchi|Проверенный продавец|Verified seller|Тексерілген сатушы|Текшерилген сатуучу|Фурӯшандаи тасдиқшуда|Barlanan satyjy|Yoxlanılmış satıcı|فروشنده تأییدشده|تایید شوی پلورونکی
+active_listings|Faol e'lonlar|Активных объявлений|Active listings|Белсенді хабарландыру|Активдүү жарнамалар|Эълонҳои фаъол|Işjeň bildirişler|Aktiv elanlar|آگهی‌های فعال|فعال اعلانونه
+views_lbl|Ko'rishlar|Просмотры|Views|Қаралым|Көрүүлөр|Бозидҳо|Görülen|Baxışlar|بازدیدها|کتنې
+new_leads|Yangi arizalar|Новые заявки|New leads|Жаңа өтінімдер|Жаңы арыздар|Дархостҳои нав|Täze ýüzlenmeler|Yeni müraciətlər|درخواست‌های جدید|نوې غوښتنې
+company_rating|Kompaniya reytingi|Рейтинг компании|Company rating|Компания рейтингі|Компаниянын рейтинги|Рейтинги ширкат|Kompaniýanyň reýtingi|Şirkət reytinqi|امتیاز شرکت|د شرکت درجه
+per_month|+{n} shu oyda|+{n} за месяц|+{n} this month|+{n} осы айда|+{n} ушул айда|+{n} дар моҳ|+{n} şu aýda|+{n} bu ay|+{n} این ماه|+{n} پدې میاشت کې
+per_week|+{n} shu haftada|+{n} за неделю|+{n} this week|+{n} осы аптада|+{n} ушул жумада|+{n} дар ҳафта|+{n} şu hepdede|+{n} bu həftə|+{n} این هفته|+{n} پدې اونۍ کې
+pct_week|{p}% hafta davomida|{p}% за неделю|{p}% this week|{p}% апта ішінде|{p}% жума ичинде|{p}% дар ҳафта|{p}% hepdede|{p}% həftə ərzində|{p}٪ در هفته|{p}٪ په اونۍ کې
+reviews_short|{n} sharh|{n} отзывов|{n} reviews|{n} пікір|{n} пикир|{n} тақриз|{n} teswir|{n} rəy|{n} نظر|{n} نظرونه
+views_week|Hafta davomidagi ko'rishlar|Просмотры за неделю|Views this week|Апталық қаралым|Жумалык көрүүлөр|Бозидҳо дар ҳафта|Hepdelik görülen|Həftəlik baxışlar|بازدیدهای هفته|د اونۍ کتنې
+vs_prev|{p}% o'tgan haftaga nisbatan|{p}% к прошлой неделе|{p}% vs last week|{p}% өткен аптаға|{p}% өткөн жумага|{p}% нисбат ба ҳафтаи гузашта|{p}% geçen hepdä görä|{p}% keçən həftəyə nisbətən|{p}٪ نسبت به هفته قبل|{p}٪ تېرې اونۍ ته
+profile_filled|Profil {p}% to'ldirilgan|Профиль заполнен на {p}%|Profile {p}% complete|Профиль {p}% толтырылған|Профиль {p}% толтурулган|Профил {p}% пур шудааст|Profil {p}% dolduryldy|Profil {p}% doldurulub|پروفایل {p}٪ کامل است|پروفایل {p}٪ بشپړ دی
+profile_filled_sub|Maydoncha rasmlari va hujjatlarni qo'shing — xaridorlar kompaniyangizga ko'proq ishonadi.|Добавьте фото площадки и документы, чтобы покупатели больше доверяли компании.|Add site photos and documents so buyers trust you more.|Алаң фотосы мен құжаттарды қосыңыз — сатып алушылар көбірек сенеді.|Аянтчанын сүрөттөрүн жана документтерди кошуңуз — сатып алуучулар көбүрөөк ишенишет.|Аксҳои майдонча ва ҳуҷҷатҳоро илова кунед — харидорон бештар бовар мекунанд.|Meýdançanyň suratlaryny we resminamalary goşuň — alyjylar has köp ynanar.|Meydança şəkilləri və sənədlər əlavə edin — alıcılar daha çox güvənəcək.|عکس محل و اسناد را اضافه کنید تا خریداران بیشتر اعتماد کنند.|د ځای عکسونه او اسناد اضافه کړئ چې پېرودونکي ډېر باور وکړي.
+complete_profile|Profilni to'ldirish|Дополнить профиль|Complete profile|Профильді толықтыру|Профилди толуктоо|Пур кардани профил|Profili doldurmak|Profili tamamla|تکمیل پروفایل|پروفایل بشپړ کړئ
+avg_reply|O'rtacha javob vaqti: {m} daqiqa|Среднее время ответа: {m} минут|Average reply time: {m} min|Орташа жауап уақыты: {m} минут|Орточо жооп убактысы: {m} мүнөт|Вақти миёнаи ҷавоб: {m} дақиқа|Ortaça jogap wagty: {m} minut|Orta cavab vaxtı: {m} dəqiqə|میانگین زمان پاسخ: {m} دقیقه|منځنی د ځواب وخت: {m} دقیقې
+leads_orders|Yangi arizalar va buyurtmalar|Новые заявки и заказы|New leads and orders|Жаңа өтінімдер мен тапсырыстар|Жаңы арыздар жана буйрутмалар|Дархостҳо ва фармоишҳои нав|Täze ýüzlenmeler we sargytlar|Yeni müraciətlər və sifarişlər|درخواست‌ها و سفارش‌های جدید|نوې غوښتنې او فرمایشونه
+reply|Javob berish|Ответить|Reply|Жауап беру|Жооп берүү|Ҷавоб додан|Jogap bermek|Cavab ver|پاسخ|ځواب
+your_listings|Sizning e'lonlaringiz|Ваши объявления|Your listings|Сіздің хабарландыруларыңыз|Сиздин жарнамаларыңыз|Эълонҳои шумо|Siziň bildirişleriňiz|Sizin elanlarınız|آگهی‌های شما|ستاسو اعلانونه
+manage|Boshqarish|Управлять|Manage|Басқару|Башкаруу|Идора кардан|Dolandyrmak|İdarə et|مدیریت|اداره کول
+all_my_listings|Barcha e'lonlarim|Все мои объявления|All my listings|Барлық хабарландыруларым|Бардык жарнамаларым|Ҳамаи эълонҳои ман|Ähli bildirişlerim|Bütün elanlarım|همه آگهی‌های من|زما ټول اعلانونه
+recent_events|So'nggi voqealar|Последние события|Recent events|Соңғы оқиғалар|Акыркы окуялар|Рӯйдодҳои охир|Soňky wakalar|Son hadisələr|رویدادهای اخیر|وروستۍ پېښې
+no_company_dash|Kabinetdan to'liq foydalanish uchun kompaniya qo'shing|Добавьте компанию, чтобы пользоваться кабинетом полностью|Add a company to use the dashboard fully|Кабинетті толық пайдалану үшін компания қосыңыз|Кабинетти толук колдонуу үчүн компания кошуңуз|Барои истифодаи пурраи утоқ ширкат илова кунед|Kabinetden doly peýdalanmak üçin kompaniýa goşuň|Kabinetdən tam istifadə üçün şirkət əlavə edin|برای استفاده کامل از پنل، شرکت اضافه کنید|د پینل د بشپړې کارونې لپاره شرکت اضافه کړئ
+login_title|HEMU.UZ'ga kirish|Вход в HEMU.UZ|Sign in to HEMU.UZ|HEMU.UZ-ға кіру|HEMU.UZ'го кирүү|Ворид шудан ба HEMU.UZ|HEMU.UZ-a girmek|HEMU.UZ-ya giriş|ورود به HEMU.UZ|HEMU.UZ ته ننوتل
+login_sub|Telefon raqamingizga SMS-kod yuboramiz|Отправим SMS-код на ваш номер|We will send an SMS code to your phone|Нөміріңізге SMS-код жібереміз|Номериңизге SMS-код жөнөтөбүз|Ба рақами шумо рамзи SMS мефиристем|Belgiňize SMS-kod ibereris|Nömrənizə SMS-kod göndərəcəyik|کد پیامکی به شماره شما ارسال می‌کنیم|ستاسو شمېرې ته SMS کوډ لېږو
+get_code|Kod olish|Получить код|Get code|Код алу|Код алуу|Гирифтани рамз|Kod almak|Kod al|دریافت کد|کوډ ترلاسه کړئ
+code|SMS-kod|Код из SMS|SMS code|SMS-код|SMS-код|Рамзи SMS|SMS-kod|SMS-kod|کد پیامک|SMS کوډ
+code_sent|Kod {p} raqamiga yuborildi|Код отправлен на {p}|Code sent to {p}|Код {p} нөміріне жіберілді|Код {p} номерине жөнөтүлдү|Рамз ба {p} фиристода шуд|Kod {p} belgä iberildi|Kod {p} nömrəsinə göndərildi|کد به {p} ارسال شد|کوډ {p} ته ولېږل شو
+your_name|Ismingiz|Ваше имя|Your name|Атыңыз|Атыңыз|Номи шумо|Adyňyz|Adınız|نام شما|ستاسو نوم
+dev_code|Test kodi: {c}|Тестовый код: {c}|Test code: {c}|Тест коды: {c}|Тест коду: {c}|Рамзи санҷишӣ: {c}|Synag kody: {c}|Test kodu: {c}|کد آزمایشی: {c}|ازموینې کوډ: {c}
+change_number|Raqamni o'zgartirish|Изменить номер|Change number|Нөмірді өзгерту|Номерди өзгөртүү|Иваз кардани рақам|Belgini üýtgetmek|Nömrəni dəyiş|تغییر شماره|شمېره بدله کړئ
+login_required|Davom etish uchun tizimga kiring|Войдите, чтобы продолжить|Sign in to continue|Жалғастыру үшін кіріңіз|Улантуу үчүн кириңиз|Барои идома ворид шавед|Dowam etmek üçin giriň|Davam etmək üçün daxil olun|برای ادامه وارد شوید|د دوام لپاره ننوځئ
+choose_location|Joylashuvni tanlang|Выберите местоположение|Choose location|Орналасуды таңдаңыз|Жайгашкан жерди тандаңыз|Ҷойро интихоб кунед|Ýerleşişi saýlaň|Yer seçin|موقعیت را انتخاب کنید|ځای وټاکئ
+apply|Qo'llash|Применить|Apply|Қолдану|Колдонуу|Татбиқ|Ulanmak|Tətbiq et|اعمال|پلي کول
+requests_sub|Mijozlar nima qidirayotganini ko'ring va taklif yuboring|Смотрите, что ищут клиенты, и отправляйте предложения|See what clients look for and send offers|Клиенттер не іздейтінін көріп, ұсыныс жіберіңіз|Кардарлар эмне издеп жатканын көрүп, сунуш жөнөтүңүз|Бинед, ки мизоҷон чӣ меҷӯянд ва пешниҳод фиристед|Müşderileriň näme gözleýändigini görüň we teklip iberiň|Müştərilərin nə axtardığını görün və təklif göndərin|ببینید مشتریان دنبال چه هستند و پیشنهاد بفرستید|وګورئ پېرودونکي څه لټوي او وړاندیز ولېږئ
+make_offer|Taklif yuborish|Отправить предложение|Send offer|Ұсыныс жіберу|Сунуш жөнөтүү|Фиристодани пешниҳод|Teklip ibermek|Təklif göndər|ارسال پیشنهاد|وړاندیز ولېږئ
+your_offer|Sizning taklifingiz|Ваше предложение|Your offer|Сіздің ұсынысыңыз|Сиздин сунушуңуз|Пешниҳоди шумо|Siziň teklibiňiz|Sizin təklifiniz|پیشنهاد شما|ستاسو وړاندیز
+my_categories_only|Faqat mening bo'limlarim|Только мои категории|Only my categories|Тек менің санаттарым|Менин категорияларым гана|Танҳо категорияҳои ман|Diňe meniň kategoriýalarym|Yalnız mənim kateqoriyalarım|فقط دسته‌های من|یوازې زما کټګورۍ
+mark_all_read|Hammasini o'qilgan deb belgilash|Отметить все прочитанными|Mark all as read|Барлығын оқылды деп белгілеу|Баарын окулду деп белгилөө|Ҳамаро хондашуда қайд кардан|Hemmesini okalan diýip bellemek|Hamısını oxunmuş qeyd et|علامت‌گذاری همه به‌عنوان خوانده‌شده|ټول لوستل شوي په نښه کړئ
+approve|Tasdiqlash|Одобрить|Approve|Мақұлдау|Жактыруу|Тасдиқ|Tassyklamak|Təsdiqlə|تأیید|منظورول
+companies_check|Kompaniyalarni tekshirish|Проверка компаний|Company verification|Компанияларды тексеру|Компанияларды текшерүү|Санҷиши ширкатҳо|Kompaniýalary barlamak|Şirkətlərin yoxlanışı|بررسی شرکت‌ها|د شرکتونو کتنه
+rates|Valyuta kurslari (1 USD)|Курсы валют (за 1 USD)|Exchange rates (per 1 USD)|Валюта бағамы (1 USD)|Валюта курсу (1 USD)|Қурби асъор (1 USD)|Walýuta hümmeti (1 USD)|Valyuta məzənnəsi (1 USD)|نرخ ارز (۱ دالر)|د اسعارو نرخ (۱ ډالر)
+sync_cbu|CBU'dan yangilash|Обновить из ЦБ Узбекистана|Sync from CBU|ӨОБ-тан жаңарту|ӨБ'дон жаңыртуу|Навсозӣ аз БМ|CBU-dan täzelemek|CBU-dan yenilə|به‌روزرسانی از بانک مرکزی|له مرکزي بانک تازه کول
+queue_empty|Navbat bo'sh|Очередь пуста|Queue is empty|Кезек бос|Кезек бош|Навбат холӣ аст|Nobat boş|Növbə boşdur|صف خالی است|کتار خالي دی
+company_listings|Kompaniya e'lonlari|Объявления компании|Company listings|Компания хабарландырулары|Компаниянын жарнамалары|Эълонҳои ширкат|Kompaniýanyň bildirişleri|Şirkətin elanları|آگهی‌های شرکت|د شرکت اعلانونه
+reviews_title|Sharhlar|Отзывы|Reviews|Пікірлер|Пикирлер|Тақризҳо|Teswirler|Rəylər|نظرات|نظرونه
+loading|Yuklanmoqda...|Загрузка...|Loading...|Жүктелуде...|Жүктөлүүдө...|Боргирӣ...|Ýüklenýär...|Yüklənir...|در حال بارگذاری...|بارېږي...
+error|Xatolik yuz berdi|Произошла ошибка|Something went wrong|Қате орын алды|Ката кетти|Хато рух дод|Ýalňyşlyk ýüze çykdy|Xəta baş verdi|خطایی رخ داد|تېروتنه وشوه
+close|Yopish|Закрыть|Close|Жабу|Жабуу|Пӯшидан|Ýapmak|Bağla|بستن|بندول
+back|Orqaga|Назад|Back|Артқа|Артка|Ба қафо|Yza|Geri|بازگشت|شاته
+not_found_page|Sahifa topilmadi|Страница не найдена|Page not found|Бет табылмады|Барак табылган жок|Саҳифа ёфт нашуд|Sahypa tapylmady|Səhifə tapılmadı|صفحه پیدا نشد|پاڼه ونه موندل شوه
+choose|Tanlang|Выберите|Choose|Таңдаңыз|Тандаңыз|Интихоб кунед|Saýlaň|Seçin|انتخاب کنید|وټاکئ
+yr|{y} y.|{y} г.|{y}|{y} ж.|{y}-ж.|{y} с.|{y} ý.|{y} il|{y}|{y}
+trucks_short|Yuk mashinalari|Грузовики|Trucks|Жүк көліктері|Жүк унаалары|Боркашҳо|Ýük maşynlary|Yük maşınları|موترهای باربری|باربري موټرونه
+about_text|HEMU.UZ — Markaziy Osiyo bo'ylab maxsus texnika, ehtiyot qismlar, qurilish materiallari va xizmatlar bozori. Sotuvchilar e'lon joylaydi, xaridorlar to'g'ridan-to'g'ri bog'lanadi.|HEMU.UZ — площадка спецтехники, запчастей, стройматериалов и услуг по всей Центральной Азии. Продавцы размещают объявления, покупатели связываются с ними напрямую.|HEMU.UZ is a marketplace for equipment, parts, building materials and services across Central Asia. Sellers post listings and buyers contact them directly.|HEMU.UZ — Орталық Азия бойынша арнайы техника, бөлшектер, құрылыс материалдары мен қызметтер алаңы.|HEMU.UZ — Борбордук Азия боюнча атайын техника, бөлүктөр, курулуш материалдары жана кызматтар аянтчасы.|HEMU.UZ — платформаи техникаи махсус, қисмҳо, масолеҳи сохтмонӣ ва хизматҳо дар саросари Осиёи Марказӣ.|HEMU.UZ — Merkezi Aziýa boýunça ýörite tehnika, şaýlar, gurluşyk materiallary we hyzmatlar meýdançasy.|HEMU.UZ — Mərkəzi Asiya üzrə xüsusi texnika, hissələr, tikinti materialları və xidmətlər platformasıdır.|HEMU.UZ — بازار ماشین‌آلات، پرزه‌جات، مواد ساختمانی و خدمات در سراسر آسیای میانه.|HEMU.UZ — په منځنۍ اسیا کې د ماشینونو، پرزو، ساختماني توکو او خدمتونو بازار.
+all_offers|Barcha takliflar|Все предложения|All offers|Барлық ұсыныстар|Бардык сунуштар|Ҳамаи пешниҳодҳо|Ähli teklipler|Bütün təkliflər|همه پیشنهادها|ټول وړاندیزونه
+next_site|KEYINGI OBYEKTINGIZ UCHUN|ДЛЯ ВАШЕГО СЛЕДУЮЩЕГО ОБЪЕКТА|FOR YOUR NEXT SITE|КЕЛЕСІ НЫСАНЫҢЫЗ ҮШІН|КИЙИНКИ ОБЪЕКТИҢИЗ ҮЧҮН|БАРОИ ОБЪЕКТИ НАВБАТИИ ШУМО|INDIKI DESGAŇYZ ÜÇIN|NÖVBƏTİ OBYEKTİNİZ ÜÇÜN|برای پروژه بعدی شما|ستاسو د راتلونکې پروژې لپاره
+materials|Materiallar|Материалы|Materials|Материалдар|Материалдар|Маводҳо|Materiallar|Materiallar|مواد|توکي
+crane_rent|Kran ijarasi|Аренда крана|Crane rental|Кран жалға алу|Кран ижарасы|Иҷораи кран|Kran kärendesi|Kran icarəsi|کرایه جرثقیل|د کرین کرایه
+sort_actual|Avval dolzarblari|Сначала актуальные|Most relevant|Алдымен өзектілері|Адегенде актуалдуулары|Аввал мубрамҳо|Ilki möhümler|Əvvəlcə aktuallar|مرتبط‌ترین|لومړی اړوند
+price_vat_f|QQS bilan narx|Цена с НДС|Price incl. VAT|ҚҚС-пен баға|КНС менен баа|Нарх бо ААИ|GBS bilen baha|ƏDV ilə qiymət|قیمت با مالیات|بیه له مالیې سره
+city_or_region|Shahar yoki hudud|Город или регион|City or region|Қала немесе аймақ|Шаар же аймак|Шаҳр ё минтақа|Şäher ýa-da sebit|Şəhər və ya region|شهر یا ولایت|ښار یا ولایت
+delivery_to_city|Shahrimga yetkazib berish bor|Есть доставка в мой город|Delivers to my city|Қалама жеткізу бар|Шаарыма жеткирүү бар|Ба шаҳри ман расонидан ҳаст|Şäherime eltip bermek bar|Şəhərimə çatdırılma var|تحویل به شهر من|زما ښار ته رسول شته
+eq_params|Texnika parametrlari|Параметры техники|Equipment parameters|Техника параметрлері|Техниканын параметрлери|Параметрҳои техника|Tehnikanyň parametrleri|Texnika parametrləri|مشخصات ماشین|د ماشین پارامترونه
+year_from|Yil (dan)|Год от|Year from|Жыл (бастап)|Жыл (баштап)|Сол аз|Ýyl (başlap)|İl (dan)|سال از|کال له
+year_to|Yil (gacha)|Год до|Year to|Жыл (дейін)|Жыл (чейин)|Сол то|Ýyl (çenli)|İl (qədər)|سال تا|کال تر
+hours_max|Motosoat (gacha), m/s|Наработка до, м/ч|Hours up to|Моторесурс (дейін)|Иштеген сааты (чейин)|Соатҳои корӣ (то)|Motosagat (çenli)|Motosaat (qədər)|ساعت کار تا|د کار ساعتونه تر
+power_min|Quvvat (dan), o.k.|Мощность от, л.с.|Power from, hp|Қуат (бастап), а.к.|Кубаттуулук (баштап)|Иқтидор (аз)|Kuwwat (başlap)|Güc (dan), a.g.|قدرت از|ځواک له
+drive4|To'liq privod 4×4|Полный привод 4×4|4×4 drive|Толық жетек 4×4|Толук жетек 4×4|Ҳаракати пурра 4×4|Doly hereketlendiriji 4×4|Tam ötürücü 4×4|دیفرانسیل کامل 4×4|بشپړ ډرایو 4×4
+with_docs|Hujjatlari bilan|С документами|With documents|Құжаттарымен|Документтери менен|Бо ҳуҷҷатҳо|Resminamalary bilen|Sənədlərlə|با اسناد|له اسنادو سره
+only_verified|Faqat tekshirilgan kompaniyalar|Только проверенные компании|Verified companies only|Тек тексерілген компаниялар|Текшерилген компаниялар гана|Танҳо ширкатҳои тасдиқшуда|Diňe barlanan kompaniýalar|Yalnız yoxlanılmış şirkətlər|فقط شرکت‌های تأییدشده|یوازې تایید شوي شرکتونه
+with_photo|Rasmli|С фото|With photo|Фотомен|Сүрөтү менен|Бо акс|Suratly|Şəkilli|با عکس|له عکس سره
+private_sellers|Shaxsiy sotuvchilar|Частные продавцы|Private sellers|Жеке сатушылар|Жеке сатуучулар|Фурӯшандагони хусусӣ|Hususy satyjylar|Fərdi satıcılar|فروشندگان شخصی|شخصي پلورونکي
+reset_all|Barcha filtrlarni tozalash|Сбросить все фильтры|Reset all filters|Барлық сүзгілерді тазалау|Бардык чыпкаларды тазалоо|Тоза кардани ҳамаи филтрҳо|Ähli süzgüçleri arassalamak|Bütün filtrləri sıfırla|پاک کردن همه فیلترها|ټول فلټرونه پاک کړئ
+change_in_catalog|Parametrlarni katalogda istalgan vaqtda o'zgartirishingiz mumkin.|Вы всегда можете изменить параметры в каталоге.|You can always change parameters in the catalog.|Параметрлерді каталогта әрқашан өзгертуге болады.|Параметрлерди каталогдо каалаган убакта өзгөртсөңүз болот.|Параметрҳоро ҳамеша дар каталог иваз карда метавонед.|Parametrleri katalogda islendik wagt üýtgedip bilersiňiz.|Parametrləri kataloqda istənilən vaxt dəyişə bilərsiniz.|همیشه می‌توانید پارامترها را در کاتالوگ تغییر دهید.|تاسو تل کولی شئ پارامترونه په کتلاګ کې بدل کړئ.
+all_n_cats|Barcha {n} bo'lim|Все {n} категорий|All {n} categories|Барлық {n} санат|Бардык {n} категория|Ҳамаи {n} категория|Ähli {n} kategoriýa|Bütün {n} kateqoriya|همه {n} دسته|ټولې {n} کټګورۍ
+any_cond|Istalgan|Любое|Any|Кез келген|Каалаган|Ҳар гуна|Islendik|İstənilən|هر|هر
+attach_file|Fayl yoki rasm biriktirish|Прикрепить файл или фото|Attach file or photo|Файл не фото тіркеу|Файл же сүрөт тиркөө|Замима кардани файл ё акс|Faýl ýa-da surat goşmak|Fayl və ya foto əlavə et|پیوست فایل یا عکس|فایل یا عکس ضمیمه کړئ
+attach_hint|Texnik topshiriqni biriktirish mumkin. PDF, JPG — 10 MB gacha.|Можно приложить техническое задание. PDF, JPG — до 10 МБ.|You can attach a specification. PDF, JPG — up to 10 MB.|Техникалық тапсырманы тіркеуге болады. PDF, JPG — 10 МБ дейін.|Техникалык тапшырманы тиркесеңиз болот. PDF, JPG — 10 МБ чейин.|Супориши техникиро замима кардан мумкин. PDF, JPG — то 10 МБ.|Tehniki tabşyrygy goşup bolýar. PDF, JPG — 10 MB çenli.|Texniki tapşırığı əlavə etmək olar. PDF, JPG — 10 MB-a qədər.|می‌توانید مشخصات فنی پیوست کنید. PDF، JPG تا ۱۰ مگابایت.|تخنیکي دنده ضمیمه کولی شئ. PDF، JPG تر ۱۰ MB.
+budget_time|Byudjet va muddatlar|Бюджет и сроки|Budget and timing|Бюджет және мерзім|Бюджет жана мөөнөт|Буҷет ва мӯҳлат|Býudjet we möhlet|Büdcə və müddət|بودجه و زمان|بودیجه او وخت
+budget_from|Byudjet (dan)|Бюджет от|Budget from|Бюджет (бастап)|Бюджет (баштап)|Буҷет (аз)|Býudjet (başlap)|Büdcə (dan)|بودجه از|بودیجه له
+budget_to|Byudjet (gacha)|Бюджет до|Budget to|Бюджет (дейін)|Бюджет (чейин)|Буҷет (то)|Býudjet (çenli)|Büdcə (qədər)|بودجه تا|بودیجه تر
+when_needed|Texnika qachon kerak?|Когда нужна техника?|When is it needed?|Техника қашан керек?|Техника качан керек?|Техника кай лозим аст?|Tehnika haçan gerek?|Texnika nə vaxt lazımdır?|چه زمانی لازم است؟|کله اړین دی؟
+needs_delivery|Obyektga yetkazib berish kerak|Нужна доставка на объект|Delivery to site needed|Нысанға жеткізу керек|Объектке жеткирүү керек|Расонидан ба объект лозим|Desgä eltip bermek gerek|Obyektə çatdırılma lazımdır|تحویل به محل لازم است|ځای ته رسول اړین دي
+contact_info|Aloqa ma'lumotlari|Контактная информация|Contact information|Байланыс ақпараты|Байланыш маалыматы|Маълумоти тамос|Aragatnaşyk maglumaty|Əlaqə məlumatı|اطلاعات تماس|د اړیکې معلومات
+receive_offers|Takliflarni xabarlarda olish|Получать предложения в сообщениях|Receive offers in messages|Ұсыныстарды хабарламада алу|Сунуштарды билдирүүлөрдө алуу|Гирифтани пешниҳодҳо дар паёмҳо|Teklipleri hatlarda almak|Təklifləri mesajlarda al|دریافت پیشنهادها در پیام‌ها|وړاندیزونه په پیغامونو کې ترلاسه کړئ
+agree_personal|Qoidalar va shaxsiy ma'lumotlarni qayta ishlashga roziman|Согласен с правилами и обработкой персональных данных|I agree to the rules and personal data processing|Ережелермен және дербес деректерді өңдеумен келісемін|Эрежелерге жана жеке маалыматтарды иштетүүгө макулмун|Бо қоидаҳо ва коркарди маълумоти шахсӣ розӣ ҳастам|Düzgünlere we şahsy maglumatlary işlemäge razy|Qaydalar və şəxsi məlumatların emalı ilə razıyam|با قوانین و پردازش اطلاعات شخصی موافقم|له قواعدو او د شخصي معلوماتو له پروسس سره موافق یم
+publish_request|So'rovni nashr qilish|Опубликовать заявку|Publish request|Өтінімді жариялау|Арызды жарыялоо|Нашри дархост|Haýyşy çap etmek|Sorğunu dərc et|انتشار درخواست|غوښتنه خپره کړئ
+request_note|So'rov 30 kun faol bo'ladi. Nashr bepul.|Заявка будет активна 30 дней. Публикация бесплатная.|The request stays active for 30 days. Publishing is free.|Өтінім 30 күн белсенді. Жариялау тегін.|Арыз 30 күн активдүү. Жарыялоо акысыз.|Дархост 30 рӯз фаъол аст. Нашр ройгон.|Haýyş 30 gün işjeň. Çap etmek mugt.|Sorğu 30 gün aktiv olacaq. Dərc pulsuzdur.|درخواست ۳۰ روز فعال است. انتشار رایگان است.|غوښتنه ۳۰ ورځې فعاله ده. خپرول وړیا دي.
+autosave_note|O'zgarishlar avtomatik saqlanadi|Изменения сохраняются автоматически|Changes are saved automatically|Өзгерістер автоматты сақталады|Өзгөртүүлөр автоматтык түрдө сакталат|Тағйирот худкор нигоҳ дошта мешаванд|Üýtgeşmeler awtomatik saklanýar|Dəyişikliklər avtomatik saxlanılır|تغییرات خودکار ذخیره می‌شوند|بدلونونه په اتوماتيک ډول خوندي کېږي
+vat_incl|Kiritilgan, {n}%|Включён, {n}%|Included, {n}%|Қосылған, {n}%|Кошулган, {n}%|Дохил, {n}%|Goşulan, {n}%|Daxildir, {n}%|شامل، {n}٪|شامل، {n}٪
+draft_lbl|Qoralama|Черновик|Draft|Жоба|Долбоор|Сиёҳнавис|Garalama|Qaralama|پیش‌نویس|مسوده
+tab_equipment|Texnika|Техника|Equipment|Техника|Техника|Техника|Tehnika|Texnika|ماشین‌آلات|ماشینونه
+saved_n|{n} ta saqlangan e'lon|{n} сохранённых объявления|{n} saved listings|{n} сақталған хабарландыру|{n} сакталган жарнама|{n} эълони нигоҳдошта|{n} ýatda saklanan bildiriş|{n} saxlanılmış elan|{n} آگهی ذخیره‌شده|{n} خوندي اعلانونه
+sort_added|Qo'shilgan sanasi bo'yicha|По дате добавления|By date added|Қосылған күні бойынша|Кошулган күнү боюнча|Аз рӯи санаи илова|Goşulan senesi boýunça|Əlavə tarixinə görə|بر اساس تاریخ افزودن|د اضافه کېدو د نېټې له مخې
+price_drop|{title} narxi {d} ga tushdi|Цена {title} снизилась на {d}|{title} price dropped by {d}|{title} бағасы {d} төмендеді|{title} баасы {d} төмөндөдү|Нархи {title} {d} арзон шуд|{title} bahasy {d} arzanlady|{title} qiyməti {d} azaldı|قیمت {title} {d} کاهش یافت|د {title} بیه {d} راټیټه شوه
+price_up|{title} narxi {d} ga oshdi|Цена {title} выросла на {d}|{title} price increased by {d}|{title} бағасы {d} өсті|{title} баасы {d} өстү|Нархи {title} {d} гарон шуд|{title} bahasy {d} gymmatlady|{title} qiyməti {d} artdı|قیمت {title} {d} افزایش یافت|د {title} بیه {d} لوړه شوه
+price_now|Hozir {p}. Sotuvchi e'lonni yangiladi.|Сейчас {p}. Продавец обновил объявление.|Now {p}. The seller updated the listing.|Қазір {p}. Сатушы хабарландыруды жаңартты.|Азыр {p}. Сатуучу жарнаманы жаңыртты.|Ҳоло {p}. Фурӯшанда эълонро нав кард.|Häzir {p}. Satyjy bildirişi täzeledi.|İndi {p}. Satıcı elanı yenilədi.|اکنون {p}. فروشنده آگهی را به‌روز کرد.|اوس {p}. پلورونکي اعلان تازه کړ.
+in_delivery_by|{c} · yetib keladi {d}|{c} · прибудет {d}|{c} · arrives {d}|{c} · жетеді {d}|{c} · келет {d}|{c} · мерасад {d}|{c} · geler {d}|{c} · çatacaq {d}|{c} · می‌رسد {d}|{c} · رسېږي {d}
+company_page|Kompaniya sahifasi|Страница компании|Company page|Компания беті|Компаниянын барагы|Саҳифаи ширкат|Kompaniýanyň sahypasy|Şirkət səhifəsi|صفحه شرکت|د شرکت پاڼه
+tab_main|Asosiy ma'lumotlar|Основные данные|Main details|Негізгі деректер|Негизги маалыматтар|Маълумоти асосӣ|Esasy maglumatlar|Əsas məlumatlar|اطلاعات اصلی|اصلي معلومات
+tab_security|Xavfsizlik|Безопасность|Security|Қауіпсіздік|Коопсуздук|Бехатарӣ|Howpsuzlyk|Təhlükəsizlik|امنیت|خوندیتوب
+first_name|Ism|Имя|First name|Аты|Аты|Ном|Ady|Ad|نام|نوم
+last_name|Familiya|Фамилия|Last name|Тегі|Фамилиясы|Насаб|Familiýasy|Soyad|نام خانوادگی|تخلص
+position|Lavozim|Должность|Position|Лауазымы|Кызматы|Вазифа|Wezipesi|Vəzifə|سمت|دنده
+change_photo|Rasmni o'zgartirish|Изменить фото|Change photo|Фотоны өзгерту|Сүрөттү өзгөртүү|Иваз кардани акс|Suraty üýtgetmek|Fotonu dəyiş|تغییر عکس|عکس بدل کړئ
+phone_verified|Telefon tasdiqlangan|Телефон подтверждён|Phone verified|Телефон расталған|Телефон ырасталган|Телефон тасдиқ шудааст|Telefon tassyklanan|Telefon təsdiqlənib|تلفن تأیید شده|تلیفون تایید شوی
+on_platform|platformada {y} yildan|на площадке с {y} года|on the platform since {y}|алаңда {y} жылдан|аянтчада {y} жылдан|дар платформа аз соли {y}|platformada {y} ýyldan bäri|{y}-ci ildən platformada|از سال {y} در پلتفرم|له {y} راهیسې په پلاتفورم کې
+reg_number|Ro'yxat raqami (OGRN)|ОГРН / рег. номер|Registration number|Тіркеу нөмірі|Каттоо номери|Рақами бақайдгирӣ|Hasaba alyş belgisi|Qeydiyyat nömrəsi|شماره ثبت|د ثبت شمېره
+website|Sayt|Сайт|Website|Сайт|Сайт|Сомона|Saýt|Sayt|وب‌سایت|ویب‌پاڼه
+company_verified_on|Kompaniya tekshirilgan · {d}|Компания проверена · {d}|Company verified · {d}|Компания тексерілген · {d}|Компания текшерилген · {d}|Ширкат тасдиқ шуд · {d}|Kompaniýa barlandy · {d}|Şirkət yoxlanılıb · {d}|شرکت تأیید شده · {d}|شرکت تایید شوی · {d}
+sms_login_note|Hisobga SMS-kod orqali kiriladi. Kodni hech kimga aytmang.|Вход в аккаунт — по SMS-коду. Никому не сообщайте код.|Sign-in uses an SMS code. Never share it.|Аккаунтқа SMS-кодпен кіресіз. Кодты ешкімге айтпаңыз.|Аккаунтка SMS-код менен киресиз. Кодду эч кимге айтпаңыз.|Ворид шудан бо рамзи SMS. Рамзро ба касе нагӯед.|Hasaba SMS-kod bilen girilýär. Kody hiç kime aýtmaň.|Hesaba SMS-kodla daxil olunur. Kodu heç kimə deməyin.|ورود با کد پیامکی است. کد را به کسی ندهید.|حساب ته د SMS کوډ له لارې ننوتل کېږي. کوډ چا ته مه ورکوئ.
+chat_safety|Barcha kelishuvlar dialogda saqlanadi. SMS-kodlarni hech kimga aytmang.|Все договорённости сохранены в диалоге. Не сообщайте коды из SMS.|All agreements are saved in the chat. Never share SMS codes.|Барлық келісімдер диалогта сақталады. SMS-кодтарды айтпаңыз.|Бардык макулдашуулар диалогдо сакталат. SMS-коддорду айтпаңыз.|Ҳамаи созишҳо дар гуфтугӯ нигоҳ дошта мешаванд. Рамзҳои SMS-ро нагӯед.|Ähli ylalaşyklar gepleşikde saklanýar. SMS-kodlary aýtmaň.|Bütün razılaşmalar dialoqda saxlanılır. SMS-kodları deməyin.|همه توافق‌ها در گفتگو ذخیره می‌شوند. کدهای پیامکی را نگویید.|ټولې هوکړې په خبرو اترو کې خوندي کېږي. د SMS کوډونه مه وایاست.
+online|Onlayn|В сети|Online|Желіде|Онлайн|Дар шабака|Onlaýn|Onlayn|آنلاین|آنلاین
+promote|Ko'tarish|Продвинуть|Promote|Жылжыту|Илгерилетүү|Пешбарӣ|Öňe çykarmak|İrəli çək|ارتقا|وده
+promote_title|E'lonni ko'tarish|Продвижение объявления|Promote listing|Хабарландыруды жылжыту|Жарнаманы илгерилетүү|Пешбурди эълон|Bildirişi öňe çykarmak|Elanı irəli çəkmək|ارتقای آگهی|د اعلان وده
+promote_sub|E'lon {d} kun ro'yxat boshida turadi va ajralib ko'rinadi|Объявление будет в начале списка и выделено {d} дней|The listing stays on top and highlighted for {d} days|Хабарландыру {d} күн тізім басында тұрады|Жарнама {d} күн тизменин башында турат|Эълон {d} рӯз дар болои рӯйхат мемонад|Bildiriş {d} gün sanawyň başynda durar|Elan {d} gün siyahının əvvəlində olacaq|آگهی {d} روز بالای فهرست می‌ماند|اعلان به {d} ورځې د لړ په سر کې وي
+pay_with|To'lov usuli|Способ оплаты|Payment method|Төлем тәсілі|Төлөм ыкмасы|Тарзи пардохт|Töleg usuly|Ödəniş üsulu|روش پرداخت|د تادیې طریقه
+provider_dev|Sinov to'lovi|Тестовая оплата|Test payment|Сынақ төлемі|Сыноо төлөмү|Пардохти санҷишӣ|Synag tölegi|Test ödənişi|پرداخت آزمایشی|ازمېښتي تادیه
+use_credit|Bepul TOP ishlatish ({n} ta qoldi)|Использовать бесплатный TOP (осталось {n})|Use a free TOP ({n} left)|Тегін TOP қолдану ({n} қалды)|Акысыз TOP колдонуу ({n} калды)|TOP-и ройгонро истифода баред ({n} монд)|Mugt TOP ulanmak ({n} galdy)|Pulsuz TOP istifadə et ({n} qalıb)|استفاده از TOP رایگان ({n} مانده)|وړیا TOP وکاروئ ({n} پاتې)
+pay|To'lash|Оплатить|Pay|Төлеу|Төлөө|Пардохт кардан|Tölemek|Ödə|پرداخت|تادیه کړئ
+payment|To'lov|Оплата|Payment|Төлем|Төлөм|Пардохт|Töleg|Ödəniş|پرداخت|تادیه
+pst_pending|To'lov kutilmoqda|Ожидает оплаты|Awaiting payment|Төлемді күтуде|Төлөмдү күтүүдө|Интизори пардохт|Töleg garaşýar|Ödəniş gözləyir|در انتظار پرداخت|تادیې ته انتظار
+pst_paid|To'langan|Оплачено|Paid|Төленді|Төлөндү|Пардохт шуд|Tölendi|Ödənilib|پرداخت شد|تادیه شو
+pst_cancelled|Bekor qilingan|Отменено|Cancelled|Бас тартылды|Жокко чыгарылды|Бекор шуд|Ýatyryldy|Ləğv edildi|لغو شد|لغوه شو
+pst_refunded|Qaytarilgan|Возвращено|Refunded|Қайтарылды|Кайтарылды|Баргардонида шуд|Gaýtaryldy|Qaytarıldı|بازپرداخت شد|بېرته ورکړل شو
+pay_test_note|Sinov rejimi: pul yechilmaydi|Тестовый режим: деньги не списываются|Test mode: no money is charged|Сынақ режимі: ақша алынбайды|Сыноо режими: акча алынбайт|Реҷаи санҷишӣ: пул гирифта намешавад|Synag tertibi: pul alynmaýar|Test rejimi: pul çıxılmır|حالت آزمایشی: پولی کسر نمی‌شود|ازمېښتي حالت: پیسې نه اخیستل کېږي
+payment_success|To'lov muvaffaqiyatli o'tdi|Оплата прошла успешно|Payment successful|Төлем сәтті өтті|Төлөм ийгиликтүү өттү|Пардохт бомуваффақият анҷом ёфт|Töleg üstünlikli geçdi|Ödəniş uğurla keçdi|پرداخت با موفقیت انجام شد|تادیه بریالۍ شوه
+payments_history|To'lovlar tarixi|История платежей|Payment history|Төлемдер тарихы|Төлөмдөр тарыхы|Таърихи пардохтҳо|Tölegler taryhy|Ödəniş tarixçəsi|تاریخچه پرداخت‌ها|د تادیو تاریخچه
+go_back|Qaytish|Вернуться|Go back|Оралу|Кайтуу|Баргаштан|Yza dolanmak|Geri qayıt|بازگشت|بېرته تګ
+plans_title|Sotuvchilar uchun tariflar|Тарифы для продавцов|Plans for sellers|Сатушыларға арналған тарифтер|Сатуучулар үчүн тарифтер|Тарифҳо барои фурӯшандагон|Satyjylar üçin tarifler|Satıcılar üçün tariflər|طرح‌های فروشندگان|د پلورونکو پلانونه
+plans_sub|Biznesingiz uchun ko'proq e'lon va reklama|Больше объявлений и продвижения для вашего бизнеса|More listings and promotion for your business|Бизнесіңізге көбірек хабарландыру мен жарнама|Бизнесиңиз үчүн көбүрөөк жарнама|Эълон ва таблиғи бештар барои тиҷорати шумо|Işiňiz üçin has köp bildiriş we mahabat|Biznesiniz üçün daha çox elan və reklam|آگهی و تبلیغ بیشتر برای کسب‌وکار شما|ستاسو سوداګرۍ لپاره ډېر اعلانونه او تبلیغ
+per_month_price|{p} / oy|{p} / мес.|{p} / month|{p} / ай|{p} / ай|{p} / моҳ|{p} / aý|{p} / ay|{p} / ماه|{p} / میاشت
+current_plan|Joriy tarif|Текущий тариф|Current plan|Ағымдағы тариф|Учурдагы тариф|Тарифи ҷорӣ|Häzirki tarif|Cari tarif|طرح فعلی|اوسنی پلان
+until|{d} gacha|до {d}|until {d}|{d} дейін|{d} чейин|то {d}|{d} çenli|{d} qədər|تا {d}|تر {d}
+listings_limit|{n} tagacha faol e'lon|До {n} активных объявлений|Up to {n} active listings|{n} белсенді хабарландыруға дейін|{n} активдүү жарнамага чейин|То {n} эълони фаъол|{n} işjeň bildirişe çenli|{n} aktiv elana qədər|تا {n} آگهی فعال|تر {n} فعالو اعلانونو
+unlimited_listings|E'lonlar soni cheklanmagan|Без ограничений по объявлениям|Unlimited listings|Хабарландыру саны шексіз|Жарнамалар чексиз|Эълонҳо бемаҳдуд|Bildirişler çäksiz|Limitsiz elan|آگهی نامحدود|بې حده اعلانونه
+top_credits|Oyiga {n} ta bepul TOP|{n} бесплатных TOP в месяц|{n} free TOPs per month|Айына {n} тегін TOP|Айына {n} акысыз TOP|{n} TOP-и ройгон дар моҳ|Aýda {n} mugt TOP|Ayda {n} pulsuz TOP|{n} TOP رایگان در ماه|په میاشت کې {n} وړیا TOP
+priority_mod|Ustuvor moderatsiya va statistika|Приоритетная модерация и статистика|Priority moderation and analytics|Басым модерация және статистика|Артыкчылыктуу модерация жана статистика|Модератсияи афзалиятнок ва омор|Ileri tutulýan moderasiýa we statistika|Prioritet moderasiya və statistika|بررسی اولویت‌دار و آمار|لومړیتوب لرونکې څارنه او احصایه
+choose_plan|Ulash|Подключить|Subscribe|Қосу|Туташтыруу|Пайваст кардан|Birikdirmek|Qoşul|اشتراک|ګډون
+months_n|{n} oy|{n} мес.|{n} mo.|{n} ай|{n} ай|{n} моҳ|{n} aý|{n} ay|{n} ماه|{n} میاشتې
+safe_deal|Xavfsiz bitim|Безопасная сделка|Safe deal|Қауіпсіз мәміле|Коопсуз бүтүм|Аҳди бехатар|Howpsuz ylalaşyk|Təhlükəsiz sövdələşmə|معامله امن|خوندي معامله
+safe_deal_sub|Pul platformada saqlanadi va tovarni olganingizdan keyin sotuvchiga o'tadi. Komissiya {p}%.|Деньги хранятся на площадке и переводятся продавцу только после получения товара. Комиссия {p}%.|Funds are held by the platform and released after you receive the goods. Fee {p}%.|Ақша алаңда сақталады, тауарды алғаннан кейін сатушыға аударылады. Комиссия {p}%.|Акча аянтчада сакталып, товарды алгандан кийин сатуучуга өтөт. Комиссия {p}%.|Пул дар платформа нигоҳ дошта шуда, пас аз гирифтани мол ба фурӯшанда мегузарад. Комиссия {p}%.|Pul platformada saklanýar we harydy alanyňyzdan soň satyja geçýär. Komissiýa {p}%.|Pul platformada saxlanılır və malı aldıqdan sonra satıcıya keçir. Komissiya {p}%.|وجه نزد پلتفرم می‌ماند و پس از دریافت کالا به فروشنده پرداخت می‌شود. کارمزد {p}٪.|پیسې په پلاتفورم کې ساتل کېږي او د توکي ترلاسه کولو وروسته پلورونکي ته ورکول کېږي. کمیسیون {p}٪.
+escrow_fee|Xavfsiz bitim komissiyasi|Комиссия безопасной сделки|Safe deal fee|Қауіпсіз мәміле комиссиясы|Коопсуз бүтүм комиссиясы|Комиссияи аҳди бехатар|Howpsuz ylalaşyk komissiýasy|Təhlükəsiz sövdələşmə komissiyası|کارمزد معامله امن|د خوندي معاملې کمیسیون
+to_pay|To'lov uchun|К оплате|To pay|Төлеуге|Төлөөгө|Барои пардохт|Tölemeli|Ödəniləcək|قابل پرداخت|د تادیې لپاره
+act_pay|To'lash|Оплатить|Pay|Төлеу|Төлөө|Пардохт|Tölemek|Ödə|پرداخت|تادیه
+act_dispute|Nizo ochish|Открыть спор|Open dispute|Дау ашу|Талаш ачуу|Кушодани баҳс|Jedel açmak|Mübahisə aç|باز کردن اختلاف|شخړه پرانیستل
+dispute_reason|Muammoni yozing|Опишите проблему|Describe the problem|Мәселені сипаттаңыз|Көйгөйдү жазыңыз|Мушкилро тавсиф кунед|Meseläni ýazyň|Problemi təsvir edin|مشکل را شرح دهید|ستونزه ولیکئ
+inspection|Texnik ko'rik|Техническая проверка|Technical inspection|Техникалық тексеру|Техникалык текшерүү|Санҷиши техникӣ|Tehniki barlag|Texniki yoxlama|بازرسی فنی|تخنیکي معاینه
+inspection_sub|Usta borib texnikani tekshiradi va fotohisobot yuboradi.|Мастер приедет, проверит технику и пришлёт фотоотчёт.|An inspector will check the machine and send a photo report.|Шебер барып, техниканы тексеріп, фотоесеп жібереді.|Уста барып, техниканы текшерип, сүрөт-отчёт жөнөтөт.|Усто омада техникаро месанҷад ва ҳисоботи аксдор мефиристад.|Ussat baryp tehnikany barlar we surat hasabatyny iberer.|Usta gəlib texnikanı yoxlayacaq və foto hesabat göndərəcək.|بازرس می‌آید، ماشین را بررسی و گزارش تصویری می‌فرستد.|معاینه کوونکی راځي، ماشین ګوري او انځوریز راپور لېږي.
+order_inspection|Ko'rik buyurtma qilish|Заказать проверку|Order inspection|Тексеруге тапсырыс беру|Текшерүүгө буйрутма берүү|Фармоиши санҷиш|Barlag sargyt etmek|Yoxlama sifariş et|سفارش بازرسی|معاینه وغواړئ
+inspections_tab|Ko'riklar|Проверки|Inspections|Тексерулер|Текшерүүлөр|Санҷишҳо|Barlaglar|Yoxlamalar|بازرسی‌ها|معاینې
+verdict_good|Yaxshi holatda|Хорошее состояние|Good condition|Жақсы күйде|Жакшы абалда|Ҳолати хуб|Gowy ýagdaýda|Yaxşı vəziyyətdə|وضعیت خوب|ښه حالت
+verdict_issues|Kamchiliklar bor|Есть замечания|Some issues|Ескертулер бар|Эскертүүлөр бар|Камбудиҳо ҳаст|Kemçilikler bar|Qeydlər var|ایراداتی دارد|ځینې ستونزې شته
+verdict_bad|Tavsiya etilmaydi|Не рекомендуем|Not recommended|Ұсынылмайды|Сунушталбайт|Тавсия намешавад|Maslahat berilmeýär|Tövsiyə edilmir|توصیه نمی‌شود|سپارښتنه نه کېږي
+inspector|Usta|Мастер|Inspector|Шебер|Уста|Усто|Ussat|Usta|بازرس|معاینه کوونکی
+report|Shikoyat qilish|Пожаловаться|Report|Шағымдану|Арыздануу|Шикоят кардан|Şikaýat etmek|Şikayət et|گزارش تخلف|شکایت
+report_title|E'lon ustidan shikoyat|Жалоба на объявление|Report listing|Хабарландыруға шағым|Жарнамага арыз|Шикоят аз эълон|Bildiriş barada şikaýat|Elandan şikayət|گزارش آگهی|د اعلان شکایت
+rr_fake|Soxta / begona rasmlar|Фейк / чужие фото|Fake / stolen photos|Жалған / бөгде фото|Жасалма / бөтөн сүрөт|Қалбакӣ / аксҳои бегона|Galp / başganyň suratlary|Saxta / yad şəkillər|جعلی / عکس دیگران|جعلي / پردي عکسونه
+rr_price|Narx noto'g'ri|Неверная цена|Wrong price|Баға қате|Баа туура эмес|Нарх нодуруст|Baha nädogry|Qiymət yanlışdır|قیمت نادرست|بیه ناسمه ده
+rr_sold|Allaqachon sotilgan|Уже продано|Already sold|Сатылып кеткен|Сатылып кеткен|Аллакай фурӯхта шуд|Eýýäm satyldy|Artıq satılıb|فروخته شده|پلورل شوی
+rr_fraud|Firibgarlik|Мошенничество|Fraud|Алаяқтық|Алдамчылык|Қаллобӣ|Galplyk|Fırıldaqçılıq|کلاهبرداری|درغلي
+rr_duplicate|Dublikat|Дубликат|Duplicate|Қайталау|Кайталоо|Такрорӣ|Gaýtalanma|Dublikat|تکراری|تکراري
+rr_other|Boshqa|Другое|Other|Басқа|Башка|Дигар|Beýleki|Digər|دیگر|نور
+report_sent|Shikoyat yuborildi|Жалоба отправлена|Report sent|Шағым жіберілді|Арыз жөнөтүлдү|Шикоят фиристода шуд|Şikaýat iberildi|Şikayət göndərildi|گزارش ارسال شد|شکایت ولېږل شوه
+serial_ok|Seriya raqami tekshirildi: qidiruvda emas, dublikat yo'q|Серийный номер проверен: не в розыске, дубликатов нет|Serial number checked: not wanted, no duplicates|Сериялық нөмір тексерілді: іздеуде емес, қайталанбайды|Сериялык номер текшерилди: издөөдө эмес, кайталанбайт|Рақами силсилавӣ санҷида шуд: дар ҷустуҷӯ нест, такрор нест|Seriýa belgisi barlandy: gözlegde däl, gaýtalanmaýar|Seriya nömrəsi yoxlanıldı: axtarışda deyil, dublikat yoxdur|شماره سریال بررسی شد: تحت پیگرد نیست، تکراری ندارد|سریال شمېره وکتل شوه: تر تعقیب لاندې نه ده، تکرار نشته
+serial_wanted|Diqqat: seriya raqami qidiruvdagilar ro'yxatida!|Внимание: серийный номер числится в розыске!|Warning: this serial number is on the wanted list!|Назар аударыңыз: сериялық нөмір іздеуде!|Көңүл буруңуз: сериялык номер издөөдө!|Диққат: рақами силсилавӣ дар ҷустуҷӯ аст!|Üns beriň: seriýa belgisi gözlegde!|Diqqət: seriya nömrəsi axtarışdadır!|هشدار: شماره سریال تحت پیگرد است!|پام وکړئ: سریال شمېره تر تعقیب لاندې ده!
+serial_dup|Seriya raqami boshqa e'lonlarda ham bor ({n})|Серийный номер встречается в других объявлениях ({n})|Serial number appears in other listings ({n})|Сериялық нөмір басқа хабарландыруларда бар ({n})|Сериялык номер башка жарнамаларда бар ({n})|Рақами силсилавӣ дар эълонҳои дигар ҳаст ({n})|Seriýa belgisi başga bildirişlerde bar ({n})|Seriya nömrəsi başqa elanlarda var ({n})|شماره سریال در آگهی‌های دیگر هم هست ({n})|سریال شمېره په نورو اعلانونو کې هم شته ({n})
+serial_number|Seriya raqami / VIN|Серийный номер / VIN|Serial number / VIN|Сериялық нөмір / VIN|Сериялык номер / VIN|Рақами силсилавӣ / VIN|Seriýa belgisi / VIN|Seriya nömrəsi / VIN|شماره سریال / VIN|سریال شمېره / VIN
+calendar|Bandlik kalendari|Календарь занятости|Availability calendar|Бос күндер күнтізбесі|Бош күндөр календары|Тақвими бандӣ|Bentlik senenamasy|Məşğulluq təqvimi|تقویم دسترسی|د شتون جنتري
+busy|Band|Занято|Booked|Бос емес|Бош эмес|Банд|Bent|Məşğul|رزرو شده|نیول شوی
+free_day|Bo'sh|Свободно|Available|Бос|Бош|Озод|Boş|Boş|آزاد|وزګار
+book|Bron qilish|Забронировать|Book|Брондау|Брондоо|Брон кардан|Bron etmek|Bron et|رزرو|بک کړئ
+start_date|Boshlanishi|Начало|Start|Басталуы|Башталышы|Оғоз|Başlangyç|Başlanğıc|شروع|پیل
+end_date|Tugashi|Окончание|End|Аяқталуы|Аякталышы|Анҷом|Gutarýan|Son|پایان|پای
+hours_per_day|Kuniga soat|Часов в день|Hours per day|Күніне сағат|Күнүнө саат|Соат дар рӯз|Günde sagat|Gündə saat|ساعت در روز|په ورځ کې ساعتونه
+calc_total|Narx hisobi|Расчёт стоимости|Price estimate|Құнын есептеу|Баасын эсептөө|Ҳисоби нарх|Bahany hasaplamak|Qiymət hesabı|برآورد هزینه|د بیې اټکل
+days_n|{n} kun|{n} дн.|{n} days|{n} күн|{n} күн|{n} рӯз|{n} gün|{n} gün|{n} روز|{n} ورځې
+booking_sent|Bron so'rovi yuborildi|Заявка на бронирование отправлена|Booking request sent|Брондау сұрауы жіберілді|Брондоо өтүнүчү жөнөтүлдү|Дархости брон фиристода шуд|Bron haýyşy iberildi|Bron sorğusu göndərildi|درخواست رزرو ارسال شد|د بکنګ غوښتنه ولېږل شوه
+bookings_tab|Bronlar|Брони|Bookings|Брондар|Брондор|Бронҳо|Bronlar|Bronlar|رزروها|بکنګونه
+owner_calendar_hint|Kunni bosib, uni bron uchun yoping yoki oching|Нажмите на дату, чтобы закрыть или открыть её для бронирования|Click a date to block or unblock it|Күнді басып, оны жабыңыз не ашыңыз|Күндү басып, аны жабыңыз же ачыңыз|Санаро пахш карда, онро пӯшед ё кушоед|Senäni basyp ýapyň ýa-da açyň|Tarixə basıb onu bağlayın və ya açın|روی تاریخ بزنید تا مسدود یا باز شود|په نېټه کېکاږئ چې بنده یا خلاصه شي
+map|Xarita|Карта|Map|Карта|Карта|Харита|Karta|Xəritə|نقشه|نقشه
+list_view|Ro'yxat|Список|List|Тізім|Тизме|Рӯйхат|Sanaw|Siyahı|فهرست|لړ
+near_me|Yaqin atrofda|Рядом со мной|Near me|Жақын маңда|Жакын жерде|Дар наздикӣ|Golaýymda|Yaxınlıqda|نزدیک من|زما شاوخوا
+radius|Radius|Радиус|Radius|Радиус|Радиус|Радиус|Radius|Radius|شعاع|شعاع
+distance_km|sizdan {n} km|{n} км от вас|{n} km away|сізден {n} км|сизден {n} км|{n} км аз шумо|sizden {n} km|sizdən {n} km|{n} کیلومتر از شما|له تاسو {n} کیلومتره
+set_on_map|Joyni xaritada belgilang|Отметьте место на карте|Mark the location on the map|Орынды картада белгілеңіз|Жерди картада белгилеңиз|Ҷойро дар харита қайд кунед|Ýeri kartada belläň|Yeri xəritədə qeyd edin|محل را روی نقشه مشخص کنید|ځای په نقشه کې په نښه کړئ
+geo_denied|Joylashuvni aniqlab bo'lmadi|Не удалось определить местоположение|Could not get your location|Орналасуды анықтау мүмкін болмады|Жайгашкан жерди аныктоо мүмкүн болгон жок|Ҷойгиршавиро муайян кардан нашуд|Ýerleşişi kesgitläp bolmady|Yer müəyyən edilmədi|موقعیت شما تعیین نشد|ستاسو ځای معلوم نشو
+leasing_calc|Lizing kalkulyatori|Лизинговый калькулятор|Leasing calculator|Лизинг калькуляторы|Лизинг калькулятору|Ҳисобкунаки лизинг|Lizing kalkulýatory|Lizinq kalkulyatoru|ماشین‌حساب لیزینگ|د لیزینګ حسابګر
+down_payment|Boshlang'ich to'lov, %|Аванс, %|Down payment, %|Алғашқы жарна, %|Алгачкы төлөм, %|Пешпардохт, %|Başlangyç töleg, %|İlkin ödəniş, %|پیش‌پرداخت، ٪|لومړنۍ تادیه، ٪
+term_months|Muddat, oy|Срок, мес.|Term, months|Мерзімі, ай|Мөөнөтү, ай|Мӯҳлат, моҳ|Möhleti, aý|Müddət, ay|مدت، ماه|موده، میاشتې
+rate_year|Stavka, yillik %|Ставка, % годовых|Rate, % per year|Мөлшерлеме, жылдық %|Чен, жылдык %|Меъёр, % солона|Göterim, ýyllyk %|Faiz, illik %|نرخ، ٪ سالانه|نرخ، کلنی ٪
+monthly_payment|Oylik to'lov|Ежемесячный платёж|Monthly payment|Ай сайынғы төлем|Айлык төлөм|Пардохти моҳона|Aýlyk töleg|Aylıq ödəniş|پرداخت ماهانه|میاشتنۍ تادیه
+overpay|Ortiqcha to'lov|Переплата|Overpayment|Артық төлем|Ашыкча төлөм|Изофапардохт|Artyk töleg|Artıq ödəniş|اضافه پرداخت|اضافي تادیه
+price_history|Narx tarixi|История цены|Price history|Баға тарихы|Баа тарыхы|Таърихи нарх|Baha taryhy|Qiymət tarixçəsi|تاریخچه قیمت|د بیې تاریخچه
+compare|Solishtirish|Сравнить|Compare|Салыстыру|Салыштыруу|Муқоиса|Deňeşdirmek|Müqayisə et|مقایسه|پرتله
+in_compare|Solishtirishda|В сравнении|In comparison|Салыстыруда|Салыштырууда|Дар муқоиса|Deňeşdirmede|Müqayisədə|در مقایسه|په پرتله کې
+compare_title|Texnikani solishtirish|Сравнение техники|Compare equipment|Техниканы салыстыру|Техниканы салыштыруу|Муқоисаи техника|Tehnikany deňeşdirmek|Texnikanın müqayisəsi|مقایسه ماشین‌ها|د ماشینونو پرتله
+compare_empty|«Solishtirish» tugmasi bilan e'lonlarni qo'shing (4 tagacha)|Добавьте объявления кнопкой «Сравнить» (до 4)|Add listings with the “Compare” button (up to 4)|«Салыстыру» батырмасымен қосыңыз (4-ке дейін)|«Салыштыруу» баскычы менен кошуңуз (4кө чейин)|Бо тугмаи «Муқоиса» илова кунед (то 4)|«Deňeşdirmek» düwmesi bilen goşuň (4-e çenli)|«Müqayisə et» düyməsi ilə əlavə edin (4-ə qədər)|با دکمه «مقایسه» اضافه کنید (تا ۴)|د «پرتله» تڼۍ سره اضافه کړئ (تر ۴)
+remove|Olib tashlash|Убрать|Remove|Алып тастау|Алып салуу|Хориҷ кардан|Aýyrmak|Çıxar|حذف|لرې کول
+voice_search|Ovozli qidiruv|Голосовой поиск|Voice search|Дауыстық іздеу|Үн менен издөө|Ҷустуҷӯи овозӣ|Ses bilen gözleg|Səsli axtarış|جستجوی صوتی|غږیز لټون
+listening|Gapiring…|Говорите…|Speak now…|Сөйлеңіз…|Сүйлөңүз…|Гӯед…|Gürläň…|Danışın…|صحبت کنید…|خبرې وکړئ…
+telegram|Telegram bildirishnomalari|Telegram-уведомления|Telegram notifications|Telegram хабарламалары|Telegram билдирмелери|Огоҳиномаҳои Telegram|Telegram duýduryşlary|Telegram bildirişləri|اعلان‌های تلگرام|د ټلګرام خبرتیاوې
+tg_connect|Telegram'ni ulash|Подключить Telegram|Connect Telegram|Telegram қосу|Telegram туташтыруу|Пайваст кардани Telegram|Telegram birikdirmek|Telegram qoş|اتصال تلگرام|ټلګرام نښلول
+tg_connected|Ulangan: {u}|Подключено: {u}|Connected: {u}|Қосылған: {u}|Туташкан: {u}|Пайваст: {u}|Birikdirildi: {u}|Qoşulub: {u}|متصل: {u}|نښلول شوی: {u}
+tg_disconnect|Uzish|Отключить|Disconnect|Ажырату|Ажыратуу|Ҷудо кардан|Aýyrmak|Ayır|قطع اتصال|بېلول
+tg_not_configured|Bot hali administrator tomonidan sozlanmagan|Бот ещё не настроен администратором|The bot is not configured yet|Бот әлі бапталмаған|Бот азырынча жөндөлгөн эмес|Бот ҳанӯз танзим нашудааст|Bot entek sazlanmadyk|Bot hələ qurulmayıb|ربات هنوز تنظیم نشده|بوټ لا نه دی تنظیم شوی
+tg_open_bot|Botni oching va «Start» ni bosing, so'ng shu sahifani yangilang|Откройте бота, нажмите «Start» и обновите эту страницу|Open the bot, press “Start”, then refresh this page|Ботты ашып «Start» басыңыз да, бетті жаңартыңыз|Ботту ачып «Start» басыңыз, анан баракты жаңыртыңыз|Ботро кушода «Start»-ро пахш кунед ва саҳифаро нав кунед|Boty açyp «Start» basyň we sahypany täzeläň|Botu açıb «Start» basın və səhifəni yeniləyin|ربات را باز کنید، «Start» بزنید و صفحه را تازه کنید|بوټ پرانیزئ، «Start» کېکاږئ او پاڼه تازه کړئ
+auto_reply|Avtojavob|Автоответ|Auto-reply|Автожауап|Автожооп|Ҷавоби худкор|Awtojogap|Avtocavab|پاسخ خودکار|اتوماتیک ځواب
+auto_reply_hint|Xaridorning birinchi xabariga yuboriladi|Отправляется покупателю на первое сообщение|Sent to the buyer's first message|Сатып алушының алғашқы хабарламасына жіберіледі|Сатып алуучунун биринчи билдирүүсүнө жөнөтүлөт|Ба паёми аввали харидор фиристода мешавад|Alyjynyň ilkinji hatyna iberilýär|Alıcının ilk mesajına göndərilir|به اولین پیام خریدار ارسال می‌شود|د پېرودونکي لومړي پیغام ته لېږل کېږي
+templates|Javob shablonlari|Шаблоны ответов|Reply templates|Жауап үлгілері|Жооп үлгүлөрү|Қолабҳои ҷавоб|Jogap nusgalary|Cavab şablonları|الگوهای پاسخ|د ځواب کينډۍ
+add_template|Shablon qo'shish|Добавить шаблон|Add template|Үлгі қосу|Үлгү кошуу|Илова кардани қолаб|Nusga goşmak|Şablon əlavə et|افزودن الگو|کينډۍ اضافه کړئ
+import|Ommaviy yuklash|Массовая загрузка|Bulk upload|Жаппай жүктеу|Массалык жүктөө|Боркунии оммавӣ|Köpçülikleýin ýüklemek|Kütləvi yükləmə|بارگذاری گروهی|ډله ییز اپلوډ
+import_sub|CSV faylni yuklang (Excel → «CSV sifatida saqlash»). Bir martada 200 qatorgacha. Rasmlarni keyin «E'lonlarim»da qo'shasiz.|Загрузите CSV-файл (Excel → «Сохранить как CSV»). До 200 строк за раз. Фото добавите потом в «Моих объявлениях».|Upload a CSV file (Excel → “Save as CSV”). Up to 200 rows at once. Add photos later in “My listings”.|CSV файлын жүктеңіз (Excel → «CSV ретінде сақтау»). Бір реттe 200 жолға дейін.|CSV файлын жүктөңүз (Excel → «CSV катары сактоо»). Бир жолу 200 сапка чейин.|Файли CSV-ро боргузорӣ кунед (Excel → «Ҳамчун CSV нигоҳ доштан»). То 200 сатр.|CSV faýly ýükläň (Excel → «CSV hökmünde saklamak»). Bir gezekde 200 setire çenli.|CSV faylı yükləyin (Excel → «CSV kimi saxla»). Bir dəfəyə 200 sətrə qədər.|فایل CSV را بارگذاری کنید (Excel ← «ذخیره به‌عنوان CSV»). تا ۲۰۰ ردیف.|CSV فایل پورته کړئ (Excel ← «د CSV په توګه خوندي کول»). تر ۲۰۰ قطارونو.
+download_template|Namunani yuklab olish|Скачать шаблон|Download template|Үлгіні жүктеу|Үлгүнү жүктөө|Боргирии намуна|Nusgany ýüklemek|Şablonu yüklə|دانلود الگو|کينډۍ ښکته کړئ
+publish_after|Darhol nashrga yuborish|Сразу отправить на публикацию|Submit for publishing right away|Бірден жариялауға жіберу|Дароо жарыялоого жөнөтүү|Фавран ба нашр фиристодан|Derrew çap etmäge ibermek|Dərhal dərcə göndər|فوراً برای انتشار ارسال شود|سمدستي خپرولو ته ولېږئ
+upload|Yuklash|Загрузить|Upload|Жүктеу|Жүктөө|Боргузорӣ|Ýüklemek|Yüklə|بارگذاری|پورته کول
+import_result|{t} tadan {c} tasi yaratildi|Создано {c} из {t}|Created {c} of {t}|{t} ішінен {c} жасалды|{t} ичинен {c} түзүлдү|{c} аз {t} сохта шуд|{t}-dan {c} döredildi|{t}-dən {c} yaradıldı|{c} از {t} ایجاد شد|له {t} څخه {c} جوړ شول
+row_n|{n}-qator|Строка {n}|Row {n}|{n}-жол|{n}-сап|Сатри {n}|{n}-nji setir|{n}-ci sətir|ردیف {n}|{n} قطار
+analytics|Batafsil statistika|Подробная статистика|Detailed analytics|Толық статистика|Толук статистика|Омори муфассал|Jikme-jik statistika|Ətraflı statistika|آمار دقیق|بشپړه احصایه
+funnel|Voronka|Воронка|Funnel|Воронка|Воронка|Қиф|Woronka|Qıf|قیف|کیف
+f_views|Ko'rishlar|Просмотры|Views|Қаралым|Көрүүлөр|Бозидҳо|Görülen|Baxışlar|بازدیدها|کتنې
+f_phone_reveals|Telefon ko'rsatildi|Показы телефона|Phone reveals|Телефон көрсетілді|Телефон көрсөтүлдү|Нишондиҳии телефон|Telefon görkezildi|Telefon göstərildi|نمایش تلفن|تلیفون ښودل
+f_favorites|Saralanganga|В избранное|Favorited|Таңдаулыға|Тандалганга|Ба интихобшуда|Saýlananlara|Seçilmişlərə|علاقه‌مندی|خوښو ته
+f_conversations|Dialoglar|Диалоги|Chats|Диалогтар|Диалогдор|Гуфтугӯҳо|Gepleşikler|Dialoqlar|گفتگوها|خبرې اترې
+f_leads|Arizalar|Заявки|Leads|Өтінімдер|Арыздар|Дархостҳо|Ýüzlenmeler|Müraciətlər|درخواست‌ها|غوښتنې
+f_orders|Buyurtmalar|Заказы|Orders|Тапсырыстар|Буйрутмалар|Фармоишҳо|Sargytlar|Sifarişlər|سفارش‌ها|فرمایشونه
+f_bookings|Bronlar|Брони|Bookings|Брондар|Брондор|Бронҳо|Bronlar|Bronlar|رزروها|بکنګونه
+sources|Ko'rishlar manbalari|Источники просмотров|Traffic sources|Қаралым көздері|Көрүү булактары|Манбаъҳои бозид|Görlüşleriň çeşmeleri|Baxış mənbələri|منابع بازدید|د کتنو سرچینې
+src_direct|To'g'ridan-to'g'ri|Прямые|Direct|Тікелей|Түз|Мустақим|Göni|Birbaşa|مستقیم|مستقیم
+src_search|Qidiruv|Поиск|Search|Іздеу|Издөө|Ҷустуҷӯ|Gözleg|Axtarış|جستجو|لټون
+src_catalog|Katalog|Каталог|Catalog|Каталог|Каталог|Каталог|Katalog|Kataloq|کاتالوگ|کتلاګ
+src_home|Bosh sahifa|Главная|Home|Басты бет|Башкы бет|Асосӣ|Baş sahypa|Ana səhifə|خانه|کور
+src_feed|Lenta|Лента|Feed|Лента|Лента|Лента|Lenta|Lent|فهرست تازه|لړ
+src_similar|O'xshashlar|Похожие|Similar|Ұқсастар|Окшоштор|Монандҳо|Meňzeşler|Oxşarlar|مشابه|ورته
+src_favorites|Saralanganlar|Избранное|Favorites|Таңдаулы|Тандалган|Интихобшуда|Saýlananlar|Seçilmişlər|علاقه‌مندی‌ها|خوښې
+src_company|Kompaniya sahifasi|Страница компании|Company page|Компания беті|Компания барагы|Саҳифаи ширкат|Kompaniýa sahypasy|Şirkət səhifəsi|صفحه شرکت|د شرکت پاڼه
+src_compare|Solishtirish|Сравнение|Comparison|Салыстыру|Салыштыруу|Муқоиса|Deňeşdirme|Müqayisə|مقایسه|پرتله
+src_map|Xarita|Карта|Map|Карта|Карта|Харита|Karta|Xəritə|نقشه|نقشه
+src_messages|Xabarlar|Сообщения|Messages|Хабарламалар|Билдирүүлөр|Паёмҳо|Hatlar|Mesajlar|پیام‌ها|پیغامونه
+src_telegram|Telegram|Telegram|Telegram|Telegram|Telegram|Telegram|Telegram|Telegram|تلگرام|ټلګرام
+conversion|Konversiya|Конверсия|Conversion|Конверсия|Конверсия|Конверсия|Konwersiýa|Konversiya|نرخ تبدیل|بدلون
+last_n_days|Oxirgi {n} kun|За {n} дней|Last {n} days|Соңғы {n} күн|Акыркы {n} күн|{n} рӯзи охир|Soňky {n} gün|Son {n} gün|{n} روز اخیر|وروستۍ {n} ورځې
+install_app|Ilovani o'rnatish|Установить приложение|Install app|Қолданбаны орнату|Тиркемени орнотуу|Насб кардани барнома|Programmany gurmak|Tətbiqi quraşdır|نصب برنامه|اپ نصب کړئ
+offline|Internet aloqasi yo'q|Нет соединения с интернетом|No internet connection|Интернет байланысы жоқ|Интернет байланышы жок|Пайвасти интернет нест|Internet baglanyşygy ýok|İnternet bağlantısı yoxdur|اتصال اینترنت برقرار نیست|انټرنیټ نشته
+admin_reports|Shikoyatlar|Жалобы|Reports|Шағымдар|Арыздар|Шикоятҳо|Şikaýatlar|Şikayətlər|گزارش‌ها|شکایتونه
+admin_disputes|Nizolar|Споры|Disputes|Даулар|Талаштар|Баҳсҳо|Jedeller|Mübahisələr|اختلافات|شخړې
+admin_inspections|Ko'riklar|Проверки|Inspections|Тексерулер|Текшерүүлөр|Санҷишҳо|Barlaglar|Yoxlamalar|بازرسی‌ها|معاینې
+admin_payments|To'lovlar|Платежи|Payments|Төлемдер|Төлөмдөр|Пардохтҳо|Tölegler|Ödənişlər|پرداخت‌ها|تادیې
+admin_blacklist|Qidiruvdagi texnika|Техника в розыске|Wanted equipment|Іздеудегі техника|Издөөдөгү техника|Техникаи дар ҷустуҷӯ|Gözlegdäki tehnika|Axtarışda olan texnika|ماشین‌های تحت پیگرد|تر تعقیب لاندې ماشینونه
+resolve|Hal qilish|Решить|Resolve|Шешу|Чечүү|Ҳал кардан|Çözmek|Həll et|حل کردن|حل کول
+dismiss|Rad etish|Отклонить|Dismiss|Қабылдамау|Четке кагуу|Рад кардан|Ret etmek|Rədd et|رد کردن|ردول
+release|Sotuvchiga o'tkazish|Перевести продавцу|Release to seller|Сатушыға аудару|Сатуучуга которуу|Ба фурӯшанда гузаронидан|Satyja geçirmek|Satıcıya köçür|پرداخت به فروشنده|پلورونکي ته ورکول
+refund|Xaridorga qaytarish|Вернуть покупателю|Refund buyer|Сатып алушыға қайтару|Сатып алуучуга кайтаруу|Ба харидор баргардондан|Alyja gaýtarmak|Alıcıya qaytar|بازپرداخت به خریدار|پېرودونکي ته بېرته ورکول
+add|Qo'shish|Добавить|Add|Қосу|Кошуу|Илова|Goşmak|Əlavə et|افزودن|اضافه کول
+note_lbl|Izoh|Примечание|Note|Ескертпе|Эскертүү|Эзоҳ|Bellik|Qeyd|یادداشت|یادښت
+save_report|Hisobotni saqlash|Сохранить отчёт|Save report|Есепті сақтау|Отчётту сактоо|Нигоҳ доштани ҳисобот|Hasabaty saklamak|Hesabatı saxla|ذخیره گزارش|راپور خوندي کړئ
+plans_link|Tariflar|Тарифы|Plans|Тарифтер|Тарифтер|Тарифҳо|Tarifler|Tariflər|طرح‌ها|پلانونه
+payments_link|To'lovlar|Платежи|Payments|Төлемдер|Төлөмдөр|Пардохтҳо|Tölegler|Ödənişlər|پرداخت‌ها|تادیې
+tools|Vositalar|Инструменты|Tools|Құралдар|Куралдар|Абзорҳо|Gurallar|Alətlər|ابزارها|وسایل
+blocked_day|Yopiq|Недоступно|Unavailable|Жабық|Жабык|Пӯшида|Ýapyk|Bağlı|غیرقابل رزرو|بند
+my_bookings_renter|Men ijaraga olganlarim|Я арендую|I'm renting|Мен жалға аламын|Мен ижарага алам|Ман иҷора мегирам|Men kärendä alýaryn|Mən icarəyə götürürəm|من اجاره می‌کنم|زه کرایه کوم
+my_bookings_seller|Mening texnikamga bronlar|Бронирования моей техники|Bookings of my equipment|Менің техникама брондар|Менин техникама брондор|Брони техникаи ман|Meniň tehnikama bronlar|Texnikama bronlar|رزروهای ماشین من|زما د ماشین بکنګونه
+promoted_badge|TOP|TOP|TOP|TOP|TOP|TOP|TOP|TOP|TOP|TOP
+sort_distance|Yaqinlari avval|Сначала ближние|Nearest first|Алдымен жақындары|Адегенде жакындары|Аввал наздикҳо|Ilki golaýlar|Əvvəlcə yaxınlar|نزدیک‌ترین|لومړی نږدې
+ist_paid|To'langan|Оплачено|Paid|Төленді|Төлөндү|Пардохт шуд|Tölendi|Ödənilib|پرداخت شد|تادیه شو
+ist_scheduled|Belgilangan|Назначено|Scheduled|Белгіленді|Белгиленди|Таъин шуд|Bellendi|Təyin edildi|زمان‌بندی شد|ټاکل شوی
+ist_done|Bajarildi|Выполнено|Done|Орындалды|Аткарылды|Иҷро шуд|Ýerine ýetirildi|Tamamlandı|انجام شد|ترسره شو
+ist_cancelled|Bekor qilindi|Отменено|Cancelled|Бас тартылды|Жокко чыгарылды|Бекор шуд|Ýatyryldy|Ləğv edildi|لغو شد|لغوه شو
+login_tab_password|Parol|Пароль|Password|Құпиясөз|Сырсөз|Парол|Açar söz|Şifrə|رمز|پټنوم
+login_tab_sms|SMS-kod|SMS-код|SMS code|SMS-код|SMS-код|Рамзи SMS|SMS-kod|SMS-kod|کد پیامکی|SMS کوډ
+password|Parol|Пароль|Password|Құпиясөз|Сырсөз|Парол|Açar söz|Şifrə|رمز عبور|پټنوم
+password_hint|Kamida 8 belgi, harf va raqam|Минимум 8 символов, буквы и цифры|At least 8 characters, letters and digits|Кемінде 8 таңба, әріп пен сан|Кеминде 8 белги, тамга жана сан|На камтар аз 8 аломат, ҳарф ва рақам|Azyndan 8 nyşan, harp we san|Ən azı 8 simvol, hərf və rəqəm|حداقل ۸ نویسه، حرف و عدد|لږ تر لږه ۸ توري، توري او شمېرې
+forgot_password|Parolni unutdingizmi?|Забыли пароль?|Forgot password?|Құпиясөзді ұмыттыңыз ба?|Сырсөздү унуттуңузбу?|Паролро фаромӯш кардед?|Açar sözi ýatdan çykardyňyzmy?|Şifrəni unutmusunuz?|رمز را فراموش کرده‌اید؟|پټنوم مو هېر کړی؟
+no_account_q|Hisobingiz yo'qmi?|Нет аккаунта?|No account?|Аккаунтыңыз жоқ па?|Аккаунтуңуз жокпу?|Ҳисоб надоред?|Hasabyňyz ýokmy?|Hesabınız yoxdur?|حساب ندارید؟|حساب نلرئ؟
+register|Ro'yxatdan o'tish|Зарегистрироваться|Sign up|Тіркелу|Катталуу|Сабти ном|Hasaba durmak|Qeydiyyatdan keç|ثبت‌نام|ثبت نام
+have_account_q|Hisobingiz bormi?|Уже есть аккаунт?|Already have an account?|Аккаунтыңыз бар ма?|Аккаунтуңуз барбы?|Ҳисоб доред?|Hasabyňyz barmy?|Hesabınız var?|حساب دارید؟|حساب لرئ؟
+reg_title|HEMU.UZ'da ro'yxatdan o'tish|Регистрация на HEMU.UZ|Sign up for HEMU.UZ|HEMU.UZ-да тіркелу|HEMU.UZ'до катталуу|Сабти ном дар HEMU.UZ|HEMU.UZ-da hasaba durmak|HEMU.UZ-da qeydiyyat|ثبت‌نام در HEMU.UZ|په HEMU.UZ کې ثبت نام
+reg_sub|Raqamingizni tasdiqlang — bir daqiqa vaqt oladi|Подтвердите номер — это займёт минуту|Confirm your number — takes a minute|Нөміріңізді растаңыз — бір минут|Номериңизди ырастаңыз — бир мүнөт|Рақамро тасдиқ кунед — як дақиқа|Belgiňizi tassyklaň — bir minut|Nömrənizi təsdiqləyin — bir dəqiqə|شماره را تأیید کنید — یک دقیقه|خپله شمېره تایید کړئ — یوه دقیقه
+step_phone|Telefon|Телефон|Phone|Телефон|Телефон|Телефон|Telefon|Telefon|تلفن|تلیفون
+step_code|Kod|Код|Code|Код|Код|Рамз|Kod|Kod|کد|کوډ
+step_who|Kim siz?|Кто вы?|Who are you?|Сіз кімсіз?|Сиз кимсиз?|Шумо кистед?|Siz kim?|Siz kimsiniz?|شما کیستید؟|تاسو څوک یاست؟
+step_details|Ma'lumotlar|Данные|Details|Деректер|Маалыматтар|Маълумот|Maglumatlar|Məlumatlar|اطلاعات|معلومات
+who_title|HEMU.UZ'dan qanday foydalanasiz?|Как вы будете пользоваться HEMU.UZ?|How will you use HEMU.UZ?|HEMU.UZ-ны қалай пайдаланасыз?|HEMU.UZ'ну кантип колдоносуз?|Аз HEMU.UZ чӣ тавр истифода мебаред?|HEMU.UZ-dan nähili peýdalanarsyňyz?|HEMU.UZ-dan necə istifadə edəcəksiniz?|چگونه از HEMU.UZ استفاده می‌کنید؟|HEMU.UZ به څنګه کاروئ؟
+type_client|Mijoz|Клиент|Client|Клиент|Кардар|Мизоҷ|Müşderi|Müştəri|مشتری|پېرودونکی
+type_client_sub|Texnika sotib olaman, ijaraga olaman, xizmat buyuraman|Покупаю, арендую технику, заказываю услуги|I buy or rent equipment and order services|Техника сатып аламын, жалға аламын, қызмет тапсырамын|Техника сатып алам, ижарага алам, кызмат буйрутмалайм|Техника мехарам, иҷора мегирам, хизмат фармоиш медиҳам|Tehnika satyn alýaryn, kärendä alýaryn, hyzmat sargyt edýärin|Texnika alıram, icarəyə götürürəm, xidmət sifariş edirəm|ماشین می‌خرم، کرایه می‌کنم، خدمات سفارش می‌دهم|ماشین اخلم، کرایه کوم، خدمت غواړم
+type_company|Kompaniya|Компания|Company|Компания|Компания|Ширкат|Kompaniýa|Şirkət|شرکت|شرکت
+type_company_sub|Texnika, ehtiyot qism sotaman, ijaraga beraman, xizmat ko'rsataman|Продаю технику и запчасти, сдаю в аренду, оказываю услуги|I sell equipment and parts, rent out, provide services|Техника мен бөлшек сатамын, жалға беремін, қызмет көрсетемін|Техника жана бөлүк сатам, ижарага берем, кызмат көрсөтөм|Техника ва қисм мефурӯшам, иҷора медиҳам, хизмат мерасонам|Tehnika we şaý satýaryn, kärendä berýärin, hyzmat edýärin|Texnika və hissə satıram, icarəyə verirəm, xidmət göstərirəm|ماشین و پرزه می‌فروشم، کرایه می‌دهم، خدمات ارائه می‌کنم|ماشین او پرزې پلورم، کرایه ورکوم، خدمت وړاندې کوم
+type_mechanic|Mexanik|Механик|Mechanic|Механик|Механик|Механик|Mehanik|Mexanik|مکانیک|میخانیک
+type_mechanic_sub|Maxsus texnikani ta'mirlayman va xizmat ko'rsataman|Ремонтирую и обслуживаю спецтехнику|I repair and service heavy equipment|Арнайы техниканы жөндеймін|Атайын техниканы оңдойм|Техникаи махсусро таъмир мекунам|Ýörite tehnikany abatlaýaryn|Xüsusi texnikanı təmir edirəm|ماشین‌آلات را تعمیر و سرویس می‌کنم|ماشینونه ترمیموم
+type_driver|Haydovchi / mashinist|Водитель / машинист|Driver / operator|Жүргізуші / машинист|Айдоочу / машинист|Ронанда / мошинист|Sürüji / maşinist|Sürücü / maşinist|راننده / اپراتور|موټر چلوونکی / اپراتور
+type_driver_sub|Maxsus texnika va yuk mashinalarini boshqaraman|Управляю спецтехникой и грузовиками|I operate heavy equipment and trucks|Арнайы техника мен жүк көлігін басқарамын|Атайын техника жана жүк унаасын башкарам|Техникаи махсус ва боркашро идора мекунам|Ýörite tehnikany we ýük ulaglaryny dolandyrýaryn|Xüsusi texnika və yük maşınlarını idarə edirəm|ماشین‌آلات و کامیون می‌رانم|ماشینونه او لارۍ چلوم
+what_do|Kompaniya nima bilan shug'ullanadi?|Чем занимается компания?|What does your company do?|Компания немен айналысады?|Компания эмне менен алектенет?|Ширкат бо чӣ машғул аст?|Kompaniýa näme bilen meşgullanýar?|Şirkət nə ilə məşğuldur?|شرکت در چه زمینه‌ای فعالیت دارد؟|شرکت په څه بوخت دی؟
+act_equipment_sale|Maxsus texnika sotish|Продажа спецтехники|Equipment sales|Арнайы техника сату|Атайын техника сатуу|Фурӯши техникаи махсус|Ýörite tehnika satmak|Xüsusi texnika satışı|فروش ماشین‌آلات|د ماشینونو پلور
+act_equipment_rent|Maxsus texnika ijarasi|Аренда спецтехники|Equipment rental|Арнайы техниканы жалға беру|Атайын техниканы ижарага берүү|Иҷораи техникаи махсус|Ýörite tehnikany kärendä bermek|Xüsusi texnika icarəsi|کرایه ماشین‌آلات|د ماشینونو کرایه
+act_parts|Ehtiyot qismlar sotish|Продажа запчастей|Spare parts sales|Қосалқы бөлшектер сату|Запас бөлүктөрдү сатуу|Фурӯши қисмҳои эҳтиётӣ|Ätiýaçlyk şaý satmak|Ehtiyat hissələri satışı|فروش پرزه‌جات|د پرزو پلور
+act_repair|Ta'mirlash va servis|Ремонт и сервис|Repair and service|Жөндеу және сервис|Оңдоо жана сервис|Таъмир ва хизматрасонӣ|Abatlaýyş we hyzmat|Təmir və servis|تعمیر و سرویس|ترمیم او سرویس
+act_logistics|Yuk tashish|Грузоперевозки|Freight transport|Жүк тасымалдау|Жүк ташуу|Боркашонӣ|Ýük daşamak|Yükdaşıma|حمل بار|بار وړل
+act_materials|Qurilish materiallari|Стройматериалы|Building materials|Құрылыс материалдары|Курулуш материалдары|Масолеҳи сохтмонӣ|Gurluşyk materiallary|Tikinti materialları|مواد ساختمانی|ساختماني توکي
+choose_interests|Sizni nima qiziqtiradi?|Что вас интересует?|What are you interested in?|Сізді не қызықтырады?|Сизди эмне кызыктырат?|Шуморо чӣ шавқманд мекунад?|Sizi näme gyzyklandyrýar?|Sizi nə maraqlandırır?|به چه علاقه دارید؟|تاسو په څه کې علاقه لرئ؟
+interests_sub|Yangi e'lonlar haqida xabar beramiz|Пришлём уведомления о новых объявлениях|We will notify you about new listings|Жаңа хабарландырулар туралы хабарлаймыз|Жаңы жарнамалар жөнүндө кабарлайбыз|Дар бораи эълонҳои нав хабар медиҳем|Täze bildirişler barada habar bereris|Yeni elanlar barədə bildiriş göndərəcəyik|درباره آگهی‌های جدید خبر می‌دهیم|د نویو اعلانونو په اړه خبر درکوو
+headline|Rezyume sarlavhasi|Заголовок резюме|Resume headline|Түйіндеме тақырыбы|Резюме аталышы|Сарлавҳаи резюме|Rezýume ady|Rezyume başlığı|عنوان رزومه|د رزومې سرلیک
+experience|Tajriba, yil|Опыт, лет|Experience, years|Тәжірибе, жыл|Тажрыйба, жыл|Таҷриба, сол|Tejribe, ýyl|Təcrübə, il|سابقه، سال|تجربه، کلونه
+skills_mechanic|Mutaxassislik|Специализация|Specialization|Мамандану|Адистик|Ихтисос|Hünär|İxtisas|تخصص|تخصص
+skills_driver|Qaysi texnikani boshqarasiz|Какой техникой управляете|Equipment you operate|Қандай техниканы басқарасыз|Кайсы техниканы башкарасыз|Кадом техникаро идора мекунед|Haýsy tehnikany dolandyrýarsyňyz|Hansı texnikanı idarə edirsiniz|چه ماشینی می‌رانید|کوم ماشین چلوئ
+license_cats|Guvohnoma toifalari|Категории прав|License categories|Куәлік санаттары|Күбөлүк категориялары|Категорияҳои шаҳодатнома|Şahadatnama kategoriýalary|Vəsiqə kateqoriyaları|دسته‌های گواهینامه|د جواز کټګورۍ
+brands_lbl|Markalar (vergul bilan)|Марки (через запятую)|Brands (comma separated)|Маркалар (үтір арқылы)|Маркалар (үтүр менен)|Тамғаҳо (бо вергул)|Markalar (otur bilen)|Markalar (vergüllə)|برندها (با ویرگول)|برانډونه (په کامې)
+rate_lbl|Narx (stavka)|Ставка|Rate|Мөлшерлеме|Чен|Нарх|Baha|Qiymət|نرخ|نرخ
+mobile_lbl|Obyektga chiqaman|Выезжаю на объект|Mobile service|Нысанға барамын|Объектке барам|Ба объект меравам|Desgä barýaryn|Obyektə gedirəm|به محل می‌روم|ځای ته ځم
+available_lbl|Hozir bo'shman|Сейчас свободен|Available now|Қазір боспын|Азыр бошмун|Ҳоло озодам|Häzir boş|İndi boşam|اکنون آزادم|اوس وزګار یم
+finish_reg|Ro'yxatdan o'tishni yakunlash|Завершить регистрацию|Complete sign-up|Тіркелуді аяқтау|Катталууну аяктоо|Анҷоми сабти ном|Hasaba durmagy tamamlamak|Qeydiyyatı tamamla|تکمیل ثبت‌نام|ثبت نام بشپړ کړئ
+welcome|HEMU.UZ'ga xush kelibsiz!|Добро пожаловать в HEMU.UZ!|Welcome to HEMU.UZ!|HEMU.UZ-ға қош келдіңіз!|HEMU.UZ'го кош келиңиз!|Ба HEMU.UZ хуш омадед!|HEMU.UZ-a hoş geldiňiz!|HEMU.UZ-ya xoş gəlmisiniz!|به HEMU.UZ خوش آمدید!|HEMU.UZ ته ښه راغلاست!
+reset_title|Parolni tiklash|Восстановление пароля|Reset password|Құпиясөзді қалпына келтіру|Сырсөздү калыбына келтирүү|Барқарории парол|Açar sözi dikeltmek|Şifrənin bərpası|بازیابی رمز|د پټنوم بیا جوړول
+reset_sub|Raqamingizga kod yuboramiz|Отправим код на ваш номер|We will send a code to your number|Нөміріңізге код жібереміз|Номериңизге код жөнөтөбүз|Ба рақамиатон рамз мефиристем|Belgiňize kod ibereris|Nömrənizə kod göndərəcəyik|کد را به شماره شما می‌فرستیم|ستاسو شمېرې ته کوډ لېږو
+new_password|Yangi parol|Новый пароль|New password|Жаңа құпиясөз|Жаңы сырсөз|Пароли нав|Täze açar söz|Yeni şifrə|رمز جدید|نوی پټنوم
+set_password|Parolni saqlash|Сохранить пароль|Save password|Құпиясөзді сақтау|Сырсөздү сактоо|Нигоҳ доштани парол|Açar sözi saklamak|Şifrəni saxla|ذخیره رمز|پټنوم خوندي کړئ
+change_password|Parolni o'zgartirish|Изменить пароль|Change password|Құпиясөзді өзгерту|Сырсөздү өзгөртүү|Иваз кардани парол|Açar sözi üýtgetmek|Şifrəni dəyiş|تغییر رمز|پټنوم بدل کړئ
+current_password|Joriy parol|Текущий пароль|Current password|Ағымдағы құпиясөз|Учурдагы сырсөз|Пароли ҷорӣ|Häzirki açar söz|Cari şifrə|رمز فعلی|اوسنی پټنوم
+password_changed|Parol o'zgartirildi|Пароль изменён|Password changed|Құпиясөз өзгертілді|Сырсөз өзгөртүлдү|Парол иваз шуд|Açar söz üýtgedildi|Şifrə dəyişdirildi|رمز تغییر کرد|پټنوم بدل شو
+sk_hydraulics|Gidravlika|Гидравлика|Hydraulics|Гидравлика|Гидравлика|Гидравлика|Gidrawlika|Hidravlika|هیدرولیک|هایدرولیک
+sk_engine|Dvigatel|Двигатель|Engine|Қозғалтқыш|Кыймылдаткыч|Муҳаррик|Hereketlendiriji|Mühərrik|موتور|انجن
+sk_electrics|Elektrika|Электрика|Electrics|Электрика|Электрика|Барқ|Elektrika|Elektrik|برق|برق
+sk_transmission|Transmissiya|Трансмиссия|Transmission|Трансмиссия|Трансмиссия|Трансмиссия|Transmissiýa|Transmissiya|گیربکس|ګیربکس
+sk_undercarriage|Yurish qismi|Ходовая часть|Undercarriage|Жүріс бөлігі|Жүрүш бөлүгү|Қисми ҳаракат|Ýöreýiş bölegi|Hərəkət hissəsi|زیربندی|لاندنۍ برخه
+sk_welding|Payvandlash|Сварка|Welding|Дәнекерлеу|Ширетүү|Кафшергарӣ|Kebşirlemek|Qaynaq|جوشکاری|ویلډینګ
+sk_diagnostics|Diagnostika|Диагностика|Diagnostics|Диагностика|Диагностика|Ташхис|Diagnostika|Diaqnostika|عیب‌یابی|تشخیص
+sk_ac|Konditsionerlar|Кондиционеры|Air conditioning|Кондиционерлер|Кондиционерлер|Кондитсионерҳо|Kondisionerler|Kondisionerlər|کولر|ایرکنډیشن
+sk_tires|Shinalar|Шиномонтаж|Tires|Шина|Шина|Шинаҳо|Tigirler|Şinlər|تایر|ټایر
+sk_excavator|Ekskavator|Экскаватор|Excavator|Экскаватор|Экскаватор|Экскаватор|Ekskawator|Ekskavator|بیل مکانیکی|اکسکاواتور
+sk_backhoe|Ekskavator-yuklagich|Экскаватор-погрузчик|Backhoe loader|Экскаватор-тиегіш|Экскаватор-жүктөгүч|Экскаватор-боркунак|Ekskawator-ýükleýji|Ekskavator-yükləyici|بیل‌لودر|بیک‌هو
+sk_loader|Yuklagich|Погрузчик|Loader|Тиегіш|Жүктөгүч|Боркунак|Ýükleýji|Yükləyici|لودر|لوډر
+sk_crane|Avtokran|Автокран|Truck crane|Автокран|Автокран|Автокран|Awtokran|Avtokran|جرثقیل|کرین
+sk_bulldozer|Buldozer|Бульдозер|Bulldozer|Бульдозер|Бульдозер|Булдозер|Buldozer|Buldozer|بلدوزر|بلډوزر
+sk_grader|Greyder|Грейдер|Grader|Грейдер|Грейдер|Грейдер|Greýder|Qreyder|گریدر|ګریډر
+sk_dump_truck|Samosval|Самосвал|Dump truck|Өзітөккіш|Өзү төккүч|Худборфарор|Özi agdaryjy|Özüboşaldan|کمپرسی|ډمپ ټرک
+sk_tractor_unit|Tyagach / fura|Тягач / фура|Tractor unit|Тартқыш / фура|Тарткыч / фура|Тягач / фура|Çekiji / fura|Dartqı / fura|کشنده|کشونکی
+sk_roller|Katok|Каток|Roller|Каток|Каток|Каток|Katok|Katok|غلتک|رولر
+sk_manipulator|Manipulyator|Манипулятор|Manipulator|Манипулятор|Манипулятор|Манипулятор|Manipulýator|Manipulyator|جرثقیل بازویی|مانیپولاتور
+sk_concrete_mixer|Mikser|Миксер|Concrete mixer|Миксер|Миксер|Миксер|Mikser|Mikser|میکسر|مکسر
+sk_agri_tractor|Traktor (q/x)|Трактор (с/х)|Farm tractor|Трактор (а/ш)|Трактор (а/ч)|Трактор (кишоварзӣ)|Traktor (o/h)|Traktor (k/t)|تراکتور زراعتی|کرنیز ټراکټور
+sk_combine|Kombayn|Комбайн|Combine|Комбайн|Комбайн|Комбайн|Kombaýn|Kombayn|کمباین|کمباین
+lic_tractor|Traktorchi|Тракторист|Tractor|Тракторшы|Тракторист|Тракторчӣ|Traktorçy|Traktorçu|تراکتور|ټراکټور
+lic_special|Maxsus texnika|Спецтехника|Special equipment|Арнайы техника|Атайын техника|Техникаи махсус|Ýörite tehnika|Xüsusi texnika|ماشین‌آلات ویژه|ځانګړي ماشینونه
+ru_hour|/ soat|/ час|/ hour|/ сағ|/ саат|/ соат|/ sagat|/ saat|/ ساعت|/ ساعت
+ru_day|/ kun|/ день|/ day|/ күн|/ күн|/ рӯз|/ gün|/ gün|/ روز|/ ورځ
+ru_shift|/ smena|/ смена|/ shift|/ ауысым|/ смена|/ баст|/ smena|/ növbə|/ شیفت|/ شفټ
+ru_month|/ oy|/ мес.|/ month|/ ай|/ ай|/ моҳ|/ aý|/ ay|/ ماه|/ میاشت
+ru_job|ish uchun|за работу|per job|жұмыс үшін|иш үчүн|барои кор|iş üçin|iş üçün|برای کار|د کار لپاره
+sec_title|HEMU.UZ bo'limlari|Разделы HEMU.UZ|HEMU.UZ sections|HEMU.UZ бөлімдері|HEMU.UZ бөлүмдөрү|Бахшҳои HEMU.UZ|HEMU.UZ bölümleri|HEMU.UZ bölmələri|بخش‌های HEMU.UZ|د HEMU.UZ برخې
+sec_transportsale|Texnika sotuvi|Продажа техники|Equipment sales|Техника сату|Техника сатуу|Фурӯши техника|Tehnika satuwy|Texnika satışı|فروش ماشین‌آلات|د ماشینونو پلور
+sec_transportsale_sub|Maxsus texnika va yuk mashinalari|Спецтехника и грузовики|Heavy equipment and trucks|Арнайы техника және жүк көліктері|Атайын техника жана жүк унаалары|Техникаи махсус ва боркашҳо|Ýörite tehnika we ýük ulaglary|Xüsusi texnika və yük maşınları|ماشین‌آلات و کامیون‌ها|ماشینونه او لارۍ
+sec_transportrental|Ijara|Аренда|Rental|Жалға беру|Ижара|Иҷора|Kärende|İcarə|کرایه|کرایه
+sec_transportrental_sub|Operator bilan va operatorsiz|С оператором и без|With or without operator|Оператормен және онсыз|Оператор менен жана анысыз|Бо оператор ва бе он|Operatorly we operatorsyz|Operatorla və operatorsuz|با و بدون اپراتور|له اپراتور سره او پرته
+sec_cargologistic|Yuk logistikasi|Грузоперевозки|Cargo logistics|Жүк логистикасы|Жүк логистикасы|Логистикаи бор|Ýük logistikasy|Yük logistikası|حمل بار|د بار لوژستیک
+sec_cargologistic_sub|Yuk tashish kerak|Нужно перевезти груз|Need to ship cargo|Жүк тасымалдау керек|Жүк ташуу керек|Бор бурдан лозим|Ýük daşamaly|Yük daşımaq lazımdır|نیاز به حمل بار|بار وړل اړین دي
+sec_transportlogistic|Transport logistikasi|Транспортная логистика|Transport services|Көлік логистикасы|Транспорт логистикасы|Логистикаи нақлиёт|Ulag logistikasy|Nəqliyyat logistikası|خدمات حمل‌ونقل|د ترانسپورت لوژستیک
+sec_transportlogistic_sub|Tashish xizmatini taklif qilaman|Предлагаю перевозку|I offer transport|Тасымалдау ұсынамын|Ташууну сунуштайм|Боркаширо пешниҳод мекунам|Daşamagy hödürleýärin|Daşıma təklif edirəm|ارائه خدمات حمل|ترانسپورت وړاندې کوم
+sec_sparepart|Ehtiyot qismlar|Запчасти|Spare parts|Қосалқы бөлшектер|Запас бөлүктөр|Қисмҳои эҳтиётӣ|Ätiýaçlyk şaýlar|Ehtiyat hissələri|پرزه‌جات|پرزې
+sec_sparepart_sub|Marka, kategoriya va rubrika bo'yicha|По марке, категории и рубрике|By brand, category and section|Марка, санат және айдар бойынша|Марка, категория жана рубрика боюнча|Аз рӯи тамға, категория ва рубрика|Marka, kategoriýa we rubrika boýunça|Marka, kateqoriya və rubrika üzrə|بر اساس برند و دسته|د برانډ او کټګورۍ له مخې
+sec_driver|Haydovchilar|Водители|Drivers|Жүргізушілер|Айдоочулар|Ронандагон|Sürüjiler|Sürücülər|رانندگان|چلوونکي
+sec_driver_sub|Rezyume va vakansiyalar|Резюме и вакансии|Resumes and vacancies|Түйіндеме және бос орындар|Резюме жана вакансиялар|Резюме ва ҷойҳои холӣ|Rezýumeler we iş orunlary|Rezyume və vakansiyalar|رزومه و آگهی استخدام|رزومې او دندې
+sec_mechanic|Mexaniklar|Механики|Mechanics|Механиктер|Механиктер|Механикҳо|Mehanikler|Mexaniklər|مکانیک‌ها|میخانیکان
+sec_mechanic_sub|Ta'mirlash ustalari|Мастера по ремонту|Repair specialists|Жөндеу шеберлері|Оңдоо усталары|Устоҳои таъмир|Abatlaýyş ussatlary|Təmir ustaları|استادکاران تعمیر|د ترمیم استادان
+sec_repair|Texnika ta'miri|Ремонт техники|Equipment repair|Техника жөндеу|Техника оңдоо|Таъмири техника|Tehnika abatlaýyşy|Texnika təmiri|تعمیر ماشین‌آلات|د ماشینونو ترمیم
+sec_repair_sub|Servislar va ustaxonalar|Сервисы и мастерские|Services and workshops|Сервистер мен шеберханалар|Сервистер жана устаканалар|Хизматрасонӣ ва устохонаҳо|Serwisler we ussahanalar|Servislər və emalatxanalar|سرویس‌ها و کارگاه‌ها|سرویسونه او ورکشاپونه
+sec_application|Buyurtmalar (zayavkalar)|Заявки|Requests|Өтінімдер|Арыздар|Дархостҳо|Haýyşlar|Sorğular|درخواست‌ها|غوښتنې
+sec_application_sub|Vazifani yozing — mos takliflarni tanlaymiz|Опишите задачу — подберём предложения|Describe the task — we will match offers|Міндетті жазыңыз — ұсыныс табамыз|Милдетти жазыңыз — сунуш табабыз|Вазифаро нависед — пешниҳод меёбем|Meseläni ýazyň — teklip taparys|Tapşırığı yazın — təklif tapacağıq|کار را بنویسید — پیشنهاد پیدا می‌کنیم|کار ولیکئ — وړاندیزونه به ومومو
+resumes_tab|Rezyumelar|Резюме|Resumes|Түйіндемелер|Резюмелер|Резюмеҳо|Rezýumeler|Rezyumelər|رزومه‌ها|رزومې
+vacancies_tab|Vakansiyalar|Вакансии|Vacancies|Бос орындар|Вакансиялар|Ҷойҳои холӣ|Iş orunlary|Vakansiyalar|آگهی‌های استخدام|دندې
+post_resume|Rezyume joylash|Разместить резюме|Post resume|Түйіндеме орналастыру|Резюме жайгаштыруу|Ҷойгир кардани резюме|Rezýume ýerleşdirmek|Rezyume yerləşdir|ثبت رزومه|رزومه خپره کړئ
+post_vacancy|Vakansiya joylash|Разместить вакансию|Post vacancy|Бос орын орналастыру|Вакансия жайгаштыруу|Ҷойгир кардани вакансия|Iş ornuny ýerleşdirmek|Vakansiya yerləşdir|ثبت آگهی استخدام|دنده خپره کړئ
+salary|Maosh|Зарплата|Salary|Жалақы|Айлык|Музд|Aýlyk|Maaş|حقوق|معاش
+schedule|Jadval|График|Schedule|Кесте|График|Ҷадвал|Tertip|Qrafik|برنامه کاری|مهالوېش
+years_exp|{n} yil tajriba|Опыт {n} лет|{n} years of experience|{n} жыл тәжірибе|{n} жыл тажрыйба|{n} сол таҷриба|{n} ýyl tejribe|{n} il təcrübə|{n} سال سابقه|{n} کاله تجربه
+mobile_badge|Obyektga chiqadi|Выезд на объект|Comes to site|Нысанға барады|Объектке барат|Ба объект меравад|Desgä barýar|Obyektə gedir|حضور در محل|ځای ته ځي
+contact|Bog'lanish|Связаться|Contact|Байланысу|Байланышуу|Тамос|Habarlaşmak|Əlaqə|تماس|اړیکه
+cargo_tab|Tashish kerak|Нужно перевезти|Need transport|Тасымалдау керек|Ташуу керек|Бурдан лозим|Daşamaly|Daşımaq lazım|نیاز به حمل|وړل اړین
+transport_tab|Transport taklif qilaman|Предлагаю транспорт|Transport offers|Көлік ұсынамын|Транспорт сунуштайм|Нақлиёт пешниҳод мекунам|Ulag hödürleýärin|Nəqliyyat təklif edirəm|ارائه وسیله نقلیه|ترانسپورت وړاندې کوم
+post_cargo|Yuk joylash|Разместить груз|Post cargo|Жүк орналастыру|Жүк жайгаштыруу|Ҷойгир кардани бор|Ýük ýerleşdirmek|Yük yerləşdir|ثبت بار|بار خپور کړئ
+post_transport|Transport taklif qilish|Предложить транспорт|Offer transport|Көлік ұсыну|Транспорт сунуштоо|Пешниҳоди нақлиёт|Ulag hödürlemek|Nəqliyyat təklif et|ارائه حمل‌ونقل|ترانسپورت وړاندې کړئ
+route_from|Qayerdan|Откуда|From|Қайдан|Кайдан|Аз куҷо|Nireden|Haradan|مبدأ|له کومه
+route_to|Qayerga|Куда|To|Қайда|Кайда|Ба куҷо|Nirä|Haraya|مقصد|چېرته
+cargo_type|Yuk turi|Тип груза|Cargo type|Жүк түрі|Жүктүн түрү|Навъи бор|Ýüküň görnüşi|Yükün növü|نوع بار|د بار ډول
+vehicle_type|Transport turi|Тип транспорта|Vehicle type|Көлік түрі|Транспорттун түрү|Навъи нақлиёт|Ulagyň görnüşi|Nəqliyyat növü|نوع وسیله|د وسیلې ډول
+weight_t|Og'irligi, t|Вес, т|Weight, t|Салмағы, т|Салмагы, т|Вазн, т|Agramy, t|Çəki, t|وزن، تن|وزن، ټن
+volume_m3|Hajmi, m³|Объём, м³|Volume, m³|Көлемі, м³|Көлөмү, м³|Ҳаҷм, м³|Göwrümi, m³|Həcm, m³|حجم، متر مکعب|حجم، متر مکعب
+ready_date|Yuklash sanasi|Дата погрузки|Loading date|Тиеу күні|Жүктөө күнү|Санаи борбандӣ|Ýükleme senesi|Yükləmə tarixi|تاریخ بارگیری|د بارولو نېټه
+pu_km|km uchun|за км|per km|км үшін|км үчүн|барои км|km üçin|km üçün|هر کیلومتر|په کیلومتر
+pu_ton|tonna uchun|за тонну|per ton|тонна үшін|тонна үчүн|барои тонна|tonna üçin|ton üçün|هر تن|په ټن
+pu_total|reys uchun|за рейс|per trip|рейс үшін|рейс үчүн|барои рейс|reýs üçin|reys üçün|هر سفر|په سفر
+pu_hour|soat uchun|за час|per hour|сағат үшін|саат үчүн|барои соат|sagat üçin|saat üçün|هر ساعت|په ساعت
+by_brand|Marka bo'yicha|По марке|By brand|Марка бойынша|Марка боюнча|Аз рӯи тамға|Marka boýunça|Marka üzrə|بر اساس برند|د برانډ له مخې
+by_rubric|Rubrika bo'yicha|По рубрике|By section|Айдар бойынша|Рубрика боюнча|Аз рӯи рубрика|Rubrika boýunça|Rubrika üzrə|بر اساس بخش|د برخې له مخې
+matching_offers|Mos e'lonlar|Подходящие объявления|Matching listings|Сәйкес хабарландырулар|Ылайыктуу жарнамалар|Эълонҳои мувофиқ|Laýyk bildirişler|Uyğun elanlar|آگهی‌های مناسب|مناسب اعلانونه
+repair_services|Servislar va ustaxonalar|Сервисы и мастерские|Services and workshops|Сервистер мен шеберханалар|Сервистер жана устаканалар|Хизматрасонӣ ва устохонаҳо|Serwisler we ussahanalar|Servislər və emalatxanalar|سرویس‌ها و کارگاه‌ها|سرویسونه او ورکشاپونه
+nearby_mechanics|Mexaniklar|Механики|Mechanics|Механиктер|Механиктер|Механикҳо|Mehanikler|Mexaniklər|مکانیک‌ها|میخانیکان
+business|Biznes kabinet|Бизнес-кабинет|Business account|Бизнес кабинет|Бизнес кабинет|Утоқи тиҷорӣ|Biznes kabineti|Biznes kabineti|پنل کسب‌وکار|د سوداګرۍ پینل
+branches|Filiallar|Филиалы|Branches|Филиалдар|Филиалдар|Филиалҳо|Şahamçalar|Filiallar|شعبه‌ها|څانګې
+add_branch|Filial qo'shish|Добавить филиал|Add branch|Филиал қосу|Филиал кошуу|Илова кардани филиал|Şahamça goşmak|Filial əlavə et|افزودن شعبه|څانګه اضافه کړئ
+employees|Xodimlar|Сотрудники|Employees|Қызметкерлер|Кызматкерлер|Кормандон|Işgärler|Əməkdaşlar|کارمندان|کارکوونکي
+add_employee|Xodim qo'shish|Добавить сотрудника|Add employee|Қызметкер қосу|Кызматкер кошуу|Илова кардани корманд|Işgär goşmak|Əməkdaş əlavə et|افزودن کارمند|کارکوونکی اضافه کړئ
+role_owner|Egasi|Владелец|Owner|Иесі|Ээси|Соҳиб|Eýesi|Sahibi|مالک|مالک
+role_manager|Menejer|Менеджер|Manager|Менеджер|Менеджер|Менеҷер|Menejer|Menecer|مدیر|مدیر
+role_sales|Sotuvchi|Продавец|Sales|Сатушы|Сатуучу|Фурӯшанда|Satyjy|Satıcı|فروشنده|پلورونکی
+role_viewer|Kuzatuvchi|Наблюдатель|Viewer|Бақылаушы|Байкоочу|Нозир|Synçy|Müşahidəçi|ناظر|کتونکی
+members_hint|Xodim shu raqam bilan kirganda kompaniya nomidan e'lon joylay oladi|Сотрудник войдёт по этому номеру и сможет размещать объявления от имени компании|The employee signs in with this number and can post listings for the company|Қызметкер осы нөмірмен кіріп, компания атынан хабарландыру бере алады|Кызматкер ушул номер менен кирип, компаниянын атынан жарнама бере алат|Корманд бо ин рақам ворид шуда, аз номи ширкат эълон гузошта метавонад|Işgär şu belgi bilen girip, kompaniýanyň adyndan bildiriş goýup biler|Əməkdaş bu nömrə ilə daxil olub şirkət adından elan yerləşdirə bilər|کارمند با این شماره وارد می‌شود و می‌تواند از طرف شرکت آگهی بگذارد|کارکوونکی په دې شمېره ننوځي او د شرکت په نوم اعلان ورکولی شي
+joined|Jamoada|В команде|Joined|Командада|Командада|Дар даста|Toparda|Komandada|عضو شده|په ډله کې
+invited|Taklif qilingan|Приглашён|Invited|Шақырылған|Чакырылган|Даъват шуда|Çagyrylan|Dəvət olunub|دعوت شده|بلل شوی
+followers_n|{n} obunachi|{n} подписчиков|{n} followers|{n} жазылушы|{n} жазылуучу|{n} обуначӣ|{n} yzarlaýjy|{n} izləyici|{n} دنبال‌کننده|{n} پیروان
+follow|Obuna bo'lish|Подписаться|Follow|Жазылу|Жазылуу|Обуна шудан|Yzarlamak|İzlə|دنبال کردن|تعقیب
+following|Obuna bo'lgansiz|Вы подписаны|Following|Жазылдыңыз|Жазылдыңыз|Обуна шудед|Yzarlaýarsyňyz|İzləyirsiniz|دنبال می‌کنید|تعقیبوئ
+store|Kompaniya do'koni|Магазин компании|Company store|Компания дүкені|Компаниянын дүкөнү|Мағозаи ширкат|Kompaniýanyň dükany|Şirkət mağazası|فروشگاه شرکت|د شرکت پلورنځی
+store_search|Do'kondan qidirish|Поиск в магазине|Search in store|Дүкеннен іздеу|Дүкөндөн издөө|Ҷустуҷӯ дар мағоза|Dükandan gözlemek|Mağazada axtar|جستجو در فروشگاه|په پلورنځي کې لټون
+my_follows|Obunalar|Подписки|Following|Жазылымдар|Жазылуулар|Обунаҳо|Yzarlamalar|İzlənilənlər|دنبال‌شده‌ها|تعقیبونه
+interests|Qiziqishlar|Интересы|Interests|Қызығушылықтар|Кызыкчылыктар|Шавқҳо|Gyzyklanmalar|Maraqlar|علاقه‌ها|علاقې
+restore|Tiklash|Восстановить|Restore|Қалпына келтіру|Калыбына келтирүү|Барқарор кардан|Dikeltmek|Bərpa et|بازیابی|بیا راګرځول
+delete_forever|Butunlay o'chirish|Удалить навсегда|Delete forever|Біржола жою|Биротоло өчүрүү|Тамоман нест кардан|Doly pozmak|Tamamilə sil|حذف دائمی|تل لپاره ړنګول
+deleted_note|O'chirilgan e'lonlar 30 kun saqlanadi|Удалённые объявления хранятся 30 дней|Deleted listings are kept for 30 days|Жойылған хабарландырулар 30 күн сақталады|Өчүрүлгөн жарнамалар 30 күн сакталат|Эълонҳои несткардашуда 30 рӯз нигоҳ дошта мешаванд|Pozulan bildirişler 30 gün saklanýar|Silinmiş elanlar 30 gün saxlanılır|آگهی‌های حذف‌شده ۳۰ روز نگهداری می‌شوند|ړنګ شوي اعلانونه ۳۰ ورځې ساتل کېږي
+stats|Statistika|Статистика|Statistics|Статистика|Статистика|Омор|Statistika|Statistika|آمار|احصایه
+found_n|{n} ta e'lon topildi|Найдено {n} объявлений|{n} listings found|{n} хабарландыру табылды|{n} жарнама табылды|{n} эълон ёфт шуд|{n} bildiriş tapyldy|{n} elan tapıldı|{n} آگهی پیدا شد|{n} اعلانونه وموندل شول
+show_all_results|Barchasini ko'rsatish|Показать все|Show all|Барлығын көрсету|Баарын көрсөтүү|Ҳамаро нишон диҳед|Hemmesini görkezmek|Hamısını göstər|نمایش همه|ټول وښایاست
+similar_queries|O'xshash so'rovlar|Похожие запросы|Similar searches|Ұқсас сұраулар|Окшош суроолор|Дархостҳои монанд|Meňzeş gözlegler|Oxşar sorğular|جستجوهای مشابه|ورته لټونونه
+popular_queries|Ommabop so'rovlar|Популярные запросы|Popular searches|Танымал сұраулар|Популярдуу суроолор|Дархостҳои маъмул|Meşhur gözlegler|Populyar sorğular|جستجوهای محبوب|مشهور لټونونه
+in_categories|Bo'limlarda|В категориях|In categories|Санаттарда|Категорияларда|Дар категорияҳо|Kategoriýalarda|Kateqoriyalarda|در دسته‌ها|په کټګوریو کې
+brands_h|Markalar|Марки|Brands|Маркалар|Маркалар|Тамғаҳо|Markalar|Markalar|برندها|برانډونه
+download_pdf|Hisobni yuklab olish (PDF)|Скачать счёт (PDF)|Download invoice (PDF)|Шотты жүктеу (PDF)|Эсепти жүктөө (PDF)|Боргирии ҳисоб (PDF)|Hasaby ýüklemek (PDF)|Hesabı yüklə (PDF)|دانلود فاکتور (PDF)|بل ښکته کړئ (PDF)
+specialist_profile|Mutaxassis profili|Профиль специалиста|Specialist profile|Маман профилі|Адис профили|Профили мутахассис|Hünärmen profili|Mütəxəssis profili|پروفایل متخصص|د متخصص پروفایل
+hide_profile|Rezyumeni yashirish|Скрыть резюме|Hide resume|Түйіндемені жасыру|Резюмени жашыруу|Пинҳон кардани резюме|Rezýumäni gizlemek|Rezyumeni gizlət|پنهان کردن رزومه|رزومه پټه کړئ
+confirm_q|Ishonchingiz komilmi?|Вы уверены?|Are you sure?|Сенімдісіз бе?|Ишенесизби?|Шумо боварӣ доред?|Ynamyňyz kämilmi?|Əminsiniz?|مطمئن هستید؟|ډاډه یاست؟
+ban1_t|E'loningizni TOPga chiqaring|Поднимите объявление в ТОП|Boost your listing to the TOP|Хабарландыруыңызды ТОП-қа шығарыңыз|Жарнамаңызды ТОПко чыгарыңыз|Эълони худро ба ТОП бароред|Bildirişiňizi TOP-a çykaryň|Elanınızı TOP-a qaldırın|آگهی خود را به صدر برسانید|خپل اعلان سر ته ورسوئ
+ban1_s|Biznes tarif: cheksiz e'lonlar, TOP kreditlar va statistika|Бизнес-тариф: безлимит объявлений, ТОП-кредиты и статистика|Business plan: unlimited listings, TOP credits and analytics|Бизнес-тариф: шексіз хабарландыру, ТОП-кредиттер және статистика|Бизнес-тариф: чексиз жарнама, ТОП-кредиттер жана статистика|Тарифи бизнес: эълонҳои беҳад, кредитҳои ТОП ва омор|Biznes tarif: çäksiz bildirişler, TOP kreditleri we statistika|Biznes tarif: limitsiz elanlar, TOP kreditləri və statistika|تعرفه تجاری: آگهی نامحدود، اعتبار صدر و آمار|سوداګریز پلان: نامحدود اعلانونه، د سر کریډیټونه او احصایې
+ban1_c|Tariflar|Тарифы|See plans|Тарифтер|Тарифтер|Тарифҳо|Tarifler|Tariflər|تعرفه‌ها|پلانونه
+ban2_t|Xavfsiz bitim|Безопасная сделка|Safe deal|Қауіпсіз мәміле|Коопсуз бүтүм|Аҳдномаи бехатар|Howpsuz söwda|Təhlükəsiz sövdələşmə|معامله امن|خوندي معامله
+ban2_s|Pul sotuvchiga texnikani qabul qilganingizdan keyingina o'tadi|Деньги поступят продавцу только после того, как вы получите технику|The seller gets paid only after you receive the equipment|Ақша сатушыға техниканы қабылдағаннан кейін ғана түседі|Акча сатуучуга техниканы алгандан кийин гана түшөт|Пул ба фурӯшанда танҳо пас аз гирифтани техника мегузарад|Pul satyja diňe tehnikany kabul edeniňizden soň geçýär|Pul satıcıya yalnız texnikanı aldıqdan sonra keçir|پول فقط پس از دریافت ماشین‌آلات به فروشنده می‌رسد|پیسې پلورونکي ته یوازې هغه وخت ورکول کیږي چې تاسو ماشین ترلاسه کړئ
+ban2_c|Batafsil|Подробнее|Learn more|Толығырақ|Кененирээк|Муфассал|Giňişleýin|Ətraflı|بیشتر بدانید|نور معلومات
+ban3_t|Texnikangizni tez soting|Продайте технику быстрее|Sell your equipment faster|Техникаңызды тезірек сатыңыз|Техникаңызды тезирээк сатыңыз|Техникаи худро зудтар фурӯшед|Tehnikaňyzy çalt satyň|Texnikanızı daha tez satın|ماشین‌آلات خود را سریع‌تر بفروشید|خپل ماشینونه ژر وپلورئ
+ban3_s|E'lon joylash bepul — uni 8 mamlakatdagi xaridorlar ko'radi|Размещение бесплатно — объявление увидят покупатели из 8 стран|Posting is free — buyers from 8 countries will see it|Орналастыру тегін — хабарландыруды 8 елдің сатып алушылары көреді|Жайгаштыруу акысыз — жарнаманы 8 өлкөнүн сатып алуучулары көрөт|Ҷойгиркунӣ ройгон аст — эълонро харидорони 8 кишвар мебинанд|Ýerleşdirmek mugt — bildirişi 8 ýurduň alyjylary görer|Yerləşdirmə pulsuzdur — elanı 8 ölkənin alıcıları görəcək|ثبت آگهی رایگان است — خریداران ۸ کشور آن را می‌بینند|اعلان خپرول وړیا دي — د ۸ هیوادونو پیرودونکي یې ویني
+ad_label|Reklama|Реклама|Ad|Жарнама|Жарнама|Реклама|Mahabat|Reklam|تبلیغ|اعلان
+views_title|Ko'rishlar soni|Количество просмотров|Number of views|Қаралым саны|Көрүүлөр саны|Шумораи тамошо|Görülen sany|Baxış sayı|تعداد بازدید|د لیدنو شمېر
+tier_vip_title|VIP e'lonlar|VIP-объявления|VIP listings|VIP хабарландырулар|VIP жарнамалар|Эълонҳои VIP|VIP bildirişler|VIP elanlar|آگهی‌های VIP|VIP اعلانونه
+tier_gold_title|GOLD e'lonlar|GOLD-объявления|GOLD listings|GOLD хабарландырулар|GOLD жарнамалар|Эълонҳои GOLD|GOLD bildirişler|GOLD elanlar|آگهی‌های GOLD|GOLD اعلانونه
+tier_premium_title|PREMIUM e'lonlar|PREMIUM-объявления|PREMIUM listings|PREMIUM хабарландырулар|PREMIUM жарнамалар|Эълонҳои PREMIUM|PREMIUM bildirişler|PREMIUM elanlar|آگهی‌های PREMIUM|PREMIUM اعلانونه
+tier_empty|Bu yerda sizning e'loningiz bo'lishi mumkin|Здесь может быть ваше объявление|Your listing could be here|Мұнда сіздің хабарландыруыңыз болуы мүмкін|Бул жерде сиздин жарнамаңыз болушу мүмкүн|Ин ҷо метавонад эълони шумо бошад|Bu ýerde siziň bildirişiňiz bolup biler|Burada sizin elanınız ola bilər|آگهی شما می‌تواند اینجا باشد|ستاسو اعلان دلته کېدای شي
+tier_cta|E'lonni ko'tarish|Продвинуть объявление|Promote a listing|Хабарландыруды жылжыту|Жарнаманы көтөрүү|Пешбурди эълон|Bildirişi öňe çykarmak|Elanı irəli çəkmək|ارتقای آگهی|اعلان ته وده ورکول
+tier_sub|Darajani tanlang: e'lon bosh sahifadagi karuselda va qidiruvda yuqorida ko'rsatiladi|Выберите уровень: объявление покажется в карусели на главной и выше в поиске|Choose a level: your listing will appear in a home page carousel and higher in search|Деңгейді таңдаңыз: хабарландыру басты беттегі каруселде және іздеуде жоғары көрсетіледі|Деңгээлди тандаңыз: жарнама башкы беттеги каруселде жана издөөдө жогору көрсөтүлөт|Сатҳро интихоб кунед: эълон дар карусели саҳифаи асосӣ ва дар ҷустуҷӯ болотар нишон дода мешавад|Derejäni saýlaň: bildiriş baş sahypadaky karuselde we gözlegde ýokarda görkeziler|Səviyyəni seçin: elan ana səhifədəki karuseldə və axtarışda yuxarıda göstəriləcək|سطح را انتخاب کنید: آگهی در کاروسل صفحه اصلی و بالاتر در جستجو نمایش داده می‌شود|کچه وټاکئ: اعلان به د اصلي پاڼې په کاروسل او په لټون کې پورته ښودل کېږي
+tier_days|{d} kun|{d} дн.|{d} days|{d} күн|{d} күн|{d} рӯз|{d} gün|{d} gün|{d} روز|{d} ورځې
+tier_active_until|{t} — {d} gacha|{t} — до {d}|{t} — until {d}|{t} — {d} дейін|{t} — {d} чейин|{t} — то {d}|{t} — {d} çenli|{t} — {d} qədər|{t} — تا {d}|{t} — تر {d} پورې
+use_credit_premium|Bepul PREMIUM ({n} ta qoldi)|Бесплатный PREMIUM (осталось {n})|Free PREMIUM ({n} left)|Тегін PREMIUM ({n} қалды)|Акысыз PREMIUM ({n} калды)|PREMIUM-и ройгон ({n} монд)|Mugt PREMIUM ({n} galdy)|Pulsuz PREMIUM ({n} qaldı)|PREMIUM رایگان ({n} مانده)|وړیا PREMIUM ({n} پاتې)
+popular_pick|Ko'p tanlanadi|Чаще выбирают|Most popular|Жиі таңдалады|Көп тандалат|Бештар интихоб мекунанд|Köp saýlanýar|Ən çox seçilir|محبوب‌ترین|ډېر غوره کېږي
+contact_title|Bog'lanish|Контакты|Contact us|Байланыс|Байланыш|Тамос|Habarlaşmak|Əlaqə|تماس با ما|اړیکه
+contact_sub|Savolingiz bo'lsa — qo'ng'iroq qiling, Telegramga yozing yoki murojaat qoldiring|Есть вопрос — позвоните, напишите в Telegram или оставьте обращение|Got a question? Call us, message us on Telegram or leave a request|Сұрағыңыз болса — қоңырау шалыңыз, Telegram-ға жазыңыз немесе өтініш қалдырыңыз|Суроо болсо — чалыңыз, Telegramга жазыңыз же кайрылуу калтырыңыз|Савол бошад — занг занед, ба Telegram нависед ё муроҷиат гузоред|Soragyňyz bar bolsa — jaň ediň, Telegrama ýazyň ýa-da ýüzlenme goýuň|Sualınız varsa — zəng edin, Telegram-a yazın və ya müraciət qoyun|سؤالی دارید؟ تماس بگیرید، در تلگرام بنویسید یا درخواست بگذارید|پوښتنه لرئ؟ زنګ ووهئ، په ټلګرام کې ولیکئ یا غوښتنه پرېږدئ
+call_us|Qo'ng'iroq qilish|Позвонить|Call|Қоңырау шалу|Чалуу|Занг задан|Jaň etmek|Zəng etmək|تماس|زنګ وهل
+work_time|Har kuni 9:00 — 20:00|Ежедневно 9:00 — 20:00|Daily 9:00 — 20:00|Күн сайын 9:00 — 20:00|Күн сайын 9:00 — 20:00|Ҳар рӯз 9:00 — 20:00|Her gün 9:00 — 20:00|Hər gün 9:00 — 20:00|هر روز ۹:۰۰ — ۲۰:۰۰|هره ورځ ۹:۰۰ — ۲۰:۰۰
+faq_title|Ko'p so'raladigan savollar|Частые вопросы|Frequently asked questions|Жиі қойылатын сұрақтар|Көп берилүүчү суроолор|Саволҳои маъмул|Köp berilýän soraglar|Tez-tez verilən suallar|پرسش‌های متداول|عامې پوښتنې
+support_form|Murojaat yuborish|Отправить обращение|Send a request|Өтініш жіберу|Кайрылуу жөнөтүү|Фиристодани муроҷиат|Ýüzlenme ibermek|Müraciət göndərmək|ارسال درخواست|غوښتنه لېږل
+topic|Mavzu|Тема|Topic|Тақырып|Тема|Мавзӯъ|Tema|Mövzu|موضوع|موضوع
+topic_question|Savol|Вопрос|Question|Сұрақ|Суроо|Савол|Sorag|Sual|سؤال|پوښتنه
+topic_payment|To'lov|Оплата|Payment|Төлем|Төлөм|Пардохт|Töleg|Ödəniş|پرداخت|تادیه
+topic_listing|E'lon|Объявление|Listing|Хабарландыру|Жарнама|Эълон|Bildiriş|Elan|آگهی|اعلان
+topic_complaint|Shikoyat|Жалоба|Complaint|Шағым|Арыз|Шикоят|Şikaýat|Şikayət|شکایت|شکایت
+topic_ads|Reklama|Реклама|Advertising|Жарнама|Жарнама|Реклама|Mahabat|Reklam|تبلیغات|اعلانونه
+topic_other|Boshqa|Другое|Other|Басқа|Башка|Дигар|Başga|Digər|دیگر|نور
+support_sent|Murojaatingiz qabul qilindi. Tez orada javob beramiz|Обращение принято. Мы скоро ответим|Request received. We will reply soon|Өтініш қабылданды. Жақында жауап береміз|Кайрылуу кабыл алынды. Жакында жооп беребиз|Муроҷиат қабул шуд. Ба зудӣ ҷавоб медиҳем|Ýüzlenme kabul edildi. Ýakyn wagtda jogap bereris|Müraciət qəbul edildi. Tezliklə cavab verəcəyik|درخواست دریافت شد. به‌زودی پاسخ می‌دهیم|غوښتنه ترلاسه شوه. ژر به ځواب درکړو
+my_support|Mening murojaatlarim|Мои обращения|My requests|Менің өтініштерім|Менин кайрылууларым|Муроҷиатҳои ман|Meniň ýüzlenmelerim|Müraciətlərim|درخواست‌های من|زما غوښتنې
+st_new|Yangi|Новое|New|Жаңа|Жаңы|Нав|Täze|Yeni|جدید|نوې
+st_answered|Javob berildi|Отвечено|Answered|Жауап берілді|Жооп берилди|Ҷавоб дода шуд|Jogap berildi|Cavablandı|پاسخ داده شد|ځواب ورکړل شو
+st_closed|Yopilgan|Закрыто|Closed|Жабылды|Жабылды|Баста|Ýapyldy|Bağlandı|بسته|تړل شوې
+terms_title|Ommaviy oferta|Публичная оферта|Terms of service|Жария оферта|Ачык оферта|Офертаи оммавӣ|Köpçülikleýin oferta|Açıq oferta|شرایط استفاده|د کارونې شرایط
+prices_title|Texnika narxlari|Цены на технику|Equipment prices|Техника бағалары|Техника баалары|Нархи техника|Tehnika bahalary|Texnika qiymətləri|قیمت ماشین‌آلات|د ماشینونو بیې
+prices_sub|Saytdagi faol e'lonlar bo'yicha brend va model kesimida o'rtacha narxlar|Средние цены по брендам и моделям на основе активных объявлений|Average prices by brand and model based on active listings|Белсенді хабарландырулар бойынша бренд пен модель бойынша орташа бағалар|Активдүү жарнамалар боюнча бренд жана модель боюнча орточо баалар|Нархҳои миёна аз рӯи бренд ва модел дар асоси эълонҳои фаъол|Işjeň bildirişler boýunça marka we model boýunça ortaça bahalar|Aktiv elanlar əsasında brend və model üzrə orta qiymətlər|میانگین قیمت بر اساس برند و مدل از آگهی‌های فعال|د فعالو اعلانونو پر بنسټ د برنډ او ماډل له مخې منځنۍ بیې
+avg_price|O'rtacha narx|Средняя цена|Average price|Орташа баға|Орточо баа|Нархи миёна|Ortaça baha|Orta qiymət|قیمت میانگین|منځنۍ بیه
+price_range|Narx oralig'i|Диапазон цен|Price range|Баға аралығы|Баа аралыгы|Доираи нарх|Baha aralygy|Qiymət aralığı|بازه قیمت|د بیې حد
+price_change|Narx o'zgarishi|Изменение цены|Price change|Баға өзгерісі|Баанын өзгөрүшү|Тағйири нарх|Bahanyň üýtgemegi|Qiymət dəyişikliyi|تغییر قیمت|د بیې بدلون
+years_lbl|Yillar|Годы|Years|Жылдар|Жылдар|Солҳо|Ýyllar|İllər|سال‌ها|کلونه
+brand_model_ph|Brend yoki model, masalan JCB 3CX|Бренд или модель, например JCB 3CX|Brand or model, e.g. JCB 3CX|Бренд немесе модель, мысалы JCB 3CX|Бренд же модель, мисалы JCB 3CX|Бренд ё модел, масалан JCB 3CX|Marka ýa-da model, meselem JCB 3CX|Brend və ya model, məsələn JCB 3CX|برند یا مدل، مثلاً JCB 3CX|برنډ یا ماډل، لکه JCB 3CX
+see_listings|E'lonlarni ko'rish|Смотреть объявления|View listings|Хабарландыруларды көру|Жарнамаларды көрүү|Дидани эълонҳо|Bildirişleri görmek|Elanlara baxmaq|مشاهده آگهی‌ها|اعلانونه وګورئ
+sellers_title|Sotuvchilar reytingi|Рейтинг продавцов|Seller rating|Сатушылар рейтингі|Сатуучулардын рейтинги|Рейтинги фурӯшандагон|Satyjylaryň reýtingi|Satıcıların reytinqi|رتبه‌بندی فروشندگان|د پلورونکو درجه بندي
+sellers_sub|Xaridorlar sharhlari va bitimlar soni bo'yicha eng ishonchli kompaniyalar|Самые надёжные компании по отзывам покупателей и числу сделок|The most trusted companies by buyer reviews and number of deals|Сатып алушылардың пікірлері мен мәмілелер саны бойынша ең сенімді компаниялар|Сатып алуучулардын пикирлери жана бүтүмдөрдүн саны боюнча эң ишенимдүү компаниялар|Ширкатҳои боэътимодтарин аз рӯи шарҳи харидорон ва шумораи аҳдҳо|Alyjylaryň synlary we söwdalaryň sany boýunça iň ygtybarly kompaniýalar|Alıcı rəyləri və sövdələşmə sayına görə ən etibarlı şirkətlər|معتبرترین شرکت‌ها بر اساس نظر خریداران و تعداد معاملات|د پېرودونکو د نظرونو او معاملو د شمېر له مخې تر ټولو باوري شرکتونه
+reviews_n|{n} ta sharh|{n} отзывов|{n} reviews|{n} пікір|{n} пикир|{n} шарҳ|{n} syn|{n} rəy|{n} نظر|{n} نظرونه
+deals_n|{n} ta bitim|{n} сделок|{n} deals|{n} мәміле|{n} бүтүм|{n} аҳд|{n} söwda|{n} sövdələşmə|{n} معامله|{n} معاملې
+sort_rating|Reyting bo'yicha|По рейтингу|By rating|Рейтинг бойынша|Рейтинг боюнча|Аз рӯи рейтинг|Reýting boýunça|Reytinqə görə|بر اساس رتبه|د درجې له مخې
+sort_reviews|Sharhlar bo'yicha|По отзывам|By reviews|Пікірлер бойынша|Пикирлер боюнча|Аз рӯи шарҳҳо|Synlar boýunça|Rəylərə görə|بر اساس نظرها|د نظرونو له مخې
+sort_listings|E'lonlar bo'yicha|По объявлениям|By listings|Хабарландырулар бойынша|Жарнамалар боюнча|Аз рӯи эълонҳо|Bildirişler boýunça|Elanlara görə|بر اساس آگهی‌ها|د اعلانونو له مخې
+sort_deals|Bitimlar bo'yicha|По сделкам|By deals|Мәмілелер бойынша|Бүтүмдөр боюнча|Аз рӯи аҳдҳо|Söwdalar boýunça|Sövdələşmələrə görə|بر اساس معاملات|د معاملو له مخې
+to_orders|Buyurtmalarga qaytish|К заказам|Back to orders|Тапсырыстарға оралу|Буйрутмаларга кайтуу|Бозгашт ба фармоишҳо|Sargytlara dolanmak|Sifarişlərə qayıt|بازگشت به سفارش‌ها|امرونو ته ستنېدل
+order_progress|Buyurtma holati|Ход заказа|Order progress|Тапсырыс барысы|Буйрутманын жүрүшү|Ҷараёни фармоиш|Sargydyň ýagdaýy|Sifarişin gedişi|روند سفارش|د امر پرمختګ
+two_factor_title|Tasdiqlash kodi|Код подтверждения|Verification code|Растау коды|Ырастоо коду|Рамзи тасдиқ|Tassyklama kody|Təsdiq kodu|کد تأیید|د تایید کوډ
+two_factor_sub|Administrator hisobi himoyalangan: {phone} raqamiga SMS-kod yuborildi|Аккаунт администратора защищён: SMS-код отправлен на {phone}|Administrator account is protected: an SMS code was sent to {phone}|Әкімші аккаунты қорғалған: SMS-код {phone} нөміріне жіберілді|Администратордун аккаунту корголгон: SMS-код {phone} номерине жөнөтүлдү|Ҳисоби маъмур ҳифз шудааст: рамзи SMS ба {phone} фиристода шуд|Administrator hasaby goragly: SMS-kod {phone} belgisine iberildi|İnzibatçı hesabı qorunur: SMS-kod {phone} nömrəsinə göndərildi|حساب مدیر محافظت شده است: کد پیامکی به {phone} ارسال شد|د مدیر حساب خوندي دی: SMS کوډ {phone} ته ولېږل شو
+footer_phone|Qo'llab-quvvatlash|Поддержка|Support|Қолдау|Колдоо|Дастгирӣ|Goldaw|Dəstək|پشتیبانی|ملاتړ
+promote_opt|E'lonni ko'tarish (ixtiyoriy)|Продвижение объявления (необязательно)|Promote your listing (optional)|Хабарландыруды жылжыту (міндетті емес)|Жарнаманы көтөрүү (милдеттүү эмес)|Пешбурди эълон (ихтиёрӣ)|Bildirişi öňe çykarmak (hökman däl)|Elanın irəli çəkilməsi (istəyə görə)|ارتقای آگهی (اختیاری)|د اعلان وده (اختیاري)
+promote_opt_sub|Pullik paketni tanlasangiz, e'lon joylangach to'lov oynasi ochiladi|Если выберете платный пакет, после публикации откроется окно оплаты|If you choose a paid package, the payment window opens after publishing|Ақылы пакетті таңдасаңыз, жариялағаннан кейін төлем терезесі ашылады|Акылуу пакетти тандасаңыз, жарыялагандан кийин төлөм терезеси ачылат|Агар бастаи пулакиро интихоб кунед, пас аз нашр равзанаи пардохт кушода мешавад|Tölegli paketi saýlasaňyz, ýerleşdirilenden soň töleg penjiresi açylar|Ödənişli paketi seçsəniz, dərcdən sonra ödəniş pəncərəsi açılacaq|اگر بسته پولی را انتخاب کنید، پس از انتشار پنجره پرداخت باز می‌شود|که تادیه شوې کڅوړه وټاکئ، له خپرېدو وروسته د تادیې کړکۍ پرانیستل کېږي
+tier_free|Oddiy|Обычное|Regular|Қарапайым|Жөнөкөй|Оддӣ|Adaty|Adi|عادی|عادي
+tier_free_sub|Bepul — umumiy ro'yxatda|Бесплатно — в общем списке|Free — in the general list|Тегін — жалпы тізімде|Акысыз — жалпы тизмеде|Ройгон — дар рӯйхати умумӣ|Mugt — umumy sanawda|Pulsuz — ümumi siyahıda|رایگان — در فهرست عمومی|وړیا — په عمومي لړ کې
+theme_dark|Qorong'i rejim|Тёмная тема|Dark mode|Қараңғы режим|Караңгы режим|Реҷаи торик|Garaňky tema|Qaranlıq rejim|حالت تاریک|تیاره بڼه
+theme_light|Yorug' rejim|Светлая тема|Light mode|Жарық режим|Жарык режим|Реҷаи равшан|Ýagty tema|İşıqlı rejim|حالت روشن|روښانه بڼه
+biz_group|Biznes: VIP · GOLD · PREMIUM — bosh sahifa karusellari|Бизнес: VIP · GOLD · PREMIUM — карусели на главной|Business: VIP · GOLD · PREMIUM — home page carousels|Бизнес: VIP · GOLD · PREMIUM — басты бет карусельдері|Бизнес: VIP · GOLD · PREMIUM — башкы беттин карусельдери|Бизнес: VIP · GOLD · PREMIUM — каруселҳои саҳифаи асосӣ|Biznes: VIP · GOLD · PREMIUM — baş sahypanyň karuselleri|Biznes: VIP · GOLD · PREMIUM — ana səhifə karuselləri|کسب‌وکار: VIP · GOLD · PREMIUM — کاروسل‌های صفحه اصلی|سوداګري: VIP · GOLD · PREMIUM — د اصلي پاڼې کاروسلونه
+top_group|TOP — e'lonni ro'yxat boshiga chiqarish (OLX kabi)|ТОП — поднять объявление в начало списка (как на OLX)|TOP — move your listing to the top (like OLX)|ТОП — хабарландыруды тізім басына шығару|ТОП — жарнаманы тизменин башына чыгаруу|TOP — баровардани эълон ба аввали рӯйхат|TOP — bildirişi sanawyň başyna çykarmak|TOP — elanı siyahının əvvəlinə qaldırmaq|TOP — بردن آگهی به بالای فهرست|TOP — اعلان د لړ سر ته پورته کول
+company_only_note|VIP, GOLD va PREMIUM karusellari faqat kompaniyalar (MChJ, YaTT) uchun|Карусели VIP, GOLD и PREMIUM — только для компаний (ООО, ИП)|VIP, GOLD and PREMIUM carousels are for companies only|VIP, GOLD және PREMIUM карусельдері тек компанияларға (ЖШС, ЖК)|VIP, GOLD жана PREMIUM карусельдери компаниялар (ЖЧК, ЖИ) үчүн гана|Каруселҳои VIP, GOLD ва PREMIUM танҳо барои ширкатҳо|VIP, GOLD we PREMIUM karuselleri diňe kompaniýalar üçin|VIP, GOLD və PREMIUM karuselləri yalnız şirkətlər (MMC, FS) üçündür|کاروسل‌های VIP، GOLD و PREMIUM فقط برای شرکت‌ها|VIP، GOLD او PREMIUM کاروسلونه یوازې د شرکتونو لپاره
+add_company|Kompaniya qo'shish|Добавить компанию|Add company|Компания қосу|Компания кошуу|Илова кардани ширкат|Kompaniýa goşmak|Şirkət əlavə et|افزودن شرکت|شرکت زیاتول
+welcome_bonus|Xush kelibsiz! Hisobingizga {sum} bonus qo'shildi|Добро пожаловать! На ваш счёт начислен бонус {sum}|Welcome! A {sum} bonus has been added to your balance|Қош келдіңіз! Шотыңызға {sum} бонус қосылды|Кош келиңиз! Эсебиңизге {sum} бонус кошулду|Хуш омадед! Ба ҳисоби шумо {sum} бонус илова шуд|Hoş geldiňiz! Hasabyňyza {sum} bonus goşuldy|Xoş gəlmisiniz! Balansınıza {sum} bonus əlavə olundu|خوش آمدید! {sum} پاداش به حساب شما اضافه شد|ښه راغلاست! ستاسو حساب ته {sum} بونس زیات شو
+promo_top_short|TOP|ТОП|TOP|ТОП|ТОП|TOP|TOP|TOP|TOP|TOP
+promo_highlight_short|Rang bilan ajratish|Выделение цветом|Colour highlight|Түспен бөлектеу|Түс менен бөлүү|Ҷудо кардан бо ранг|Reňk bilen bellemek|Rənglə seçmə|برجسته‌سازی رنگی|په رنګ ځانګړی کول
+promo_combo_short|TOP + ajratish|ТОП + выделение|TOP + highlight|ТОП + бөлектеу|ТОП + бөлүү|TOP + ҷудо кардан|TOP + bellemek|TOP + seçmə|TOP + برجسته‌سازی|TOP + ځانګړی کول
+sec_fura|Fura logistika|Грузоперевозки фурами|Truck freight|Фуралық тасымал|Фура менен ташуу|Боркашонӣ бо фура|Fura bilen daşamak|Fura ilə daşıma|باربری با تریلی|د لارۍ بار وړل
+sec_fura_sub|Yuklar va bo'sh furalar birjasi|Биржа грузов и свободных фур|Loads and free trucks exchange|Жүктер мен бос фуралар биржасы|Жүктөр жана бош фуралар биржасы|Биржаи борҳо ва фураҳои холӣ|Ýükler we boş furalar biržasy|Yüklər və boş fura birjası|بورس بار و تریلی خالی|د بارونو او تشو لاریو بازار
+fr_hero|Markaziy Osiyo, Rossiya, Xitoy, Turkiya va Yevropa bo'ylab yuk va furalar|Грузы и фуры по Центральной Азии, России, Китаю, Турции и Европе|Loads and trucks across Central Asia, Russia, China, Turkey and Europe|Орталық Азия, Ресей, Қытай, Түркия және Еуропа бойынша жүктер мен фуралар|Борбордук Азия, Орусия, Кытай, Түркия жана Европа боюнча жүктөр жана фуралар|Борҳо ва фураҳо дар Осиёи Марказӣ, Русия, Чин, Туркия ва Аврупо|Merkezi Aziýa, Russiýa, Hytaý, Türkiýe we Ýewropa boýunça ýükler we furalar|Mərkəzi Asiya, Rusiya, Çin, Türkiyə və Avropa üzrə yüklər və fura|بار و تریلی در آسیای مرکزی، روسیه، چین، ترکیه و اروپا|په منځنۍ اسیا، روسیه، چین، ترکیه او اروپا کې بار او لارۍ
+fr_loads|Yuklar|Грузы|Loads|Жүктер|Жүктөр|Борҳо|Ýükler|Yüklər|بارها|بارونه
+fr_trucks|Bo'sh furalar|Свободные фуры|Free trucks|Бос фуралар|Бош фуралар|Фураҳои холӣ|Boş furalar|Boş fura|تریلی‌های خالی|تشې لارۍ
+fr_post_load|Yuk joylash|Разместить груз|Post a load|Жүк орналастыру|Жүк жайгаштыруу|Ҷойгир кардани бор|Ýük ýerleşdirmek|Yük yerləşdir|ثبت بار|بار ثبتول
+fr_post_truck|Fura joylash|Разместить фуру|Post a truck|Фура орналастыру|Фура жайгаштыруу|Ҷойгир кардани фура|Fura ýerleşdirmek|Fura yerləşdir|ثبت تریلی|لارۍ ثبتول
+fr_from|Qayerdan|Откуда|From|Қайдан|Кайдан|Аз куҷо|Nireden|Haradan|از کجا|له کومه
+fr_to|Qayerga|Куда|To|Қайда|Кайда|Ба куҷо|Nirä|Haraya|به کجا|چېرته
+fr_any_dir|Istalgan yo'nalish|Любое направление|Any direction|Кез келген бағыт|Каалаган багыт|Ҳар самт|Islendik ugur|İstənilən istiqamət|هر مسیر|هر لوری
+fr_any_country|Istalgan mamlakat|Любая страна|Any country|Кез келген ел|Каалаган өлкө|Ҳар кишвар|Islendik ýurt|İstənilən ölkə|هر کشور|هر هېواد
+fr_city|Shahar|Город|City|Қала|Шаар|Шаҳр|Şäher|Şəhər|شهر|ښار
+fr_body|Kuzov turi|Тип кузова|Body type|Шанақ түрі|Кузовдун түрү|Навъи кузов|Kuzow görnüşi|Banın növü|نوع بدنه|د بدنې ډول
+fr_loading|Yuklash usuli|Тип загрузки|Loading|Тиеу түрі|Жүктөө түрү|Навъи борбардорӣ|Ýüklemek görnüşi|Yükləmə növü|نوع بارگیری|د بارولو ډول
+fr_cargo|Yuk nomi|Наименование груза|Cargo|Жүк атауы|Жүктүн аталышы|Номи бор|Ýüküň ady|Yükün adı|نام بار|د بار نوم
+fr_weight|Og'irlik, t|Вес, т|Weight, t|Салмақ, т|Салмагы, т|Вазн, т|Agramy, t|Çəki, t|وزن، تن|وزن، ټن
+fr_volume|Hajm, m³|Объём, м³|Volume, m³|Көлем, м³|Көлөм, м³|Ҳаҷм, м³|Göwrüm, m³|Həcm, m³|حجم، متر مکعب|حجم، m³
+fr_length|Kuzov uzunligi, m|Длина кузова, м|Body length, m|Шанақ ұзындығы, м|Кузовдун узундугу, м|Дарозии кузов, м|Kuzowyň uzynlygy, m|Banın uzunluğu, m|طول بدنه، متر|د بدنې اوږدوالی، m
+fr_trucks_count|Furalar soni|Кол-во машин|Trucks needed|Көлік саны|Унаа саны|Шумораи мошинҳо|Maşyn sany|Maşın sayı|تعداد تریلی|د لاریو شمېر
+fr_date_from|Yuklash sanasi|Дата загрузки|Loading date|Тиеу күні|Жүктөө күнү|Санаи борбардорӣ|Ýükleme senesi|Yükləmə tarixi|تاریخ بارگیری|د بارولو نېټه
+fr_date_to|gacha|по|until|дейін|чейин|то|çenli|qədər|تا|پورې
+fr_ready|Bo'sh bo'ladi|Свободна с|Available from|Бос болады|Бош болот|Холӣ мешавад аз|Boş bolýar|Boş olur|خالی از|تشه کېږي له
+fr_price|Narx|Ставка|Rate|Баға|Баа|Нарх|Baha|Qiymət|نرخ|بیه
+fr_negotiable|Kelishiladi|Договорная|Negotiable|Келісімді|Келишим боюнча|Бо мувофиқа|Ylalaşyk|Razılaşma ilə|توافقی|په خبرو
+fr_payment|To'lov|Оплата|Payment|Төлем|Төлөм|Пардохт|Töleg|Ödəniş|پرداخت|تادیه
+pay_cash|Naqd|Наличные|Cash|Қолма-қол|Накталай|Нақд|Nagt|Nağd|نقد|نغدې
+pay_bank|Pul o'tkazish|Безналичный|Bank transfer|Аударым|Которуу|Интиқоли бонкӣ|Bank geçirimi|Köçürmə|انتقال بانکی|بانکي لېږد
+pay_vat|QQS bilan|С НДС|With VAT|ҚҚС-пен|КНС менен|Бо ААИ|GBS bilen|ƏDV ilə|با مالیات|له مالیې سره
+pay_card|Kartaga|На карту|To card|Картаға|Картага|Ба корт|Karta|Karta|به کارت|کارت ته
+fr_unit_total|reys uchun|за рейс|per trip|рейс үшін|рейс үчүн|барои рейс|reýs üçin|reys üçün|برای هر سفر|د سفر لپاره
+fr_unit_km|km uchun|за км|per km|км үшін|км үчүн|барои км|km üçin|km üçün|برای هر کیلومتر|د کیلومتر لپاره
+fr_unit_ton|tonna uchun|за тонну|per ton|тонна үшін|тонна үчүн|барои тонна|tonna üçin|ton üçün|برای هر تن|د ټن لپاره
+fr_distance|Masofa, km|Расстояние, км|Distance, km|Қашықтық, км|Аралык, км|Масофа, км|Aralyk, km|Məsafə, km|فاصله، کیلومتر|واټن، km
+fr_note|Izoh|Примечание|Note|Ескерту|Эскертүү|Эзоҳ|Bellik|Qeyd|توضیح|یادونه
+fr_docs|Hujjatlar|Документы|Documents|Құжаттар|Документтер|Ҳуҷҷатҳо|Resminamalar|Sənədlər|مدارک|اسناد
+fr_adr|ADR (xavfli yuk)|ADR (опасный груз)|ADR (dangerous goods)|ADR (қауіпті жүк)|ADR (коркунучтуу жүк)|ADR (бори хатарнок)|ADR (howply ýük)|ADR (təhlükəli yük)|ADR (بار خطرناک)|ADR (خطرناک بار)
+fr_matches_trucks|{n} ta mos fura|{n} подходящих фур|{n} matching trucks|{n} сәйкес фура|{n} ылайык фура|{n} фураи мувофиқ|{n} laýyk fura|{n} uyğun fura|{n} تریلی مناسب|{n} مناسبې لارۍ
+fr_matches_loads|{n} ta mos yuk|{n} подходящих грузов|{n} matching loads|{n} сәйкес жүк|{n} ылайык жүк|{n} бори мувофиқ|{n} laýyk ýük|{n} uyğun yük|{n} بار مناسب|{n} مناسب بارونه
+fr_match_title_trucks|Bu yukka mos furalar|Подходящие фуры для груза|Trucks that fit this load|Бұл жүкке сәйкес фуралар|Бул жүккө ылайык фуралар|Фураҳои мувофиқ ба ин бор|Bu ýüke laýyk furalar|Bu yükə uyğun fura|تریلی‌های مناسب این بار|دې بار ته مناسبې لارۍ
+fr_match_title_loads|Bu furaga mos yuklar|Подходящие грузы для фуры|Loads that fit this truck|Бұл фураға сәйкес жүктер|Бул фурага ылайык жүктөр|Борҳои мувофиқ ба ин фура|Bu fura laýyk ýükler|Bu furaya uyğun yüklər|بارهای مناسب این تریلی|دې لارۍ ته مناسب بارونه
+fr_subscribe|Yo'nalishga obuna bo'lish|Подписаться на направление|Subscribe to this route|Бағытқа жазылу|Багытка жазылуу|Обуна ба самт|Ugra ýazylmak|İstiqamətə abunə|اشتراک مسیر|لوري ته ګډون
+fr_subscribed|Obuna bo'ldingiz: yangi e'lon chiqsa xabar keladi|Подписка оформлена: сообщим о новых объявлениях|Subscribed: we will notify you about new posts|Жазылдыңыз: жаңа хабарландыру туралы хабарлаймыз|Жазылдыңыз: жаңы жарнама жөнүндө билдиребиз|Обуна шудед: дар бораи эълонҳои нав хабар медиҳем|Ýazyldyňyz: täze bildirişler barada habar bereris|Abunə oldunuz: yeni elanlar barədə xəbər verəcəyik|مشترک شدید: از آگهی‌های جدید باخبر می‌شوید|ګډون وکړ: د نویو اعلانونو په اړه خبر درکوو
+fr_my_alerts|Mening obunalarim|Мои подписки|My subscriptions|Менің жазылымдарым|Менин жазылууларым|Обунаҳои ман|Meniň ýazylmalarym|Abunələrim|اشتراک‌های من|زما ګډونونه
+fr_popular_routes|Ommabop yo'nalishlar|Популярные направления|Popular routes|Танымал бағыттар|Популярдуу багыттар|Самтҳои маъмул|Meşhur ugurlar|Populyar istiqamətlər|مسیرهای پرطرفدار|مشهور لوري
+fr_bump|Yangilash|Поднять|Refresh|Жаңарту|Жаңылоо|Навсозӣ|Täzelemek|Yenilə|تازه‌سازی|نوي کول
+fr_bumped|E'lon ro'yxat boshiga chiqdi|Объявление поднято|Moved to the top|Хабарландыру тізім басына шықты|Жарнама тизменин башына чыкты|Эълон ба аввали рӯйхат баромад|Bildiriş sanawyň başyna çykdy|Elan siyahının əvvəlinə qalxdı|آگهی به بالای فهرست رفت|اعلان د لړ سر ته ورسېد
+fr_reset|Tozalash|Сбросить|Reset|Тазалау|Тазалоо|Тоза кардан|Arassalamak|Sıfırla|پاک کردن|پاکول
+fr_all_bodies|Barcha kuzovlar|Все кузова|All bodies|Барлық шанақтар|Бардык кузовдор|Ҳамаи кузовҳо|Ähli kuzowlar|Bütün banlar|همه بدنه‌ها|ټولې بدنې
+fr_my_posts|Mening fura e'lonlarim|Мои грузы и фуры|My loads and trucks|Менің жүктерім мен фураларым|Менин жүктөрүм жана фураларым|Борҳо ва фураҳои ман|Meniň ýüklerim we furalarym|Yüklərim və furalarım|بارها و تریلی‌های من|زما بارونه او لارۍ
+body_tent|Tent|Тент|Curtain|Тент|Тент|Тент|Tent|Tent|چادری|ترپال
+body_ref|Refrijerator|Рефрижератор|Reefer|Рефрижератор|Рефрижератор|Рефрижератор|Refrižerator|Refrijerator|یخچال‌دار|یخچالي
+body_isotherm|Izoterm|Изотерм|Isotherm|Изотерм|Изотерм|Изотерм|Izoterm|İzoterm|ایزوترم|ایزوترم
+body_van|Yopiq furgon|Цельнометалл|Box van|Жабық фургон|Жабык фургон|Фургони пӯшида|Ýapyk furgon|Qapalı furqon|ون بسته|تړلې وین
+body_board|Bortli|Бортовой|Dropside|Бортты|Бортту|Бортдор|Bortly|Bortlu|لبه‌دار|څنډه لرونکې
+body_flatbed|Ochiq platforma|Площадка|Flatbed|Ашық алаң|Ачык аянтча|Платформаи кушода|Açyk platforma|Açıq platforma|کفی|پرانیستې پلیټ فارم
+body_container|Konteyner|Контейнеровоз|Container|Контейнер|Контейнер|Контейнер|Konteýner|Konteyner|کانتینر|کانتینر
+body_lowbed|Tral (past platforma)|Трал (низкорамник)|Lowbed|Трал|Трал|Трал|Tral|Tral|کمرشکن|ټیټه پلیټ فارم
+body_tanker|Sisterna|Цистерна|Tanker|Цистерна|Цистерна|Систерна|Sisterna|Sistern|تانکر|ټانکر
+body_car_carrier|Avtovoz|Автовоз|Car carrier|Автовоз|Автовоз|Автовоз|Awtowoz|Avtovoz|خودروبر|موټر وړونکې
+body_tipper|Samosval|Самосвал|Tipper|Самосвал|Самосвал|Самосвал|Samoswal|Samosval|کمپرسی|ډمپ ټرک
+load_back|Orqadan|Задняя|Rear|Артынан|Артынан|Аз ақиб|Yzyndan|Arxadan|از عقب|له شا
+load_side|Yondan|Боковая|Side|Бүйірден|Капталынан|Аз паҳлу|Gapdaldan|Yandan|از کنار|له اړخه
+load_top|Yuqoridan|Верхняя|Top|Үстінен|Үстүнөн|Аз боло|Ýokardan|Yuxarıdan|از بالا|له پاسه
+nav_logistics|Logistika|Логистика|Logistics|Логистика|Логистика|Логистика|Logistika|Logistika|لجستیک|لوژستیک
+fr_countries|mamlakat|стран|countries|ел|өлкө|кишвар|ýurt|ölkə|کشور|هېوادونه
+fr_more_filters|Qo'shimcha filtrlar|Ещё фильтры|More filters|Қосымша сүзгілер|Кошумча чыпкалар|Филтрҳои иловагӣ|Goşmaça süzgüçler|Əlavə filtrlər|فیلترهای بیشتر|نور فلټرونه
+fr_how_title|Qanday ishlaydi?|Как это работает?|How it works|Бұл қалай жұмыс істейді?|Бул кантип иштейт?|Ин чӣ тавр кор мекунад?|Bu nähili işleýär?|Necə işləyir?|چگونه کار می‌کند؟|دا څنګه کار کوي؟
+fr_how1|E'lon joylang|Разместите объявление|Post your offer|Хабарландыру орналастырыңыз|Жарнама жайгаштырыңыз|Эълон гузоред|Bildiriş ýerleşdiriň|Elan yerləşdirin|آگهی ثبت کنید|اعلان ثبت کړئ
+fr_how1_sub|Yuk yoki bo'sh fura — yo'nalish, sana, kuzov va narxni kiriting. Bepul.|Груз или свободная фура — маршрут, дата, кузов и ставка. Бесплатно.|A load or a free truck — route, date, body and rate. Free.|Жүк немесе бос фура — бағыт, күн, шанақ және баға. Тегін.|Жүк же бош фура — багыт, күн, кузов жана баа. Акысыз.|Бор ё фураи холӣ — самт, сана, кузов ва нарх. Ройгон.|Ýük ýa-da boş fura — ugur, sene, kuzow we baha. Mugt.|Yük və ya boş fura — marşrut, tarix, ban və qiymət. Pulsuz.|بار یا تریلی خالی — مسیر، تاریخ، بدنه و نرخ. رایگان.|بار یا تشه لارۍ — لوری، نېټه، بدنه او بیه. وړیا.
+fr_how2|Mos e'lonlar topiladi|Подбор совпадений|Matches are found|Сәйкестер табылады|Ылайыктары табылат|Мувофиқҳо ёфт мешаванд|Laýyklar tapylýar|Uyğunlar tapılır|موارد مناسب پیدا می‌شود|مناسب پیدا کېږي
+fr_how2_sub|Sayt yo'nalish, kuzov va og'irlik bo'yicha mos fura yoki yukni o'zi ko'rsatadi.|Сайт сам покажет подходящие фуры или грузы по маршруту, кузову и весу.|The site shows matching trucks or loads by route, body and weight.|Сайт бағыт, шанақ және салмақ бойынша сәйкестерді көрсетеді.|Сайт багыт, кузов жана салмак боюнча ылайыктарды көрсөтөт.|Сайт аз рӯи самт, кузов ва вазн мувофиқҳоро нишон медиҳад.|Saýt ugur, kuzow we agram boýunça laýyklary görkezýär.|Sayt marşrut, ban və çəkiyə görə uyğunları göstərir.|سایت بر اساس مسیر، بدنه و وزن موارد مناسب را نشان می‌دهد.|سایټ د لوري، بدنې او وزن له مخې مناسب ښيي.
+fr_how3|To'g'ridan-to'g'ri bog'laning|Связывайтесь напрямую|Contact directly|Тікелей хабарласыңыз|Түз байланышыңыз|Мустақиман тамос гиред|Göni habarlaşyň|Birbaşa əlaqə saxlayın|مستقیم تماس بگیرید|مستقیم اړیکه ونیسئ
+fr_how3_sub|Qo'ng'iroq qiling yoki chatda yozing — vositachilarsiz va komissiyasiz.|Звоните или пишите в чат — без посредников и комиссии.|Call or chat — no middlemen, no commission.|Қоңырау шалыңыз немесе чатқа жазыңыз — делдалсыз.|Чалыңыз же чатка жазыңыз — ортомчусуз.|Занг занед ё дар чат нависед — бе миёнарав.|Jaň ediň ýa-da çatda ýazyň — araçysyz.|Zəng edin və ya çatda yazın — vasitəçisiz.|تماس بگیرید یا در چت بنویسید — بدون واسطه.|زنګ ووهئ یا چټ کې ولیکئ — بې منځګړي.
+tier_moderation_note|E'lon hozir moderatsiyada: tasdiqlangach VIP/TOP darhol ishlay boshlaydi va karuselda ko'rinadi|Объявление на модерации: после одобрения продвижение сразу заработает и появится в карусели|Your listing is in moderation: the promotion starts and shows in the carousel right after approval|Хабарландыру модерацияда: мақұлданған соң жылжыту бірден басталады|Жарнама модерацияда: жактырылгандан кийин дароо иштей баштайт|Эълон дар модератсия аст: пас аз тасдиқ пешбурд фавран оғоз мешавад|Bildiriş moderasiýada: tassyklanandan soň öňe çykarmak derrew başlar|Elan moderasiyadadır: təsdiqdən sonra irəli çəkmə dərhal başlayacaq|آگهی در حال بررسی است: پس از تأیید، ارتقا فوراً فعال می‌شود|اعلان د کتنې لاندې دی: له تایید وروسته وده سمدستي پیلېږي
+share|Ulashish|Поделиться|Share|Бөлісу|Бөлүшүү|Мубодила|Paýlaşmak|Paylaş|اشتراک‌گذاری|شریکول
+copy_link|Havolani nusxalash|Копировать ссылку|Copy link|Сілтемені көшіру|Шилтемени көчүрүү|Нусхабардории пайванд|Salgyny göçürmek|Linki kopyala|کپی پیوند|لینک کاپي کړئ
+link_copied|Havola nusxalandi|Ссылка скопирована|Link copied|Сілтеме көшірілді|Шилтеме көчүрүлдү|Пайванд нусхабардорӣ шуд|Salgy göçürildi|Link kopyalandı|پیوند کپی شد|لینک کاپي شو
+`;
+
+export const LANGS = ['uz', 'ru', 'en', 'kk', 'ky', 'tg', 'tk', 'az', 'prs', 'ps'];
+
+export const DICT = {};
+for (const line of RAW.split('\n')) {
+  if (!line.trim()) continue;
+  const parts = line.split('|');
+  const key = parts.shift();
+  DICT[key] = Object.fromEntries(LANGS.map((l, i) => [l, parts[i]]));
+}

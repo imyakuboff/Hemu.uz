@@ -1,0 +1,107 @@
+// Kategoriyalar daraxti (dizayndagi "Категории" sahifasi asosida).
+// Nomlar tartibi: [uz, ru, en, kk, ky, tg, tk, az, prs, ps]
+// kind: e'lon kartochkasi turi — equipment | part | material | service
+
+const N = {
+  excavators: ['Ekskavatorlar', 'Экскаваторы', 'Excavators', 'Экскаваторлар', 'Экскаваторлор', 'Экскаваторҳо', 'Ekskawatorlar', 'Ekskavatorlar', 'بیل‌های مکانیکی', 'اکسکاواتورونه'],
+  backhoe: ['Ekskavator-yuklagichlar', 'Экскаваторы-погрузчики', 'Backhoe loaders', 'Экскаватор-тиегіштер', 'Экскаватор-жүктөгүчтөр', 'Экскаватор-боркунакҳо', 'Ekskawator-ýükleýjiler', 'Ekskavator-yükləyicilər', 'بیل‌لودرها', 'بیک‌هو لوډرونه'],
+  loaders: ['Yuklagichlar', 'Погрузчики', 'Loaders', 'Тиегіштер', 'Жүктөгүчтөр', 'Боркунакҳо', 'Ýükleýjiler', 'Yükləyicilər', 'لودرها', 'لوډرونه'],
+  truckCranes: ['Avtokranlar', 'Автокраны', 'Truck cranes', 'Автокрандар', 'Автокрандар', 'Автокранҳо', 'Awtokranlar', 'Avtokranlar', 'جرثقیل‌های موتری', 'موټري کرینونه'],
+  manipulators: ['Kran-manipulyatorlar', 'Манипуляторы', 'Knuckle-boom cranes', 'Манипуляторлар', 'Манипуляторлор', 'Манипуляторҳо', 'Manipulýatorlar', 'Manipulyatorlar', 'جرثقیل‌های بازویی', 'مانیپولاتورونه'],
+  dump: ['Samosvallar', 'Самосвалы', 'Dump trucks', 'Өзітөккіштер', 'Өзү төккүчтөр', 'Худборфарорҳо', 'Özi agdaryjylar', 'Özüboşaldanlar', 'موترهای تخلیه‌کن', 'ډمپ ټرکونه'],
+  bulldozers: ['Buldozerlar', 'Бульдозеры', 'Bulldozers', 'Бульдозерлер', 'Бульдозерлор', 'Булдозерҳо', 'Buldozerler', 'Buldozerlər', 'بلدوزرها', 'بلډوزرونه'],
+  rollers: ['Katoklar', 'Катки', 'Road rollers', 'Катоктар', 'Катоктор', 'Катокҳо', 'Katoklar', 'Katoklar', 'غلتک‌ها', 'رولرونه'],
+  aerial: ['Avtominoralar', 'Автовышки', 'Aerial platforms', 'Автомұнаралар', 'Автомунаралар', 'Автоманораҳо', 'Awtominaralar', 'Avtoqaldırıcılar', 'بالابرهای موتری', 'هوايي پلیټفارمونه'],
+  tractorUnits: ['Shatakchilar (tyagachlar)', 'Тягачи', 'Tractor units', 'Тартқыштар', 'Тарткычтар', 'Тягачҳо', 'Çekijiler', 'Dartqılar', 'موترهای کشنده', 'کشونکي موټرونه'],
+  tractors: ['Traktorlar', 'Тракторы', 'Tractors', 'Тракторлар', 'Тракторлор', 'Тракторҳо', 'Traktorlar', 'Traktorlar', 'تراکتورها', 'ټراکټورونه'],
+};
+
+const C = (slug, kind, icon, names, children = []) => ({ slug, kind, icon, names, children });
+const S = (slug, names) => ({ slug, names });
+
+const CATALOG = [
+  C('special', 'equipment', 'excavator',
+    ['Maxsus texnika', 'Спецтехника', 'Special equipment', 'Арнайы техника', 'Атайын техника', 'Техникаи махсус', 'Ýörite tehnika', 'Xüsusi texnika', 'ماشین‌آلات ویژه', 'ځانګړي ماشینونه'],
+    [
+      S('excavators', N.excavators),
+      S('backhoe-loaders', N.backhoe),
+      S('loaders', N.loaders),
+      S('truck-cranes', N.truckCranes),
+      S('manipulators', N.manipulators),
+      S('special-dump-trucks', N.dump),
+      S('bulldozers', N.bulldozers),
+      S('rollers', N.rollers),
+      S('aerial-platforms', N.aerial),
+      S('special-tractor-units', N.tractorUnits),
+      S('special-tractors', N.tractors),
+      S('special-other', ['Boshqa maxsus texnika', 'Другая спецтехника', 'Other special equipment', 'Басқа арнайы техника', 'Башка атайын техника', 'Дигар техникаи махсус', 'Beýleki ýörite tehnika', 'Digər xüsusi texnika', 'سایر ماشین‌آلات ویژه', 'نور ځانګړي ماشینونه']),
+    ]),
+  C('parts', 'part', 'gear',
+    ['Ehtiyot qismlar', 'Запчасти', 'Spare parts', 'Қосалқы бөлшектер', 'Запас бөлүктөр', 'Қисмҳои эҳтиётӣ', 'Ätiýaçlyk şaýlar', 'Ehtiyat hissələri', 'پرزه‌جات', 'پرزې'],
+    [
+      S('parts-special', ['Maxsus texnika uchun', 'Запчасти для спецтехники', 'For special equipment', 'Арнайы техникаға арналған', 'Атайын техника үчүн', 'Барои техникаи махсус', 'Ýörite tehnika üçin', 'Xüsusi texnika üçün', 'برای ماشین‌آلات ویژه', 'د ځانګړو ماشینونو لپاره']),
+      S('parts-trucks', ['Yuk mashinalari uchun', 'Запчасти для грузовиков', 'For trucks', 'Жүк көліктеріне арналған', 'Жүк ташуучу унаалар үчүн', 'Барои мошинҳои боркаш', 'Ýük awtoulaglary üçin', 'Yük maşınları üçün', 'برای موترهای باربری', 'د باربري موټرونو لپاره']),
+      S('parts-tractors', ['Traktorlar uchun', 'Запчасти для тракторов', 'For tractors', 'Тракторларға арналған', 'Тракторлор үчүн', 'Барои тракторҳо', 'Traktorlar üçin', 'Traktorlar üçün', 'برای تراکتورها', 'د ټراکټورونو لپاره']),
+      S('engines', ['Dvigatellar', 'Двигатели', 'Engines', 'Қозғалтқыштар', 'Кыймылдаткычтар', 'Муҳаррикҳо', 'Hereketlendirijiler', 'Mühərriklər', 'انجن‌ها', 'انجنونه']),
+      S('gearboxes', ['Uzatmalar qutilari', 'Коробки передач', 'Gearboxes', 'Беріліс қораптары', 'Берүү кутулары', 'Қуттиҳои суръат', 'Tizlikler gutulary', 'Sürətlər qutuları', 'گیربکس‌ها', 'ګیربکسونه']),
+      S('hydraulics', ['Gidravlika', 'Гидравлика', 'Hydraulics', 'Гидравлика', 'Гидравлика', 'Гидравлика', 'Gidrawlika', 'Hidravlika', 'هیدرولیک', 'هایدرولیک']),
+      S('filters', ['Filtrlar', 'Фильтры', 'Filters', 'Сүзгілер', 'Чыпкалар', 'Филтрҳо', 'Filtrler', 'Filtrlər', 'فلترها', 'فلټرونه']),
+      S('tires', ['Shinalar', 'Шины', 'Tires', 'Шиналар', 'Шиналар', 'Шинаҳо', 'Tigirler', 'Şinlər', 'تایرها', 'ټایرونه']),
+      S('electrics', ['Elektrika', 'Электрика', 'Electrical parts', 'Электр жабдықтары', 'Электр жабдуулары', 'Қисмҳои барқӣ', 'Elektrik enjamlary', 'Elektrik hissələri', 'قطعات برقی', 'برقي پرزې']),
+      S('body-parts', ['Kuzov qismlari', 'Кузовные детали', 'Body parts', 'Шанақ бөлшектері', 'Кузов бөлүктөрү', 'Қисмҳои кузов', 'Kuzow şaýlary', 'Kuzov hissələri', 'قطعات بدنه', 'د بدنې پرزې']),
+      S('consumables', ['Sarf materiallari', 'Расходные материалы', 'Consumables', 'Шығын материалдары', 'Сарпталуучу материалдар', 'Маводи истеъмолӣ', 'Sarp ediş serişdeleri', 'Sərf materialları', 'مواد مصرفی', 'مصرفي توکي']),
+    ]),
+  C('trucks', 'equipment', 'truck',
+    ['Yuk avtomobillari', 'Грузовые автомобили', 'Trucks', 'Жүк көліктері', 'Жүк ташуучу унаалар', 'Мошинҳои боркаш', 'Ýük awtoulaglary', 'Yük avtomobilləri', 'موترهای باربری', 'باربري موټرونه'],
+    [
+      S('dump-trucks', N.dump),
+      S('tractor-units', N.tractorUnits),
+      S('flatbed-trucks', ['Bortli yuk mashinalari', 'Бортовые', 'Flatbed trucks', 'Бортты көліктер', 'Борттуу унаалар', 'Мошинҳои бортдор', 'Bortly ulaglar', 'Bortlu maşınlar', 'موترهای کف‌باز', 'فلټبیډ موټرونه']),
+      S('vans', ['Furgonlar', 'Фургоны', 'Vans', 'Фургондар', 'Фургондор', 'Фургонҳо', 'Furgonlar', 'Furqonlar', 'وانت‌ها', 'وینونه']),
+      S('buses', ['Avtobuslar', 'Автобусы', 'Buses', 'Автобустар', 'Автобустар', 'Автобусҳо', 'Awtobuslar', 'Avtobuslar', 'بس‌ها', 'بسونه']),
+      S('trailers', ['Tirkama va yarim tirkamalar', 'Прицепы и полуприцепы', 'Trailers & semi-trailers', 'Тіркемелер мен жартылай тіркемелер', 'Чиркегичтер жана жарым чиркегичтер', 'Прицепҳо ва нимприцепҳо', 'Tirkegler we ýarym tirkegler', 'Qoşqular və yarımqoşqular', 'تریلرها و نیمه‌تریلرها', 'ټریلرونه او نیم‌ټریلرونه']),
+    ]),
+  C('construction', 'equipment', 'crane',
+    ['Qurilish texnikasi', 'Строительная техника', 'Construction equipment', 'Құрылыс техникасы', 'Курулуш техникасы', 'Техникаи сохтмонӣ', 'Gurluşyk tehnikasy', 'Tikinti texnikası', 'ماشین‌آلات ساختمانی', 'ساختماني ماشینونه'],
+    [
+      S('concrete-mixers', ['Betonaralashtirgichlar', 'Бетоносмесители', 'Concrete mixers', 'Бетонараластырғыштар', 'Бетон аралаштыргычтар', 'Бетономехтакунакҳо', 'Beton garyjylar', 'Betonqarışdıranlar', 'مخلوط‌کن‌های کانکریت', 'د کانکریټو مکسرونه']),
+      S('concrete-pumps', ['Betonnasoslar', 'Бетононасосы', 'Concrete pumps', 'Бетон сорғылары', 'Бетон насостору', 'Бетоннасосҳо', 'Beton nasoslary', 'Beton nasosları', 'پمپ‌های کانکریت', 'د کانکریټو پمپونه']),
+      S('compressors', ['Kompressorlar', 'Компрессоры', 'Compressors', 'Компрессорлар', 'Компрессорлор', 'Компрессорҳо', 'Kompressorlar', 'Kompressorlar', 'کمپرسورها', 'کمپرسورونه']),
+      S('generators', ['Generatorlar', 'Генераторы', 'Generators', 'Генераторлар', 'Генераторлор', 'Генераторҳо', 'Generatorlar', 'Generatorlar', 'جنراتورها', 'جنراتورونه']),
+      S('road-machinery', ["Yo'l texnikasi", 'Дорожная техника', 'Road machinery', 'Жол техникасы', 'Жол техникасы', 'Техникаи роҳсозӣ', 'Ýol tehnikasy', 'Yol texnikası', 'ماشین‌آلات سرک‌سازی', 'د سړک جوړونې ماشینونه']),
+    ]),
+  C('agri', 'equipment', 'sprout',
+    ["Qishloq xo'jaligi texnikasi", 'Сельхозтехника', 'Agricultural machinery', 'Ауыл шаруашылығы техникасы', 'Айыл чарба техникасы', 'Техникаи кишоварзӣ', 'Oba hojalyk tehnikasy', 'Kənd təsərrüfatı texnikası', 'ماشین‌آلات زراعتی', 'کرنیز ماشینونه'],
+    [
+      S('agri-tractors', N.tractors),
+      S('combines', ['Kombaynlar', 'Комбайны', 'Combine harvesters', 'Комбайндар', 'Комбайндар', 'Комбайнҳо', 'Kombaýnlar', 'Kombaynlar', 'کمباین‌ها', 'کمباینونه']),
+      S('seeders', ['Seyalkalar', 'Сеялки', 'Seeders', 'Тұқым сепкіштер', 'Үрөн сепкичтер', 'Тухмипошакҳо', 'Tohum sepijiler', 'Toxumsəpənlər', 'تخم‌پاش‌ها', 'تخم کرونکي'],
+      ),
+      S('sprayers', ['Purkagichlar', 'Опрыскиватели', 'Sprayers', 'Бүріккіштер', 'Чачыраткычтар', 'Дорупошакҳо', 'Sepijiler', 'Çiləyicilər', 'سم‌پاش‌ها', 'سپرې کوونکي']),
+      S('mowers', ["O'roq mashinalari", 'Косилки', 'Mowers', 'Шөп шапқыштар', 'Чөп чапкычтар', 'Алафдаравҳо', 'Ot orujylar', 'Otbiçənlər', 'علف‌برها', 'واښه رېبونکي']),
+      S('agri-trailers', ['Tirkamalar', 'Прицепы', 'Trailers', 'Тіркемелер', 'Чиркегичтер', 'Прицепҳо', 'Tirkegler', 'Qoşqular', 'تریلرها', 'ټریلرونه']),
+    ]),
+  C('materials', 'material', 'layers',
+    ['Qurilish materiallari', 'Стройматериалы', 'Building materials', 'Құрылыс материалдары', 'Курулуш материалдары', 'Масолеҳи сохтмонӣ', 'Gurluşyk materiallary', 'Tikinti materialları', 'مواد ساختمانی', 'ساختماني توکي'],
+    [
+      S('cement', ['Sement', 'Цемент', 'Cement', 'Цемент', 'Цемент', 'Семент', 'Sement', 'Sement', 'سمنت', 'سمنټ']),
+      S('sand', ['Qum', 'Песок', 'Sand', 'Құм', 'Кум', 'Рег', 'Çäge', 'Qum', 'ریگ', 'شګه']),
+      S('crushed-stone', ["Shag'al (sheben)", 'Щебень', 'Crushed stone', 'Қиыршық тас', 'Шагыл', 'Шағал', 'Çagyl daş', 'Çınqıl', 'سنگ‌ریزه', 'میده ډبرې']),
+      S('gravel', ['Graviy', 'Гравий', 'Gravel', 'Малтатас', 'Шагыл таш', 'Сангреза', 'Çagyl', 'Qravi', 'جغل', 'جغل']),
+      S('asphalt', ['Asfalt', 'Асфальт', 'Asphalt', 'Асфальт', 'Асфальт', 'Асфалт', 'Asfalt', 'Asfalt', 'اسفالت', 'اسفالټ']),
+      S('brick', ["G'isht", 'Кирпич', 'Brick', 'Кірпіш', 'Кыш', 'Хишт', 'Kerpiç', 'Kərpic', 'خشت', 'خښته']),
+      S('materials-other', ['Boshqa qurilish materiallari', 'Другие строительные материалы', 'Other building materials', 'Басқа құрылыс материалдары', 'Башка курулуш материалдары', 'Дигар масолеҳи сохтмонӣ', 'Beýleki gurluşyk materiallary', 'Digər tikinti materialları', 'سایر مواد ساختمانی', 'نور ساختماني توکي']),
+    ]),
+  C('services', 'service', 'wrench',
+    ['Xizmatlar', 'Услуги', 'Services', 'Қызметтер', 'Кызматтар', 'Хизматрасониҳо', 'Hyzmatlar', 'Xidmətlər', 'خدمات', 'خدمتونه'],
+    [
+      S('equipment-rental', ['Maxsus texnika ijarasi', 'Аренда спецтехники', 'Equipment rental', 'Арнайы техниканы жалға алу', 'Атайын техниканы ижарага алуу', 'Иҷораи техникаи махсус', 'Ýörite tehnikany kärendesi', 'Xüsusi texnikanın icarəsi', 'کرایه ماشین‌آلات', 'د ماشینونو کرایه']),
+      S('equipment-works', ['Maxsus texnika ishlari', 'Работа спецтехники', 'Equipment works', 'Арнайы техника жұмыстары', 'Атайын техника иштери', 'Корҳои техникаи махсус', 'Ýörite tehnika işleri', 'Xüsusi texnika işləri', 'کار با ماشین‌آلات', 'د ماشینونو کار']),
+      S('repair', ["Ta'mirlash", 'Ремонт', 'Repair', 'Жөндеу', 'Оңдоо', 'Таъмир', 'Abatlaýyş', 'Təmir', 'ترمیم', 'ترمیم']),
+      S('maintenance', ['Servis xizmati', 'Сервис', 'Maintenance', 'Техникалық қызмет', 'Техникалык тейлөө', 'Хизматрасонии техникӣ', 'Tehniki hyzmat', 'Texniki xidmət', 'سرویس فنی', 'تخنیکي خدمت']),
+      S('delivery', ['Yetkazib berish', 'Доставка', 'Delivery', 'Жеткізу', 'Жеткирүү', 'Расонидан', 'Eltip bermek', 'Çatdırılma', 'تحویل‌دهی', 'رسول']),
+      S('freight', ['Yuk tashish', 'Перевозка', 'Freight transport', 'Жүк тасымалы', 'Жүк ташуу', 'Боркашонӣ', 'Ýük daşamak', 'Yükdaşıma', 'باربری', 'بار وړل']),
+    ]),
+];
+
+module.exports = { CATALOG };

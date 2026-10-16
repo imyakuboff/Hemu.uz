@@ -1,0 +1,23 @@
+{
+  "name": "HEMU.UZ — спецтехника, запчасти и услуги",
+  "short_name": "HEMU.UZ",
+  "description": "Спецтехника, запчасти, стройматериалы и услуги по всей Центральной Азии",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f0f3f7",
+  "theme_color": "#0e3352",
+  "lang": "ru",
+  "categories": ["business", "shopping"],
+  "icons": [
+    { "src": "/img/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/img/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Каталог", "url": "/categories" },
+    { "name": "Разместить объявление", "url": "/create" },
+    { "name": "Сообщения", "url": "/messages" }
+  ]
+}

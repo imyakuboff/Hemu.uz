@@ -1,0 +1,265 @@
+// Qo'llab-quvvatlanadigan tillar. Tartib — LANGS massividagi tarjima tartibi.
+const LANGUAGES = [
+  { code: 'uz', name: "O'zbekcha", locale: 'uz-Latn-UZ', dir: 'ltr', fallback: ['en', 'ru'] },
+  { code: 'ru', name: 'Русский', locale: 'ru-RU', dir: 'ltr', fallback: ['en'] },
+  { code: 'en', name: 'English', locale: 'en-US', dir: 'ltr', fallback: ['ru'] },
+  { code: 'kk', name: 'Қазақша', locale: 'kk-KZ', dir: 'ltr', fallback: ['ru', 'en'] },
+  { code: 'ky', name: 'Кыргызча', locale: 'ky-KG', dir: 'ltr', fallback: ['ru', 'en'] },
+  { code: 'tg', name: 'Тоҷикӣ', locale: 'tg-TJ', dir: 'ltr', fallback: ['ru', 'en'] },
+  { code: 'tk', name: 'Türkmençe', locale: 'tk-TM', dir: 'ltr', fallback: ['ru', 'en'] },
+  { code: 'az', name: 'Azərbaycanca', locale: 'az-Latn-AZ', dir: 'ltr', fallback: ['en', 'ru'] },
+  { code: 'prs', name: 'دری', locale: 'fa-AF', dir: 'rtl', fallback: ['ps', 'en'] },
+  { code: 'ps', name: 'پښتو', locale: 'ps-AF', dir: 'rtl', fallback: ['prs', 'en'] },
+];
+const LANGS = LANGUAGES.map((l) => l.code);
+const byCode = Object.fromEntries(LANGUAGES.map((l) => [l.code, l]));
+
+// Brauzer/klient yuboradigan kodlarni bizning kodlarga moslash
+const ALIASES = { fa: 'prs', 'fa-af': 'prs', dari: 'prs', 'uz-latn': 'uz', 'uz-cyrl': 'uz', tj: 'tg', kz: 'kk', kg: 'ky', tm: 'tk' };
+
+function normalizeLang(code) {
+  if (!code) return null;
+  const c = String(code).trim().toLowerCase();
+  if (byCode[c]) return c;
+  if (ALIASES[c]) return ALIASES[c];
+  const base = c.split(/[-_]/)[0];
+  if (byCode[base]) return base;
+  return ALIASES[base] || null;
+}
+
+function pickFromAcceptLanguage(header) {
+  if (!header) return null;
+  const parts = String(header)
+    .split(',')
+    .map((p) => {
+      const [tag, q] = p.trim().split(';q=');
+      return { tag, q: q ? Number(q) : 1 };
+    })
+    .sort((a, b) => b.q - a.q);
+  for (const p of parts) {
+    const l = normalizeLang(p.tag);
+    if (l) return l;
+  }
+  return null;
+}
+
+// Ko'p tilli matn obyektidan ({uz, ru, ...}) kerakli tilni olish
+function pick(names, lang) {
+  if (!names) return null;
+  if (typeof names === 'string') return names;
+  if (names[lang]) return names[lang];
+  for (const f of byCode[lang]?.fallback || []) if (names[f]) return names[f];
+  return names.en || names.ru || Object.values(names)[0] || null;
+}
+
+// [uz, ru, en, kk, ky, tg, tk, az, prs, ps] massivini obyektga aylantirish
+function L(arr) {
+  const o = {};
+  LANGS.forEach((code, i) => {
+    if (arr[i] !== undefined && arr[i] !== null) o[code] = arr[i];
+  });
+  return o;
+}
+
+const M = {
+  // --- Xatolar ---
+  'err.unauthorized': ['Avtorizatsiya talab qilinadi', 'Требуется авторизация', 'Authorization required', 'Авторизация қажет', 'Авторизация талап кылынат', 'Ворид шудан лозим аст', 'Ulgama girmeli', 'Avtorizasiya tələb olunur', 'نیاز به ورود به حساب است', 'ننوتل اړین دي'],
+  'err.forbidden': ["Ruxsat yo'q", 'Доступ запрещён', 'Access denied', 'Қол жеткізуге тыйым салынған', 'Кирүүгө тыюу салынган', 'Дастрасӣ манъ аст', 'Rugsat ýok', 'Giriş qadağandır', 'دسترسی ممنوع است', 'لاسرسی منع دی'],
+  'err.not_found': ['Topilmadi', 'Не найдено', 'Not found', 'Табылмады', 'Табылган жок', 'Ёфт нашуд', 'Tapylmady', 'Tapılmadı', 'پیدا نشد', 'ونه موندل شو'],
+  'err.validation': ["Ma'lumotlar noto'g'ri", 'Некорректные данные', 'Invalid data', 'Деректер қате', 'Маалыматтар туура эмес', 'Маълумот нодуруст аст', 'Maglumatlar nädogry', 'Məlumatlar yanlışdır', 'معلومات نادرست است', 'معلومات ناسم دي'],
+  'err.invalid_phone': ["Telefon raqami noto'g'ri", 'Неверный номер телефона', 'Invalid phone number', 'Телефон нөмірі қате', 'Телефон номери туура эмес', 'Рақами телефон нодуруст аст', 'Telefon belgisi nädogry', 'Telefon nömrəsi yanlışdır', 'شماره تلفن نادرست است', 'د تلیفون شمېره ناسمه ده'],
+  'err.otp_invalid': ["Kod noto'g'ri yoki muddati o'tgan", 'Неверный или просроченный код', 'Invalid or expired code', 'Код қате немесе мерзімі өткен', 'Код туура эмес же мөөнөтү бүткөн', 'Рамз нодуруст ё мӯҳлаташ гузаштааст', 'Kod nädogry ýa-da möhleti geçdi', 'Kod yanlışdır və ya vaxtı bitib', 'کد نادرست یا منقضی شده است', 'کوډ ناسم دی یا یې موده تېره ده'],
+  'err.too_many': ["Juda ko'p urinish, keyinroq qayta urinib ko'ring", 'Слишком много попыток, попробуйте позже', 'Too many attempts, try again later', 'Тым көп әрекет, кейінірек қайталаңыз', 'Өтө көп аракет, кийинчерээк кайталаңыз', 'Кӯшишҳо хеле зиёданд, баъдтар такрор кунед', 'Gaty köp synanyşyk, soňrak gaýtalaň', 'Çox cəhd edildi, sonra yenidən cəhd edin', 'تلاش‌ها زیاد است، بعداً دوباره کوشش کنید', 'ډېرې هڅې وشوې، وروسته بیا هڅه وکړئ'],
+  'err.contacts_in_text': ["Tavsifda kontaktlarni ko'rsatmang", 'Не указывайте контакты в описании', 'Do not put contacts in the description', 'Сипаттамада байланыс деректерін көрсетпеңіз', 'Сүрөттөмөдө байланыштарды көрсөтпөңүз', 'Дар тавсиф тамосҳоро нанависед', 'Düşündirişde aragatnaşyk maglumatlaryny görkezmäň', 'Təsvirdə əlaqə məlumatlarını göstərməyin', 'در توضیحات معلومات تماس ننویسید', 'په تشریح کې د اړیکې معلومات مه لیکئ'],
+  'err.out_of_stock': ['Omborda yetarli emas', 'Недостаточно на складе', 'Not enough in stock', 'Қоймада жеткіліксіз', 'Кампада жетишсиз', 'Дар анбор кофӣ нест', 'Ammarda ýeterlik däl', 'Anbarda kifayət qədər yoxdur', 'در گدام کافی نیست', 'په ګدام کې بسنه نه کوي'],
+  'err.invalid_status': ["Bu amalni hozirgi holatda bajarib bo'lmaydi", 'Действие недоступно в текущем статусе', 'Action not allowed in the current status', 'Ағымдағы мәртебеде бұл әрекет қолжетімсіз', 'Учурдагы статуста бул аракет жеткиликсиз', 'Ин амал дар ҳолати ҷорӣ дастнорас аст', 'Häzirki ýagdaýda bu hereket elýeterli däl', 'Cari statusda bu əməliyyat mümkün deyil', 'این عمل در وضعیت فعلی ممکن نیست', 'دا کار په اوسني حالت کې نه شي کېدای'],
+  'err.own_listing': ["O'z e'loningiz bilan bu amal mumkin emas", 'Нельзя выполнить с собственным объявлением', 'Not allowed on your own listing', 'Өз хабарландыруыңызбен бұл мүмкін емес', 'Өз жарнамаңыз менен бул мүмкүн эмес', 'Бо эълони худатон ин амал мумкин нест', 'Öz bildirişiňiz bilen bu mümkin däl', 'Öz elanınızla bu mümkün deyil', 'با آگهی خودتان این کار ممکن نیست', 'د خپل اعلان سره دا کار ممکن نه دی'],
+  'err.file_type': ['Faqat JPG, PNG yoki WEBP (10 MB gacha)', 'Только JPG, PNG или WEBP до 10 МБ', 'Only JPG, PNG or WEBP up to 10 MB', 'Тек JPG, PNG немесе WEBP, 10 МБ дейін', 'JPG, PNG же WEBP гана, 10 МБ чейин', 'Танҳо JPG, PNG ё WEBP то 10 МБ', 'Diňe JPG, PNG ýa-da WEBP, 10 MB çenli', 'Yalnız JPG, PNG və ya WEBP, 10 MB-a qədər', 'فقط JPG، PNG یا WEBP تا ۱۰ مگابایت', 'یوازې JPG، PNG یا WEBP تر ۱۰ MB پورې'],
+  'err.photo_limit': ["15 tadan ortiq rasm yuklab bo'lmaydi", 'Не более 15 фото', 'Maximum 15 photos', '15 фотодан артық болмайды', '15 сүрөттөн ашпайт', 'На зиёда аз 15 акс', '15 suratdan köp bolmaly däl', '15 fotodan çox olmaz', 'حداکثر ۱۵ عکس', 'تر ۱۵ عکسونو زیات نه'],
+  'err.review_not_allowed': ["Sharhni faqat yakunlangan buyurtmadan keyin qoldirish mumkin", 'Отзыв можно оставить только после завершённого заказа', 'You can review only after a completed order', 'Пікірді тек аяқталған тапсырыстан кейін қалдыруға болады', 'Пикирди аякталган буйрутмадан кийин гана калтырууга болот', 'Тақриз танҳо пас аз фармоиши анҷомёфта имконпазир аст', 'Teswiri diňe tamamlanan sargytdan soň galdyryp bolýar', 'Rəyi yalnız tamamlanmış sifarişdən sonra yazmaq olar', 'نظر فقط پس از سفارش تکمیل‌شده ممکن است', 'نظر یوازې د بشپړ شوي فرمایش وروسته ممکن دی'],
+  'err.duplicate': ['Allaqachon mavjud', 'Уже существует', 'Already exists', 'Бұрыннан бар', 'Мурунтан эле бар', 'Аллакай мавҷуд аст', 'Eýýäm bar', 'Artıq mövcuddur', 'از قبل موجود است', 'دمخه شته'],
+  'err.server': ['Server xatosi', 'Ошибка сервера', 'Server error', 'Сервер қатесі', 'Сервер катасы', 'Хатои сервер', 'Serwer ýalňyşlygy', 'Server xətası', 'خطای سرور', 'د سرور تېروتنه'],
+
+  // --- Bitim turi ---
+  'deal.sale': ['Sotuv', 'Продажа', 'Sale', 'Сату', 'Сатуу', 'Фурӯш', 'Satuw', 'Satış', 'فروش', 'پلور'],
+  'deal.rent': ['Ijara', 'Аренда', 'Rent', 'Жалға беру', 'Ижара', 'Иҷора', 'Kärende', 'İcarə', 'کرایه', 'کرایه'],
+  'deal.service': ['Xizmat', 'Услуга', 'Service', 'Қызмет', 'Кызмат', 'Хизмат', 'Hyzmat', 'Xidmət', 'خدمت', 'خدمت'],
+
+  // --- Holati ---
+  'cond.new': ['Yangi', 'Новая', 'New', 'Жаңа', 'Жаңы', 'Нав', 'Täze', 'Yeni', 'نو', 'نوی'],
+  'cond.used': ['Ishlatilgan', 'С пробегом', 'Used', 'Пайдаланылған', 'Колдонулган', 'Истифодашуда', 'Ulanylan', 'İşlənmiş', 'دست دوم', 'کارول شوی'],
+
+  // --- Narx birligi ---
+  'unit.hour': ['soat', 'ч', 'hr', 'сағ', 'саат', 'соат', 'sag', 'saat', 'ساعت', 'ساعت'],
+  'unit.day': ['kun', 'сутки', 'day', 'тәулік', 'сутка', 'шабонарӯз', 'gün', 'gün', 'روز', 'ورځ'],
+  'unit.shift': ['smena', 'смена', 'shift', 'ауысым', 'смена', 'баст', 'smena', 'növbə', 'شیفت', 'شفټ'],
+  'unit.ton': ['t', 'т', 't', 'т', 'т', 'т', 't', 't', 'تن', 'ټن'],
+  'unit.m3': ['m³', 'м³', 'm³', 'м³', 'м³', 'м³', 'm³', 'm³', 'متر مکعب', 'متر مکعب'],
+  'unit.piece': ['dona', 'шт.', 'pc', 'дана', 'даана', 'дона', 'sany', 'əd.', 'عدد', 'دانه'],
+  'price.from': ['dan', 'от', 'from', 'бастап', 'баштап', 'аз', 'başlap', 'başlayaraq', 'از', 'له'],
+
+  // --- E'lon holati ---
+  'ls.draft': ['Qoralama', 'Черновик', 'Draft', 'Жоба', 'Долбоор', 'Сиёҳнавис', 'Garalama', 'Qaralama', 'پیش‌نویس', 'مسوده'],
+  'ls.moderation': ['Moderatsiyada', 'На модерации', 'In review', 'Модерацияда', 'Модерацияда', 'Дар модератсия', 'Moderasiýada', 'Moderasiyada', 'در حال بررسی', 'د بیاکتنې په حال کې'],
+  'ls.active': ['Faol', 'Активно', 'Active', 'Белсенді', 'Активдүү', 'Фаъол', 'Işjeň', 'Aktiv', 'فعال', 'فعال'],
+  'ls.rejected': ['Rad etilgan', 'Отклонено', 'Rejected', 'Қабылданбады', 'Четке кагылды', 'Рад шуд', 'Ret edildi', 'Rədd edildi', 'رد شده', 'رد شوی'],
+  'ls.archived': ['Arxivda', 'В архиве', 'Archived', 'Мұрағатта', 'Архивде', 'Дар бойгонӣ', 'Arhiwde', 'Arxivdə', 'بایگانی شده', 'ارشیف شوی'],
+  'ls.sold': ['Sotilgan', 'Продано', 'Sold', 'Сатылды', 'Сатылды', 'Фурӯхта шуд', 'Satyldy', 'Satılıb', 'فروخته شد', 'پلورل شوی'],
+
+  'ls.deleted': ["O'chirilgan", 'Удалено', 'Deleted', 'Жойылды', 'Өчүрүлдү', 'Нест карда шуд', 'Pozuldy', 'Silinib', 'حذف شده', 'ړنګ شوی'],
+  // --- Buyurtma holati ---
+  'os.new': ['Yangi', 'Новый', 'New', 'Жаңа', 'Жаңы', 'Нав', 'Täze', 'Yeni', 'جدید', 'نوی'],
+  'os.confirmed': ['Tasdiqlangan', 'Подтверждён', 'Confirmed', 'Расталды', 'Ырасталды', 'Тасдиқ шуд', 'Tassyklandy', 'Təsdiqləndi', 'تأیید شد', 'تایید شو'],
+  'os.shipped': ['Yetkazilmoqda', 'В доставке', 'In delivery', 'Жеткізілуде', 'Жеткирилүүдө', 'Дар роҳ', 'Eltilýär', 'Çatdırılır', 'در حال تحویل', 'د رسولو په حال کې'],
+  'os.delivered': ['Yetkazildi', 'Доставлен', 'Delivered', 'Жеткізілді', 'Жеткирилди', 'Расонида шуд', 'Eltildi', 'Çatdırıldı', 'تحویل داده شد', 'ورسول شو'],
+  'os.completed': ['Yakunlangan', 'Завершён', 'Completed', 'Аяқталды', 'Аякталды', 'Анҷом ёфт', 'Tamamlandy', 'Tamamlandı', 'تکمیل شد', 'بشپړ شو'],
+  'os.cancelled': ['Bekor qilingan', 'Отменён', 'Cancelled', 'Бас тартылды', 'Жокко чыгарылды', 'Бекор шуд', 'Ýatyryldy', 'Ləğv edildi', 'لغو شد', 'لغوه شو'],
+
+  // --- Ariza (lead) holati ---
+  'lead.new': ['Yangi ariza', 'Новая заявка', 'New lead', 'Жаңа өтінім', 'Жаңы арыз', 'Дархости нав', 'Täze ýüzlenme', 'Yeni müraciət', 'درخواست جدید', 'نوې غوښتنه'],
+  'lead.awaiting': ['Javob kutmoqda', 'Ждёт ответа', 'Awaiting reply', 'Жауап күтуде', 'Жооп күтүүдө', 'Мунтазири ҷавоб', 'Jogap garaşýar', 'Cavab gözləyir', 'در انتظار پاسخ', 'ځواب ته انتظار'],
+  'lead.negotiating': ['Kelishilmoqda', 'На согласовании', 'Negotiating', 'Келісілуде', 'Макулдашылууда', 'Дар мувофиқа', 'Ylalaşylýar', 'Razılaşdırılır', 'در حال توافق', 'په خبرو اترو کې'],
+  'lead.closed': ['Yopilgan', 'Закрыта', 'Closed', 'Жабылды', 'Жабылды', 'Баста шуд', 'Ýapyldy', 'Bağlandı', 'بسته شد', 'بنده شوه'],
+
+  // --- Bildirishnomalar ({...} — parametrlar) ---
+  'n.message': ['Yangi xabar ({name}) — {title}', 'Новое сообщение от {name} — {title}', 'New message from {name} — {title}', 'Жаңа хабарлама ({name}) — {title}', 'Жаңы билдирүү ({name}) — {title}', 'Паёми нав аз {name} — {title}', 'Täze hat ({name}) — {title}', 'Yeni mesaj ({name}) — {title}', 'پیام جدید از {name} — {title}', 'نوی پیغام له {name} — {title}'],
+  'n.lead': ['Yangi ariza ({name}) — {title}', 'Новая заявка от {name} — {title}', 'New lead from {name} — {title}', 'Жаңа өтінім ({name}) — {title}', 'Жаңы арыз ({name}) — {title}', 'Дархости нав аз {name} — {title}', 'Täze ýüzlenme ({name}) — {title}', 'Yeni müraciət ({name}) — {title}', 'درخواست جدید از {name} — {title}', 'نوې غوښتنه له {name} — {title}'],
+  'n.order_new': ['Yangi buyurtma {number} — {title}', 'Новый заказ {number} — {title}', 'New order {number} — {title}', 'Жаңа тапсырыс {number} — {title}', 'Жаңы буйрутма {number} — {title}', 'Фармоиши нав {number} — {title}', 'Täze sargyt {number} — {title}', 'Yeni sifariş {number} — {title}', 'سفارش جدید {number} — {title}', 'نوی فرمایش {number} — {title}'],
+  'n.order_status': ['Buyurtma {number}: {status}', 'Заказ {number}: {status}', 'Order {number}: {status}', 'Тапсырыс {number}: {status}', 'Буйрутма {number}: {status}', 'Фармоиш {number}: {status}', 'Sargyt {number}: {status}', 'Sifariş {number}: {status}', 'سفارش {number}: {status}', 'فرمایش {number}: {status}'],
+  'n.listing_approved': ["E'lon nashr etildi — {title}", 'Объявление опубликовано — {title}', 'Listing published — {title}', 'Хабарландыру жарияланды — {title}', 'Жарнама жарыяланды — {title}', 'Эълон нашр шуд — {title}', 'Bildiriş çap edildi — {title}', 'Elan dərc edildi — {title}', 'آگهی منتشر شد — {title}', 'اعلان خپور شو — {title}'],
+  'n.listing_rejected': ["E'lon rad etildi — {title}: {reason}", 'Объявление отклонено — {title}: {reason}', 'Listing rejected — {title}: {reason}', 'Хабарландыру қабылданбады — {title}: {reason}', 'Жарнама четке кагылды — {title}: {reason}', 'Эълон рад шуд — {title}: {reason}', 'Bildiriş ret edildi — {title}: {reason}', 'Elan rədd edildi — {title}: {reason}', 'آگهی رد شد — {title}: {reason}', 'اعلان رد شو — {title}: {reason}'],
+  'n.price_changed': ["Saralangan e'londa narx o'zgardi — {title}: {price}", 'Цена в избранном изменилась — {title}: {price}', 'Price changed in favorites — {title}: {price}', 'Таңдаулыдағы баға өзгерді — {title}: {price}', 'Тандалгандагы баа өзгөрдү — {title}: {price}', 'Нарх дар интихобшудаҳо тағйир ёфт — {title}: {price}', 'Saýlananlarda baha üýtgedi — {title}: {price}', 'Seçilmişlərdə qiymət dəyişdi — {title}: {price}', 'قیمت در علاقه‌مندی‌ها تغییر کرد — {title}: {price}', 'په خوښو کې بیه بدله شوه — {title}: {price}'],
+  'n.review': ['Yangi sharh {rating}★ — {name}', 'Новый отзыв {rating}★ от {name}', 'New {rating}★ review from {name}', 'Жаңа пікір {rating}★ — {name}', 'Жаңы пикир {rating}★ — {name}', 'Тақризи нав {rating}★ аз {name}', 'Täze teswir {rating}★ — {name}', 'Yeni rəy {rating}★ — {name}', 'نظر جدید {rating}★ از {name}', 'نوی نظر {rating}★ له {name}'],
+  'n.request_match': ["Sizning yo'nalishingizda yangi so'rov — {title}", 'Новая заявка покупателя в вашей категории — {title}', 'New buyer request in your category — {title}', 'Сіздің санатыңызда жаңа сұраныс — {title}', 'Сиздин категорияңызда жаңы суроо — {title}', 'Дархости нави харидор дар категорияи шумо — {title}', 'Siziň kategoriýaňyzda täze haýyş — {title}', 'Kateqoriyanızda yeni sorğu — {title}', 'درخواست جدید خریدار در دسته شما — {title}', 'ستاسو په کټګورۍ کې نوې غوښتنه — {title}'],
+  'n.offer': ["So'rovingizga yangi taklif ({name}) — {title}", 'Новое предложение по вашей заявке от {name} — {title}', 'New offer on your request from {name} — {title}', 'Сұранысыңызға жаңа ұсыныс ({name}) — {title}', 'Сурооңузга жаңы сунуш ({name}) — {title}', 'Пешниҳоди нав ба дархости шумо аз {name} — {title}', 'Haýyşyňyza täze teklip ({name}) — {title}', 'Sorğunuza yeni təklif ({name}) — {title}', 'پیشنهاد جدید برای درخواست شما از {name} — {title}', 'ستاسو غوښتنې ته نوی وړاندیز له {name} — {title}'],
+  'n.saved_search': ["«{title}» bo'yicha yangi e'lon: {listing}", 'Новое объявление по поиску «{title}»: {listing}', 'New listing for “{title}”: {listing}', '«{title}» бойынша жаңа хабарландыру: {listing}', '«{title}» боюнча жаңы жарнама: {listing}', 'Эълони нав аз рӯи ҷустуҷӯи «{title}»: {listing}', '«{title}» gözleg boýunça täze bildiriş: {listing}', '«{title}» axtarışı üzrə yeni elan: {listing}', 'آگهی جدید برای جستجوی «{title}»: {listing}', 'د «{title}» لټون لپاره نوی اعلان: {listing}'],
+  'n.company_verified': ['Kompaniya tasdiqlandi — {name}', 'Компания проверена — {name}', 'Company verified — {name}', 'Компания тексерілді — {name}', 'Компания текшерилди — {name}', 'Ширкат тасдиқ шуд — {name}', 'Kompaniýa barlandy — {name}', 'Şirkət təsdiqləndi — {name}', 'شرکت تأیید شد — {name}', 'شرکت تایید شو — {name}'],
+
+  // --- Yangi xatolar ---
+  'err.plan_limit': ["Bepul tarifda faol e'lonlar chegarasiga yetdingiz. «Biznes» tarifiga o'ting", 'Достигнут лимит активных объявлений на бесплатном тарифе. Перейдите на тариф «Бизнес»', 'Free plan listing limit reached. Upgrade to the Business plan', 'Тегін тарифтегі белсенді хабарландыру шегіне жеттіңіз. «Бизнес» тарифіне өтіңіз', 'Акысыз тарифтеги жарнамалардын чегине жеттиңиз. «Бизнес» тарифине өтүңүз', 'Ба ҳадди эълонҳои фаъол дар тарифи ройгон расидед. Ба тарифи «Бизнес» гузаред', 'Mugt tarifde işjeň bildirişleriň çägine ýetdiňiz. «Biznes» tarifine geçiň', 'Pulsuz tarifdə aktiv elan limitinə çatdınız. «Biznes» tarifinə keçin', 'به سقف آگهی‌های فعال در طرح رایگان رسیدید. به طرح «کسب‌وکار» ارتقا دهید', 'په وړیا پلان کې د فعالو اعلانونو حد ته ورسېدئ. «سوداګرۍ» پلان ته لاړ شئ'],
+  'err.sms_failed': ["SMS yuborib bo'lmadi. Birozdan keyin qayta urinib ko'ring", 'Не удалось отправить SMS. Попробуйте позже', 'Could not send SMS. Please try again later', 'SMS жіберу мүмкін болмады. Кейінірек қайталаңыз', 'SMS жөнөтүлгөн жок. Бир аздан кийин кайталаңыз', 'SMS фиристода нашуд. Баъдтар кӯшиш кунед', 'SMS iberip bolmady. Soňrak gaýtadan synanyşyň', 'SMS göndərmək mümkün olmadı. Bir az sonra yenidən cəhd edin', 'ارسال پیامک ممکن نشد. بعداً دوباره تلاش کنید', 'SMS ونه لیږل شو. وروسته بیا هڅه وکړئ'],
+  'err.not_configured': ['Bu xizmat hali sozlanmagan', 'Сервис ещё не настроен', 'This service is not configured yet', 'Бұл қызмет әлі бапталмаған', 'Бул кызмат азырынча жөндөлгөн эмес', 'Ин хизмат ҳанӯз танзим нашудааст', 'Bu hyzmat entek sazlanmadyk', 'Bu xidmət hələ qurulmayıb', 'این سرویس هنوز تنظیم نشده است', 'دا خدمت لا نه دی تنظیم شوی'],
+  'err.dates_busy': ['Tanlangan kunlar band', 'Выбранные даты заняты', 'Selected dates are not available', 'Таңдалған күндер бос емес', 'Тандалган күндөр бош эмес', 'Санаҳои интихобшуда банд аст', 'Saýlanan günler boş däl', 'Seçilmiş tarixlər məşğuldur', 'تاریخ‌های انتخاب‌شده رزرو شده‌اند', 'ټاکل شوې نېټې نیولې دي'],
+  'err.payment_required': ["Avval xavfsiz bitim to'lovini amalga oshiring", 'Сначала оплатите безопасную сделку', 'Pay for the safe deal first', 'Алдымен қауіпсіз мәмілені төлеңіз', 'Адегенде коопсуз бүтүмдү төлөңүз', 'Аввал аҳди бехатарро пардохт кунед', 'Ilki howpsuz ylalaşygy töläň', 'Əvvəlcə təhlükəsiz sövdələşməni ödəyin', 'ابتدا معامله امن را پرداخت کنید', 'لومړی خوندي معامله تادیه کړئ'],
+
+  'err.already_registered': ["Bu raqam allaqachon ro'yxatdan o'tgan. Kiring yoki parolni tiklang", 'Этот номер уже зарегистрирован. Войдите или восстановите пароль', 'This number is already registered. Sign in or reset your password', 'Бұл нөмір тіркелген. Кіріңіз немесе құпиясөзді қалпына келтіріңіз', 'Бул номер катталган. Кириңиз же сырсөздү калыбына келтириңиз', 'Ин рақам аллакай сабт шудааст. Ворид шавед ё паролро барқарор кунед', 'Bu belgi eýýäm hasaba alnan. Giriň ýa-da açar sözi dikeldiň', 'Bu nömrə artıq qeydiyyatdadır. Daxil olun və ya şifrəni bərpa edin', 'این شماره قبلاً ثبت شده است. وارد شوید یا رمز را بازیابی کنید', 'دا شمېره دمخه ثبت شوې ده. ننوځئ یا پټنوم بیا جوړ کړئ'],
+  'err.no_account': ["Bu raqam bilan hisob topilmadi. Ro'yxatdan o'ting", 'Аккаунт с этим номером не найден. Зарегистрируйтесь', 'No account with this number. Please register', 'Бұл нөмірмен аккаунт табылмады. Тіркеліңіз', 'Бул номер менен аккаунт табылган жок. Катталыңыз', 'Ҳисоб бо ин рақам ёфт нашуд. Сабти ном кунед', 'Bu belgi bilen hasap tapylmady. Hasaba duruň', 'Bu nömrə ilə hesab tapılmadı. Qeydiyyatdan keçin', 'حسابی با این شماره پیدا نشد. ثبت‌نام کنید', 'په دې شمېره حساب ونه موندل شو. ثبت نام وکړئ'],
+  'err.wrong_password': ["Telefon yoki parol noto'g'ri", 'Неверный телефон или пароль', 'Wrong phone or password', 'Телефон немесе құпиясөз қате', 'Телефон же сырсөз туура эмес', 'Телефон ё парол нодуруст', 'Telefon ýa-da açar söz nädogry', 'Telefon və ya şifrə yanlışdır', 'تلفن یا رمز نادرست است', 'تلیفون یا پټنوم ناسم دی'],
+  'err.password_weak': ["Parol kamida 8 belgidan iborat bo'lsin, harf va raqam bilan", 'Пароль: минимум 8 символов, буквы и цифры', 'Password: at least 8 characters with letters and digits', 'Құпиясөз: кемінде 8 таңба, әріп пен сан', 'Сырсөз: кеминде 8 белги, тамга жана сан', 'Парол: на камтар аз 8 аломат, ҳарф ва рақам', 'Açar söz: azyndan 8 nyşan, harp we san', 'Şifrə: ən azı 8 simvol, hərf və rəqəm', 'رمز: حداقل ۸ نویسه، حرف و عدد', 'پټنوم: لږ تر لږه ۸ توري، توري او شمېرې'],
+  'n.company_new_listing': ["{company} yangi e'lon joyladi: {title}", '{company} разместила новое объявление: {title}', '{company} posted a new listing: {title}', '{company} жаңа хабарландыру берді: {title}', '{company} жаңы жарнама берди: {title}', '{company} эълони нав гузошт: {title}', '{company} täze bildiriş goýdy: {title}', '{company} yeni elan yerləşdirdi: {title}', '{company} آگهی جدید گذاشت: {title}', '{company} نوی اعلان خپور کړ: {title}'],
+  'n.interest': ["Qiziqishlaringiz bo'yicha yangi e'lon — {category}: {title}", 'Новое объявление по вашим интересам — {category}: {title}', 'New listing matching your interests — {category}: {title}', 'Қызығушылықтарыңыз бойынша жаңа хабарландыру — {category}: {title}', 'Кызыкчылыгыңыз боюнча жаңы жарнама — {category}: {title}', 'Эълони нав аз рӯи шавқҳои шумо — {category}: {title}', 'Gyzyklanmalaryňyz boýunça täze bildiriş — {category}: {title}', 'Maraqlarınız üzrə yeni elan — {category}: {title}', 'آگهی جدید مطابق علاقه‌های شما — {category}: {title}', 'ستاسو د علاقې سره سم نوی اعلان — {category}: {title}'],
+  'n.member_added': ["Siz {company} kompaniyasiga xodim sifatida qo'shildingiz", 'Вас добавили сотрудником компании {company}', 'You were added as an employee of {company}', 'Сізді {company} компаниясына қызметкер ретінде қосты', 'Сизди {company} компаниясына кызматкер катары кошушту', 'Шуморо ҳамчун корманди {company} илова карданд', 'Sizi {company} kompaniýasyna işgär hökmünde goşdular', 'Sizi {company} şirkətinə əməkdaş kimi əlavə etdilər', 'شما به‌عنوان کارمند {company} اضافه شدید', 'تاسو د {company} د کارکوونکي په توګه اضافه شوئ'],
+  'sms.reset': ['HEMU.UZ parolni tiklash kodi: {code}. Hech kimga bermang.', 'Код восстановления пароля HEMU.UZ: {code}. Никому не сообщайте.', 'HEMU.UZ password reset code: {code}. Do not share it.', 'HEMU.UZ құпиясөзді қалпына келтіру коды: {code}.', 'HEMU.UZ сырсөздү калыбына келтирүү коду: {code}.', 'Рамзи барқарории пароли HEMU.UZ: {code}.', 'HEMU.UZ açar sözi dikeltmek kody: {code}.', 'HEMU.UZ şifrə bərpa kodu: {code}.', 'کد بازیابی رمز HEMU.UZ: {code}.', 'د HEMU.UZ پټنوم بیا جوړولو کوډ: {code}.'],
+
+  // --- Paketlar va tariflar ---
+  'promo.vip': ["VIP", "VIP", "VIP", "VIP", "VIP", "VIP", "VIP", "VIP", "VIP", "VIP"],
+  'promo.gold': ["GOLD", "GOLD", "GOLD", "GOLD", "GOLD", "GOLD", "GOLD", "GOLD", "GOLD", "GOLD"],
+  'promo.premium': ["PREMIUM", "PREMIUM", "PREMIUM", "PREMIUM", "PREMIUM", "PREMIUM", "PREMIUM", "PREMIUM", "PREMIUM", "PREMIUM"],
+  'promo.vip_place': ["Bosh sahifada 1-karusel va qidiruvda eng yuqorida", "Карусель №1 на главной и самые верхние места в поиске", "Carousel #1 on the home page and the very top of search", "Басты беттегі №1 карусель және іздеудің ең басы", "Башкы беттеги №1 карусель жана издөөнүн эң башы", "Карусели №1 дар саҳифаи асосӣ ва аввали ҷустуҷӯ", "Baş sahypada 1-nji karusel we gözlegiň iň ýokarsy", "Ana səhifədə 1 nömrəli karusel və axtarışda ən yuxarı", "کاروسل شماره ۱ در صفحه اصلی و بالاترین جای جستجو", "په اصلي پاڼه کې لومړی کاروسل او د لټون تر ټولو پورته"],
+  'promo.gold_place': ["Bosh sahifada 2-karusel, qidiruvda VIPdan keyin", "Карусель №2 на главной, в поиске сразу после VIP", "Carousel #2 on the home page, right after VIP in search", "Басты беттегі №2 карусель, іздеуде VIP-тен кейін", "Башкы беттеги №2 карусель, издөөдө VIPтен кийин", "Карусели №2 дар саҳифаи асосӣ, дар ҷустуҷӯ баъд аз VIP", "Baş sahypada 2-nji karusel, gözlegde VIP-den soň", "Ana səhifədə 2 nömrəli karusel, axtarışda VIP-dən sonra", "کاروسل شماره ۲ در صفحه اصلی، در جستجو پس از VIP", "په اصلي پاڼه کې دویم کاروسل، په لټون کې له VIP وروسته"],
+  'promo.premium_place': ["Bosh sahifada 3-karusel va oddiy e'lonlardan yuqorida", "Карусель №3 на главной и выше обычных объявлений", "Carousel #3 on the home page and above regular listings", "Басты беттегі №3 карусель және қарапайым хабарландырулардан жоғары", "Башкы беттеги №3 карусель жана жөнөкөй жарнамалардан жогору", "Карусели №3 дар саҳифаи асосӣ ва болотар аз эълонҳои оддӣ", "Baş sahypada 3-nji karusel we adaty bildirişlerden ýokarda", "Ana səhifədə 3 nömrəli karusel və adi elanlardan yuxarıda", "کاروسل شماره ۳ در صفحه اصلی و بالاتر از آگهی‌های عادی", "په اصلي پاڼه کې دریم کاروسل او له عادي اعلانونو پورته"],
+  'n.freight_load': ["Yangi yuk: {from} → {to} {what}", "Новый груз: {from} → {to} {what}", "New load: {from} → {to} {what}", "Жаңа жүк: {from} → {to} {what}", "Жаңы жүк: {from} → {to} {what}", "Бори нав: {from} → {to} {what}", "Täze ýük: {from} → {to} {what}", "Yeni yük: {from} → {to} {what}", "بار جدید: {from} → {to} {what}", "نوی بار: {from} → {to} {what}"],
+  'n.freight_truck': ["Bo'sh fura: {from} → {to}", "Свободная фура: {from} → {to}", "Free truck: {from} → {to}", "Бос фура: {from} → {to}", "Бош фура: {from} → {to}", "Фураи холӣ: {from} → {to}", "Boş fura: {from} → {to}", "Boş fura: {from} → {to}", "کامیون خالی: {from} → {to}", "تش لارۍ: {from} → {to}"],
+  'n.support_reply': ["Murojaatingizga javob: {text}", "Ответ на ваше обращение: {text}", "Reply to your request: {text}", "Өтінішіңізге жауап: {text}", "Кайрылууңузга жооп: {text}", "Ҷавоб ба муроҷиати шумо: {text}", "Ýüzlenmäňize jogap: {text}", "Müraciətinizə cavab: {text}", "پاسخ به درخواست شما: {text}", "ستاسو غوښتنې ته ځواب: {text}"],
+  'n.support_new': ["Yangi murojaat: {name} — {text}", "Новое обращение: {name} — {text}", "New support request: {name} — {text}", "Жаңа өтініш: {name} — {text}", "Жаңы кайрылуу: {name} — {text}", "Муроҷиати нав: {name} — {text}", "Täze ýüzlenme: {name} — {text}", "Yeni müraciət: {name} — {text}", "درخواست جدید: {name} — {text}", "نوې غوښتنه: {name} — {text}"],
+  'wk.welcome': ["Ro'yxatdan o'tish bonusi", "Бонус за регистрацию", "Sign-up bonus", "Тіркелу бонусы", "Катталуу бонусу", "Бонуси сабти ном", "Hasaba durmak bonusy", "Qeydiyyat bonusu", "پاداش ثبت‌نام", "د نوم لیکنې بونس"],
+  'err.tier_higher': ["E'lon hozir yuqoriroq darajada (masalan VIP). Arzonroq daraja uni almashtirib yuboradi — muddat tugagach tanlang", "Объявление уже на более высоком уровне (например VIP). Более дешёвый уровень заменит его — выберите после окончания срока", "This listing already has a higher level (e.g. VIP). A cheaper level would replace it — choose it after the current one ends", "Хабарландыру жоғары деңгейде (мысалы VIP). Арзан деңгей оны ауыстырып жібереді", "Жарнама жогорку деңгээлде (мисалы VIP). Арзан деңгээл аны алмаштырып салат", "Эълон дар сатҳи баландтар аст (масалан VIP). Сатҳи арзонтар онро иваз мекунад", "Bildiriş ýokary derejede (meselem VIP). Arzan dereje ony çalşar", "Elan artıq daha yüksək səviyyədədir (məsələn VIP). Ucuz səviyyə onu əvəz edəcək", "آگهی در سطح بالاتری است (مثلاً VIP). سطح ارزان‌تر آن را جایگزین می‌کند", "اعلان په لوړه کچه کې دی (لکه VIP). ارزانه کچه به یې ځای ونیسي"],
+  'err.company_only': ["VIP, GOLD va PREMIUM faqat kompaniyalar (MChJ, YaTT) uchun. Profilda kompaniya qo'shing", "VIP, GOLD и PREMIUM доступны только компаниям (ООО, ИП). Добавьте компанию в профиле", "VIP, GOLD and PREMIUM are for companies only. Add your company in the profile", "VIP, GOLD және PREMIUM тек компанияларға (ЖШС, ЖК) арналған. Профильде компания қосыңыз", "VIP, GOLD жана PREMIUM компаниялар (ЖЧК, ЖИ) үчүн гана. Профилде компания кошуңуз", "VIP, GOLD ва PREMIUM танҳо барои ширкатҳо. Дар профил ширкат илова кунед", "VIP, GOLD we PREMIUM diňe kompaniýalar üçin. Profilde kompaniýa goşuň", "VIP, GOLD və PREMIUM yalnız şirkətlər (MMC, FS) üçündür. Profildə şirkət əlavə edin", "VIP، GOLD و PREMIUM فقط برای شرکت‌ها است. در پروفایل شرکت اضافه کنید", "VIP، GOLD او PREMIUM یوازې د شرکتونو لپاره دي. په پروفایل کې شرکت زیات کړئ"],
+  'promo.top_place': ["7 kun davomida ro'yxat boshida (OLX dagi TOP kabi)", "Вверху списка 7 дней (как ТОП на OLX)", "Top of the list for 7 days (like OLX TOP)", "7 күн тізім басында (OLX-тегі ТОП сияқты)", "7 күн тизменин башында (OLXтеги ТОП сыяктуу)", "7 рӯз дар болои рӯйхат (мисли TOP дар OLX)", "7 gün sanawyň başynda (OLX-daky TOP ýaly)", "7 gün siyahının əvvəlində (OLX-dəki TOP kimi)", "۷ روز در بالای فهرست (مثل TOP در OLX)", "۷ ورځې د لړ په سر کې (د OLX TOP په څېر)"],
+  'promo.highlight_place': ["E'lon rang bilan ajralib turadi va ko'proq bosiladi", "Объявление выделено цветом и чаще привлекает внимание", "Your listing stands out with colour and gets more clicks", "Хабарландыру түспен ерекшеленеді", "Жарнама түс менен бөлүнүп турат", "Эълон бо ранг ҷудо мешавад", "Bildiriş reňk bilen tapawutlanýar", "Elan rənglə seçilir və daha çox klik alır", "آگهی با رنگ متمایز می‌شود", "اعلان په رنګ سره ځانګړی کېږي"],
+  'promo.combo_place': ["TOP va rang bilan ajratish birga — eng ko'p ko'rishlar", "ТОП и выделение вместе — максимум просмотров", "TOP and highlight together — the most views", "ТОП және бөлектеу бірге — ең көп қаралым", "ТОП жана бөлүп көрсөтүү бирге — эң көп көрүү", "TOP ва ҷудо кардан якҷоя — бештарин тамошо", "TOP we bellemek bile — iň köp görülme", "TOP və seçmə birlikdə — ən çox baxış", "TOP و برجسته‌سازی با هم — بیشترین بازدید", "TOP او ځانګړتیا یوځای — تر ټولو ډېرې لیدنې"],
+  'promo.top': ['TOP — ro\'yxat boshida', 'TOP — вверху списка', 'TOP — top of the list', 'TOP — тізім басында', 'TOP — тизменин башында', 'TOP — дар болои рӯйхат', 'TOP — sanawyň başynda', 'TOP — siyahının əvvəlində', 'TOP — بالای فهرست', 'TOP — د لړ په سر کې'],
+  'promo.highlight': ['Rang bilan ajratish', 'Выделение цветом', 'Color highlight', 'Түспен бөлектеу', 'Түс менен бөлүп көрсөтүү', 'Ҷудо кардан бо ранг', 'Reňk bilen bellemek', 'Rənglə seçmə', 'برجسته‌سازی رنگی', 'په رنګ سره ځانګړی کول'],
+  'promo.combo': ['TOP + ajratish', 'TOP + выделение', 'TOP + highlight', 'TOP + бөлектеу', 'TOP + бөлүп көрсөтүү', 'TOP + ҷудо кардан', 'TOP + bellemek', 'TOP + seçmə', 'TOP + برجسته‌سازی', 'TOP + ځانګړی کول'],
+  'plan.free': ['Bepul', 'Бесплатный', 'Free', 'Тегін', 'Акысыз', 'Ройгон', 'Mugt', 'Pulsuz', 'رایگان', 'وړیا'],
+  'plan.business': ['Biznes', 'Бизнес', 'Business', 'Бизнес', 'Бизнес', 'Бизнес', 'Biznes', 'Biznes', 'کسب‌وکار', 'سوداګري'],
+  'pp.promo': ["E'lonni ko'tarish", 'Продвижение объявления', 'Listing promotion', 'Хабарландыруды жылжыту', 'Жарнаманы илгерилетүү', 'Пешбурди эълон', 'Bildirişi öňe çykarmak', 'Elanın irəli çəkilməsi', 'ارتقای آگهی', 'د اعلان وده'],
+  'pp.plan': ['Tarif', 'Тариф', 'Plan', 'Тариф', 'Тариф', 'Тариф', 'Tarif', 'Tarif', 'طرح', 'پلان'],
+  'pp.escrow': ['Xavfsiz bitim', 'Безопасная сделка', 'Safe deal', 'Қауіпсіз мәміле', 'Коопсуз бүтүм', 'Аҳди бехатар', 'Howpsuz ylalaşyk', 'Təhlükəsiz sövdələşmə', 'معامله امن', 'خوندي معامله'],
+  'n.broadcast': ['{title}: {body}', '{title}: {body}', '{title}: {body}', '{title}: {body}', '{title}: {body}', '{title}: {body}', '{title}: {body}', '{title}: {body}', '{title}: {body}', '{title}: {body}'],
+  'n.wallet': ["Balansingiz {sign}{price} ga o'zgardi. {note}", 'Баланс изменён на {sign}{price}. {note}', 'Your balance changed by {sign}{price}. {note}', 'Балансыңыз {sign}{price} өзгерді. {note}', 'Балансыңыз {sign}{price} өзгөрдү. {note}', 'Тавозуни шумо ба {sign}{price} тағйир ёфт. {note}', 'Balansyňyz {sign}{price} üýtgedi. {note}', 'Balansınız {sign}{price} dəyişdi. {note}', 'موجودی شما {sign}{price} تغییر کرد. {note}', 'ستاسو بیلانس {sign}{price} بدل شو. {note}'],
+  'n.company_rejected': ["{name} kompaniyasi tekshiruvdan o'tmadi: {reason}", 'Компания {name} не прошла проверку: {reason}', 'Company {name} failed verification: {reason}', '{name} компаниясы тексеруден өтпеді: {reason}', '{name} компаниясы текшерүүдөн өткөн жок: {reason}', 'Ширкати {name} аз санҷиш нагузашт: {reason}', '{name} kompaniýasy barlagdan geçmedi: {reason}', '{name} şirkəti yoxlamadan keçmədi: {reason}', 'شرکت {name} تأیید نشد: {reason}', 'د {name} شرکت تایید نه شو: {reason}'],
+  'n.account_changed': ["Administrator hisobingiz ma'lumotlarini o'zgartirdi: {what}", 'Администратор изменил данные вашего аккаунта: {what}', 'An administrator changed your account: {what}', 'Әкімші аккаунтыңызды өзгертті: {what}', 'Администратор аккаунтуңузду өзгөрттү: {what}', 'Маъмур ҳисоби шуморо тағйир дод: {what}', 'Administrator hasabyňyzy üýtgetdi: {what}', 'Administrator hesabınızı dəyişdi: {what}', 'مدیر حساب شما را تغییر داد: {what}', 'مدیر ستاسو حساب بدل کړ: {what}'],
+  'pp.topup': ["Balansni to'ldirish", 'Пополнение баланса', 'Balance top-up', 'Балансты толтыру', 'Балансты толуктоо', 'Пур кардани тавозун', 'Balansy doldurmak', 'Balansın artırılması', 'شارژ موجودی', 'د بیلانس ډکول'],
+  'err.insufficient_balance': ["Balansda mablag' yetarli emas", 'Недостаточно средств на балансе', 'Insufficient balance', 'Балансқа қаражат жеткіліксіз', 'Баланста каражат жетишсиз', 'Маблағи тавозун кифоя нест', 'Balansda serişde ýeterlik däl', 'Balansda kifayət qədər vəsait yoxdur', 'موجودی کافی نیست', 'بیلانس کافي نه دی'],
+  'err.docs_required': ["Davlat ro'yxatidan o'tganlik guvohnomasini yuklang", 'Загрузите свидетельство о государственной регистрации', 'Upload the state registration certificate', 'Мемлекеттік тіркеу куәлігін жүктеңіз', 'Мамлекеттик каттоо күбөлүгүн жүктөңүз', 'Шаҳодатномаи бақайдгириро бор кунед', 'Döwlet hasabyna alnandygy baradaky şahadatnamany ýükläň', 'Dövlət qeydiyyatı şəhadətnaməsini yükləyin', 'گواهی ثبت را بارگذاری کنید', 'د ثبت سند پورته کړئ'],
+  'err.account_blocked': ['Hisobingiz bloklangan. Qo\'llab-quvvatlash xizmatiga murojaat qiling', 'Аккаунт заблокирован. Обратитесь в поддержку', 'Your account is blocked. Contact support', 'Аккаунт бұғатталған. Қолдау қызметіне жазыңыз', 'Аккаунт бөгөттөлгөн. Колдоо кызматына кайрылыңыз', 'Ҳисоб баста шудааст. Ба дастгирӣ муроҷиат кунед', 'Hasap petiklendi. Goldaw gullugyna ýüz tutuň', 'Hesab bloklanıb. Dəstək xidmətinə müraciət edin', 'حساب شما مسدود است. با پشتیبانی تماس بگیرید', 'ستاسو حساب بند دی. له ملاتړ سره اړیکه ونیسئ'],  'wk.topup': ["Balansni to'ldirish", 'Пополнение', 'Top-up', 'Толтыру', 'Толуктоо', 'Пуркунӣ', 'Doldurmak', 'Artırma', 'شارژ', 'ډکول'],
+  'wk.admin_credit': ['Administrator tomonidan kiritildi', 'Начислено администратором', 'Credited by administrator', 'Әкімші есептеді', 'Администратор кошту', 'Аз ҷониби маъмур', 'Administrator tarapyndan', 'Administrator tərəfindən', 'توسط مدیر', 'د مدیر لخوا'],
+  'wk.admin_debit': ['Administrator tomonidan yechildi', 'Списано администратором', 'Debited by administrator', 'Әкімші есептен шығарды', 'Администратор чегерди', 'Аз ҷониби маъмур гирифта шуд', 'Administrator tarapyndan aýryldy', 'Administrator tərəfindən silindi', 'برداشت توسط مدیر', 'د مدیر لخوا کم شو'],
+  'wk.spend': ["Xizmat uchun to'lov", 'Оплата услуги', 'Service payment', 'Қызметке төлем', 'Кызмат үчүн төлөм', 'Пардохти хизмат', 'Hyzmat üçin töleg', 'Xidmət ödənişi', 'پرداخت خدمت', 'د خدمت تادیه'],
+  'wk.refund': ['Qaytarildi', 'Возврат', 'Refund', 'Қайтару', 'Кайтаруу', 'Баргардонидан', 'Yzyna gaýtarmak', 'Geri qaytarma', 'بازپرداخت', 'بیرته ورکول'],
+  'wk.bonus': ['Bonus', 'Бонус', 'Bonus', 'Бонус', 'Бонус', 'Бонус', 'Bonus', 'Bonus', 'پاداش', 'بونس'],
+  'err.registration_closed': ["Ro'yxatdan o'tish vaqtincha yopiq", 'Регистрация временно закрыта', 'Registration is temporarily closed', 'Тіркелу уақытша жабық', 'Каттоо убактылуу жабык', 'Бақайдгирӣ муваққатан баста аст', 'Hasaba alyş wagtlaýyn ýapyk', 'Qeydiyyat müvəqqəti bağlıdır', 'ثبت‌نام موقتاً بسته است', 'نوم لیکنه لنډمهاله بنده ده'],  'n.company_new': ['{name} kompaniyasi hujjatlarni tekshiruvga yubordi', 'Компания {name} отправила документы на проверку', 'Company {name} submitted documents for review', '{name} компаниясы құжаттарды тексеруге жіберді', '{name} компаниясы документтерди текшерүүгө жөнөттү', 'Ширкати {name} ҳуҷҷатҳоро барои санҷиш фиристод', '{name} kompaniýasy resminamalary barlaga iberdi', '{name} şirkəti sənədləri yoxlamaya göndərdi', 'شرکت {name} مدارک را برای بررسی فرستاد', 'د {name} شرکت اسناد د کتنې لپاره ولېږل'],
+  'err.last_admin': ["Oxirgi administratorni o'chirib bo'lmaydi", 'Нельзя снять последнего администратора', 'Cannot demote the last administrator', 'Соңғы әкімшіні алып тастауға болмайды', 'Акыркы администраторду алып салууга болбойт', 'Маъмури охиринро бардоштан мумкин нест', 'Iň soňky administratory aýyryp bolmaýar', 'Son administratoru silmək olmaz', 'آخرین مدیر را نمی‌توان حذف کرد', 'وروستی مدیر نشي لرې کیدای'],
+  'err.has_orders': ["Foydalanuvchining buyurtmalari bor — o'chirish o'rniga bloklang", 'У пользователя есть заказы — заблокируйте вместо удаления', 'User has orders — block instead of deleting', 'Пайдаланушының тапсырыстары бар — жоюдың орнына бұғаттаңыз', 'Колдонуучунун буйрутмалары бар — өчүрүүнүн ордуна бөгөттөңүз', 'Корбар фармоишҳо дорад — ба ҷои нест кардан баста кунед', 'Ulanyjynyň sargytlary bar — pozmagyň ýerine petikläň', 'İstifadəçinin sifarişləri var — silmək əvəzinə bloklayın', 'کاربر سفارش دارد — به‌جای حذف مسدود کنید', 'کارن امرونه لري — د ړنګولو پر ځای یې بند کړئ'],  'pp.inspection': ["Texnik ko'rik", 'Техническая проверка', 'Technical inspection', 'Техникалық тексеру', 'Техникалык текшерүү', 'Санҷиши техникӣ', 'Tehniki barlag', 'Texniki yoxlama', 'بازرسی فنی', 'تخنیکي معاینه'],
+
+  // --- Holatlar ---
+  'bs.pending': ['Tasdiq kutilmoqda', 'Ожидает подтверждения', 'Awaiting confirmation', 'Растауды күтуде', 'Ырастоону күтүүдө', 'Интизори тасдиқ', 'Tassyklama garaşýar', 'Təsdiq gözləyir', 'در انتظار تأیید', 'تایید ته انتظار'],
+  'bs.confirmed': ['Tasdiqlangan', 'Подтверждено', 'Confirmed', 'Расталды', 'Ырасталды', 'Тасдиқ шуд', 'Tassyklandy', 'Təsdiqləndi', 'تأیید شد', 'تایید شو'],
+  'bs.rejected': ['Rad etilgan', 'Отклонено', 'Rejected', 'Қабылданбады', 'Четке кагылды', 'Рад шуд', 'Ret edildi', 'Rədd edildi', 'رد شد', 'رد شو'],
+  'bs.cancelled': ['Bekor qilingan', 'Отменено', 'Cancelled', 'Бас тартылды', 'Жокко чыгарылды', 'Бекор шуд', 'Ýatyryldy', 'Ləğv edildi', 'لغو شد', 'لغوه شو'],
+  'is.unpaid': ["To'lanmagan", 'Не оплачено', 'Unpaid', 'Төленбеген', 'Төлөнгөн эмес', 'Пардохт нашудааст', 'Tölenmedik', 'Ödənilməyib', 'پرداخت نشده', 'نه دی تادیه شوی'],
+  'is.paid': ["To'langan, usta tayinlanmoqda", 'Оплачено, назначаем мастера', 'Paid, assigning inspector', 'Төленді, шебер тағайындалуда', 'Төлөндү, уста дайындалууда', 'Пардохт шуд, усто таъин мешавад', 'Tölendi, ussat bellenýär', 'Ödənildi, usta təyin olunur', 'پرداخت شد، بازرس تعیین می‌شود', 'تادیه شو، معاینه کوونکی ټاکل کېږي'],
+  'is.scheduled': ['Ko\'rik belgilandi', 'Осмотр назначен', 'Inspection scheduled', 'Тексеру белгіленді', 'Текшерүү белгиленди', 'Муоина таъин шуд', 'Barlag bellendi', 'Yoxlama təyin edildi', 'بازرسی زمان‌بندی شد', 'معاینه وټاکل شوه'],
+  'is.done': ['Hisobot tayyor', 'Отчёт готов', 'Report ready', 'Есеп дайын', 'Отчёт даяр', 'Ҳисобот омода', 'Hasabat taýýar', 'Hesabat hazırdır', 'گزارش آماده است', 'راپور چمتو دی'],
+  'is.cancelled': ['Bekor qilingan', 'Отменено', 'Cancelled', 'Бас тартылды', 'Жокко чыгарылды', 'Бекор шуд', 'Ýatyryldy', 'Ləğv edildi', 'لغو شد', 'لغوه شو'],
+  'es.unpaid': ["To'lov kutilmoqda", 'Ожидает оплаты', 'Awaiting payment', 'Төлемді күтуде', 'Төлөмдү күтүүдө', 'Интизори пардохт', 'Töleg garaşýar', 'Ödəniş gözləyir', 'در انتظار پرداخت', 'تادیې ته انتظار'],
+  'es.held': ['Pul platformada saqlanmoqda', 'Деньги на удержании у площадки', 'Funds held by the platform', 'Ақша алаңда сақталуда', 'Акча аянтчада кармалууда', 'Пул дар платформа нигоҳ дошта мешавад', 'Pul platformada saklanýar', 'Pul platformada saxlanılır', 'وجه نزد پلتفرم نگهداری می‌شود', 'پیسې په پلاتفورم کې ساتل کېږي'],
+  'es.released': ["Pul sotuvchiga o'tkazildi", 'Деньги переведены продавцу', 'Funds released to seller', 'Ақша сатушыға аударылды', 'Акча сатуучуга которулду', 'Пул ба фурӯшанда гузаронида шуд', 'Pul satyja geçirildi', 'Pul satıcıya köçürüldü', 'وجه به فروشنده پرداخت شد', 'پیسې پلورونکي ته ولېږدول شوې'],
+  'es.refunded': ['Pul xaridorga qaytariladi', 'Деньги возвращаются покупателю', 'Funds refunded to buyer', 'Ақша сатып алушыға қайтарылады', 'Акча сатып алуучуга кайтарылат', 'Пул ба харидор баргардонида мешавад', 'Pul alyja gaýtarylýar', 'Pul alıcıya qaytarılır', 'وجه به خریدار بازگردانده می‌شود', 'پیسې پېرودونکي ته بېرته ورکول کېږي'],
+  'es.disputed': ["Nizo ko'rib chiqilmoqda", 'Спор на рассмотрении', 'Dispute under review', 'Дау қаралуда', 'Талаш каралууда', 'Баҳс дар баррасӣ', 'Jedel seredilýär', 'Mübahisə araşdırılır', 'اختلاف در حال بررسی', 'شخړه تر غور لاندې ده'],
+
+  // --- Yangi bildirishnomalar ---
+  'n.booking_new': ['Yangi bron ({name}) — {title}: {dates}', 'Новое бронирование от {name} — {title}: {dates}', 'New booking from {name} — {title}: {dates}', 'Жаңа брондау ({name}) — {title}: {dates}', 'Жаңы брондоо ({name}) — {title}: {dates}', 'Брони нав аз {name} — {title}: {dates}', 'Täze bron ({name}) — {title}: {dates}', 'Yeni bron ({name}) — {title}: {dates}', 'رزرو جدید از {name} — {title}: {dates}', 'نوی بکنګ له {name} — {title}: {dates}'],
+  'n.booking_status': ['Bron {dates} — {title}: {status}', 'Бронирование {dates} — {title}: {status}', 'Booking {dates} — {title}: {status}', 'Брондау {dates} — {title}: {status}', 'Брондоо {dates} — {title}: {status}', 'Брон {dates} — {title}: {status}', 'Bron {dates} — {title}: {status}', 'Bron {dates} — {title}: {status}', 'رزرو {dates} — {title}: {status}', 'بکنګ {dates} — {title}: {status}'],
+  'n.payment_paid': ["To'lov qabul qilindi: {purpose} — {amount}", 'Оплата получена: {purpose} — {amount}', 'Payment received: {purpose} — {amount}', 'Төлем қабылданды: {purpose} — {amount}', 'Төлөм кабыл алынды: {purpose} — {amount}', 'Пардохт қабул шуд: {purpose} — {amount}', 'Töleg kabul edildi: {purpose} — {amount}', 'Ödəniş qəbul edildi: {purpose} — {amount}', 'پرداخت دریافت شد: {purpose} — {amount}', 'تادیه ترلاسه شوه: {purpose} — {amount}'],
+  'n.inspection_status': ["Texnik ko'rik — {title}: {status}", 'Техническая проверка — {title}: {status}', 'Inspection — {title}: {status}', 'Техникалық тексеру — {title}: {status}', 'Техникалык текшерүү — {title}: {status}', 'Санҷиши техникӣ — {title}: {status}', 'Tehniki barlag — {title}: {status}', 'Texniki yoxlama — {title}: {status}', 'بازرسی فنی — {title}: {status}', 'تخنیکي معاینه — {title}: {status}'],
+  'n.escrow': ['Xavfsiz bitim {number}: {status}', 'Безопасная сделка {number}: {status}', 'Safe deal {number}: {status}', 'Қауіпсіз мәміле {number}: {status}', 'Коопсуз бүтүм {number}: {status}', 'Аҳди бехатар {number}: {status}', 'Howpsuz ylalaşyk {number}: {status}', 'Təhlükəsiz sövdələşmə {number}: {status}', 'معامله امن {number}: {status}', 'خوندي معامله {number}: {status}'],
+  'n.report_resolved': ["Shikoyatingiz ko'rib chiqildi — {title}", 'Ваша жалоба рассмотрена — {title}', 'Your report was reviewed — {title}', 'Шағымыңыз қаралды — {title}', 'Арызыңыз каралды — {title}', 'Шикояти шумо баррасӣ шуд — {title}', 'Şikaýatyňyz seredildi — {title}', 'Şikayətiniz araşdırıldı — {title}', 'گزارش شما بررسی شد — {title}', 'ستاسو شکایت وکتل شو — {title}'],
+
+  // --- Telegram bot ---
+  'tg.welcome': ["Salom! Bu HEMU.UZ bildirishnomalar boti. Hisobni ulash uchun saytdagi Profil → «Telegram'ni ulash» tugmasini bosing.", 'Здравствуйте! Это бот уведомлений HEMU.UZ. Чтобы подключить аккаунт, нажмите на сайте Профиль → «Подключить Telegram».', 'Hi! This is the HEMU.UZ notification bot. To link your account, open Profile → “Connect Telegram” on the website.', 'Сәлем! Бұл HEMU.UZ хабарлама боты. Аккаунтты қосу үшін сайтта Профиль → «Telegram қосу» басыңыз.', 'Салам! Бул HEMU.UZ билдирме боту. Аккаунтту туташтыруу үчүн сайтта Профиль → «Telegram туташтыруу» басыңыз.', 'Салом! Ин боти огоҳиномаҳои HEMU.UZ аст. Барои пайваст кардани ҳисоб дар сайт Профил → «Пайваст кардани Telegram»-ро пахш кунед.', 'Salam! Bu HEMU.UZ duýduryş boty. Hasaby birikdirmek üçin saýtda Profil → «Telegram birikdirmek» basyň.', 'Salam! Bu HEMU.UZ bildiriş botudur. Hesabı qoşmaq üçün saytda Profil → «Telegram qoş» düyməsini basın.', 'سلام! این ربات اعلان‌های HEMU.UZ است. برای اتصال حساب در سایت پروفایل ← «اتصال تلگرام» را بزنید.', 'سلام! دا د HEMU.UZ د خبرتیاوو بوټ دی. د حساب د نښلولو لپاره په سایټ کې پروفایل ← «ټلګرام نښلول» کېکاږئ.'],
+  'tg.linked': ["Tayyor! {name}, endi HEMU.UZ bildirishnomalari shu yerga keladi. O'chirish: /stop", 'Готово! {name}, теперь уведомления HEMU.UZ будут приходить сюда. Отключить: /stop', 'Done! {name}, HEMU.UZ notifications will now arrive here. Turn off: /stop', 'Дайын! {name}, енді HEMU.UZ хабарламалары осында келеді. Өшіру: /stop', 'Даяр! {name}, эми HEMU.UZ билдирмелери ушул жерге келет. Өчүрүү: /stop', 'Тайёр! {name}, акнун огоҳиномаҳои HEMU.UZ ба ин ҷо меоянд. Хомӯш кардан: /stop', 'Taýýar! {name}, indi HEMU.UZ duýduryşlary şu ýere geler. Öçürmek: /stop', 'Hazırdır! {name}, indi HEMU.UZ bildirişləri bura gələcək. Söndürmək: /stop', 'انجام شد! {name}، اکنون اعلان‌های HEMU.UZ اینجا می‌آیند. لغو: /stop', 'چمتو! {name}، اوس به د HEMU.UZ خبرتیاوې دلته راځي. بندول: /stop'],
+  'tg.bad_code': ["Havola eskirgan. Saytdan yangi havola oling.", 'Ссылка устарела. Получите новую на сайте.', 'The link has expired. Get a new one on the website.', 'Сілтеме ескірген. Сайттан жаңасын алыңыз.', 'Шилтеменин мөөнөтү бүттү. Сайттан жаңысын алыңыз.', 'Пайванд кӯҳна шуд. Аз сайт пайванди нав гиред.', 'Salgynyň möhleti geçdi. Saýtdan täzesini alyň.', 'Keçidin vaxtı bitib. Saytdan yenisini alın.', 'لینک منقضی شده است. لینک جدید را از سایت بگیرید.', 'لینک زوړ شوی. له سایټ څخه نوی واخلئ.'],
+  'tg.stopped': ["Bildirishnomalar o'chirildi.", 'Уведомления отключены.', 'Notifications turned off.', 'Хабарламалар өшірілді.', 'Билдирмелер өчүрүлдү.', 'Огоҳиномаҳо хомӯш карда шуданд.', 'Duýduryşlar öçürildi.', 'Bildirişlər söndürüldü.', 'اعلان‌ها خاموش شد.', 'خبرتیاوې بندې شوې.'],
+  'tg.open': ['Ochish', 'Открыть', 'Open', 'Ашу', 'Ачуу', 'Кушодан', 'Açmak', 'Aç', 'باز کردن', 'پرانیستل'],
+
+  // --- SMS ---
+  'sms.otp': ['HEMU.UZ kodi: {code}. Hech kimga bermang.', 'Код HEMU.UZ: {code}. Никому не сообщайте.', 'HEMU.UZ code: {code}. Do not share it.', 'HEMU.UZ коды: {code}. Ешкімге айтпаңыз.', 'HEMU.UZ коду: {code}. Эч кимге айтпаңыз.', 'Рамзи HEMU.UZ: {code}. Ба касе нагӯед.', 'HEMU.UZ kody: {code}. Hiç kime aýtmaň.', 'HEMU.UZ kodu: {code}. Heç kimə deməyin.', 'کد HEMU.UZ: {code}. به هیچ‌کس ندهید.', 'د HEMU.UZ کوډ: {code}. چا ته یې مه ورکوئ.'],
+};
+
+const MESSAGES = Object.fromEntries(Object.entries(M).map(([k, v]) => [k, L(v)]));
+
+function t(lang, key, params) {
+  const s = pick(MESSAGES[key], lang) ?? key;
+  if (!params) return s;
+  return s.replace(/\{(\w+)\}/g, (_, k) => (params[k] !== undefined && params[k] !== null ? String(params[k]) : ''));
+}
+
+// ---------- Qidiruv uchun normalizatsiya: kirill -> lotin, diakritikasiz ----------
+const CYR = {
+  а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'yo', ж: 'j', з: 'z', и: 'i', й: 'y', к: 'k', л: 'l', м: 'm',
+  н: 'n', о: 'o', п: 'p', р: 'r', с: 's', т: 't', у: 'u', ф: 'f', х: 'x', ц: 'ts', ч: 'ch', ш: 'sh', щ: 'sh',
+  ъ: '', ы: 'i', ь: '', э: 'e', ю: 'yu', я: 'ya',
+  ә: 'a', ғ: 'g', қ: 'q', ң: 'n', ө: 'o', ұ: 'u', ү: 'u', һ: 'h', і: 'i', ҳ: 'h', ҷ: 'j', ӣ: 'i', ӯ: 'u', ў: 'o',
+};
+const LAT = { ə: 'a', ı: 'i', ä: 'a', ž: 'j', ç: 'ch', ş: 'sh', ğ: 'g', ň: 'n', ý: 'y', ö: 'o', ü: 'u' };
+
+function normalizeSearch(s) {
+  if (!s) return '';
+  let out = '';
+  for (const ch of String(s).toLowerCase()) {
+    if (CYR[ch] !== undefined) out += CYR[ch];
+    else if (LAT[ch] !== undefined) out += LAT[ch];
+    else out += ch;
+  }
+  return out
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/['`‘’ʻʼ"]/g, '')
+    .replace(/kh/g, 'x')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim();
+}
+
+module.exports = { LANGUAGES, LANGS, byCode, normalizeLang, pickFromAcceptLanguage, pick, L, t, MESSAGES, normalizeSearch };

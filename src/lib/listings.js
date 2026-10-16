@@ -15,7 +15,7 @@ function buildSearchText(l) {
   const sub = cats.byId(l.subcategory_id);
   const compat = Array.isArray(l.compatibility) ? l.compatibility.join(' ') : parseJson(l.compatibility, []).join(' ');
   return [
-    normalizeSearch([l.title, l.brand, l.model, l.part_number, l.manufacturer, l.analogs, compat, l.city, l.description].filter(Boolean).join(' ')),
+    normalizeSearch([l.title, l.brand, l.model, l.part_number, l.manufacturer, l.analogs, compat, l.city, l.grade, l.size_text, l.pack, l.description].filter(Boolean).join(' ')),
     cat?.searchText,
     sub?.searchText,
   ].filter(Boolean).join(' ');
@@ -104,6 +104,10 @@ function facts(l, lang) {
     brand: l.brand,
     model: l.model,
     part_number: l.part_number,
+    grade: l.grade,
+    size_text: l.size_text,
+    pack: l.pack,
+    delivery: Boolean(l.delivery),
   };
 }
 
@@ -263,6 +267,7 @@ function buildWhere(q, currency, exclude = null) {
   if (q.delivery === '1') where.push('l.delivery IS NOT NULL');
   if (q.with_operator === '1') where.push('l.with_operator = 1');
   if (q.in_stock === '1') where.push('(l.stock_qty IS NULL OR l.stock_qty > 0)');
+  if (q.grade) add('LOWER(l.grade) = ?', String(q.grade).toLowerCase());
   if (q.with_photos === '1') where.push('EXISTS (SELECT 1 FROM listing_photos p WHERE p.listing_id = l.id)');
   const days = Number(q.period_days);
   if (days > 0) add(`l.published_at >= datetime('now', ?)`, `-${Math.min(365, days)} days`);

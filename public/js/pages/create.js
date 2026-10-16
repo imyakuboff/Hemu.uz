@@ -33,8 +33,14 @@ function specsHtml(kind, e, deal) {
     </div>`;
   }
   if (kind === 'material') {
-    return `<div class="form-grid">${field(t('brand'), input('brand', e.brand))}${field(t('min_order'), input('min_order', e.min_order))}
-      ${field(t('stock'), numIn('stock_qty', e.stock_qty))}${field(t('pickup'), input('d_local', e.delivery?.local))}</div>`;
+    return `<div class="form-grid">
+      ${field(t('mat_maker'), input('brand', e.brand, 'placeholder="Qizilqum sement, Kronospan…"'))}${field(t('mat_grade'), input('grade', e.grade, 'list="mat-grades" placeholder="M-500, D500, 1-sort"'))}
+      ${field(t('mat_size'), input('size_text', e.size_text, 'placeholder="250×120×65 mm"'))}${field(t('mat_pack'), input('pack', e.pack, 'placeholder="50 kg qop, poddon 400 dona"'))}
+      ${field(t('stock'), numIn('stock_qty', e.stock_qty))}${field(t('min_order'), input('min_order', e.min_order, 'placeholder="10 qop, 1 poddon"'))}
+      ${field(t('mat_delivery'), input('d_local', e.delivery?.local, `placeholder="${esc(t('mat_delivery_ph'))}"`))}${field(t('pickup'), input('d_pickup', e.delivery?.pickup))}
+      ${field(t('payment'), input('d_payment', e.delivery?.payment, 'placeholder="Naqd, Click, Payme"'), { full: true })}
+      <datalist id="mat-grades">${['M-400', 'M-500', 'M-100', 'M-150', 'D500', 'D600', 'B2.5', '1-sort', '2-sort', 'OSB-3', 'Fraksiya 5–20', 'Fraksiya 20–40'].map((g) => `<option value="${g}">`).join('')}</datalist>
+    </div>`;
   }
   if (kind === 'service' || deal === 'rent') {
     return `<div class="form-grid">${field(t('brand'), input('brand', e.brand))}${field(t('model'), input('model', e.model))}

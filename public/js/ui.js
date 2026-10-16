@@ -107,7 +107,10 @@ export function secHead(title, sub, linkText, href) {
 export function factsLine(l) {
   const f = l.facts || {};
   const p = [];
-  if (l.kind === 'part' || l.kind === 'material') {
+  if (l.kind === 'material') {
+    for (const x of [f.grade, f.size_text, f.pack]) if (x) p.push(x);
+    if (!p.length && f.min_order) p.push(f.min_order);
+  } else if (l.kind === 'part') {
     if (f.condition_label) p.push(f.condition_label);
     if (f.stock_qty) p.push(t('in_stock_short', { n: num(f.stock_qty) }));
     if (f.min_order) p.push(f.min_order);

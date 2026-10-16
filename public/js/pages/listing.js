@@ -18,6 +18,17 @@ function specRows(l) {
     add(t('stock'), f.stock_qty !== null && f.stock_qty !== undefined ? num(f.stock_qty) : null);
     add(t('warranty'), l.warranty_months ? t('months', { n: l.warranty_months }) : null);
     add(t('analogs'), l.analogs);
+  } else if (l.kind === 'material') {
+    add(t('sp_type'), l.subcategory?.name);
+    add(t('mat_maker'), f.brand);
+    add(t('mat_grade'), f.grade);
+    add(t('mat_size'), f.size_text);
+    add(t('mat_pack'), f.pack);
+    add(t('stock'), f.stock_qty !== null && f.stock_qty !== undefined ? num(f.stock_qty) : null);
+    add(t('min_order'), f.min_order);
+    add(t('mat_delivery'), l.delivery?.local);
+    add(t('pickup'), l.delivery?.pickup);
+    add(t('payment'), l.delivery?.payment);
   } else {
     add(t('sp_brand_model'), [f.brand, f.model].filter(Boolean).join(' '));
     add(t('year'), f.year);
@@ -81,6 +92,7 @@ export default async function listing({ params }) {
     ${part ? `<div class="gallery-note"><span data-photo-of>${esc(t('photo_of', { i: 1, n: photos.length }))}</span><button class="btn btn-soft btn-sm" data-fav="${l.id}" data-label="1">${icon('heart')} <span>${esc(t(l.is_favorite ? 'in_favorites' : 'to_favorites'))}</span></button></div>` : ''}
   </div>`;
 
+  const cardTitle = part ? t('card_part') : l.kind === 'material' ? t('card_material') : t('card_equipment');
   const priceCard = part
     ? `<div class="side-card">
         <div class="big-price">${esc(priceText(l.price))}</div>${l.promo ? `<div class="promo-price-line"><s class="old-price">${esc(l.price.old_formatted)}</s> ${promoBadge(l.promo)}</div>` : ''}${conv}
@@ -120,8 +132,8 @@ export default async function listing({ params }) {
     ? `<div class="serial ${sc.ok ? 'ok' : 'bad'}">${icon(sc.ok ? 'shield' : 'flag')}<span>${esc(t('serial_number'))}: ${esc(sc.serial_masked)}<br>${esc(sc.wanted ? t('serial_wanted') : sc.duplicates ? t('serial_dup', { n: sc.duplicates }) : t('serial_ok'))}</span></div>`
     : '';
   const html = `
-  ${crumbs([[t('home'), '/'], [part ? t('card_part') : t('card_equipment')]])}
-  <h1 class="page-title" style="margin-bottom:2px">${esc(part ? t('card_part') : t('card_equipment'))}</h1>
+  ${crumbs([[t('home'), '/'], ...(l.kind === 'material' ? [[t('mat_title'), '/materials']] : []), [cardTitle]])}
+  <h1 class="page-title" style="margin-bottom:2px">${esc(cardTitle)}</h1>
   <p class="page-sub" style="margin:0 0 16px">${esc(path)}</p>
   <div class="detail">
     <div>
@@ -149,7 +161,7 @@ export default async function listing({ params }) {
       <div class="side-card" style="padding:14px 16px">
         <div class="tool-row" style="margin:0">
           <button class="btn btn-primary btn-sm" data-share>${icon('send')} ${esc(t('share'))}</button>
-          ${!part && l.deal_type === 'sale' && l.price.amount ? `<button class="btn btn-soft btn-sm" data-leasing>${icon('calc')} ${esc(t('leasing_calc'))}</button>` : ''}
+          ${!part && l.kind !== 'material' && l.deal_type === 'sale' && l.price.amount ? `<button class="btn btn-soft btn-sm" data-leasing>${icon('calc')} ${esc(t('leasing_calc'))}</button>` : ''}
           ${l.kind === 'equipment' ? `<button class="btn btn-soft btn-sm" data-cmp="${l.id}">${icon('scale')} ${esc(t('compare'))}</button>` : ''}
           ${!l.is_owner ? `<button class="btn btn-ghost btn-sm" data-report>${icon('flag')} ${esc(t('report'))}</button>` : ''}
         </div>

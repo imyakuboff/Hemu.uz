@@ -224,6 +224,9 @@ const RULES = {
   drive: { type: 'string', max: 40 },
   part_number: { type: 'string', max: 60 },
   serial_number: { type: 'string', max: 40 },
+  grade: { type: 'string', max: 40 },
+  size_text: { type: 'string', max: 60 },
+  pack: { type: 'string', max: 60 },
   manufacturer: { type: 'string', max: 80 },
   warranty_months: { type: 'int', min: 0, max: 240 },
   analogs: { type: 'string', max: 200 },
@@ -556,7 +559,7 @@ r.delete('/favorites/:listingId', requireAuth, (req, res) => {
 });
 
 // ---------- Saqlangan qidiruvlar ----------
-const SEARCH_KEYS = ['q', 'category', 'subcategory', 'deal_type', 'kind', 'country', 'region', 'city', 'price_min', 'price_max', 'year_min', 'year_max', 'condition', 'brand', 'verified', 'leasing', 'with_operator', 'in_stock'];
+const SEARCH_KEYS = ['q', 'category', 'subcategory', 'deal_type', 'kind', 'country', 'region', 'city', 'price_min', 'price_max', 'year_min', 'year_max', 'condition', 'brand', 'verified', 'leasing', 'with_operator', 'in_stock', 'delivery', 'grade'];
 
 r.get('/saved-searches', requireAuth, (req, res) => {
   const rows = db.all('SELECT * FROM saved_searches WHERE user_id = ? ORDER BY created_at DESC', req.user.id);

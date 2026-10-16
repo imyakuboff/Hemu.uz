@@ -34,43 +34,50 @@ const stop = (p, cls, any = false) => `<div class="fr-stop ${cls}"><i></i><div>$
 const routeLine = (x) => `<div class="fr-c-route">${stop(x.from, 'a')}<div class="fr-line"><span>${x.distance_km ? `${num(x.distance_km)} km` : ''}</span></div>${stop(x.to, 'b', true)}</div>`;
 const chip = (ic, text) => (text ? `<span class="fr-chip">${icon(ic)}${esc(text)}</span>` : '');
 
+// LoadMe uslubidagi kartochka: egasi va roli, narx, A → B (mamlakat kodi bilan), kuzov, masofa, og'irlik
+const ROLE = { load: ['fr_role_owner', 'red'], truck: ['fr_role_carrier', 'green'] };
 function frCard(x) {
-  const title = x.cargo || bodies(x.body_types);
-  return `<a class="fr-card ${x.kind}" href="/fura/${x.id}">
-    ${routeLine(x)}
-    <div class="fr-c-info">
-      <div class="fr-c-title">${esc(title || t(x.kind === 'load' ? 'fr_loads' : 'fr_trucks'))}${x.trucks_count > 1 ? ` <span class="tag yellow">×${x.trucks_count}</span>` : ''}</div>
-      <div class="fr-chips">
-        ${chip('calendar', dateText(x))}
-        ${chip('scale', x.weight_t ? `${num(x.weight_t)} t` : '')}
-        ${chip('box', x.volume_m3 ? `${num(x.volume_m3)} m³` : '')}
-        ${chip('truck', x.cargo ? bodies(x.body_types) : (x.length_m ? `${num(x.length_m)} m` : ''))}
-      </div>
-      <div class="fr-c-owner">${x.owner.verified ? icon('check') : icon('user')}<span>${esc(x.owner.name || '')}</span><em>${esc(fmtRel(x.bumped_at || x.created_at))}</em></div>
+  const [roleKey, roleCls] = ROLE[x.kind] || ROLE.load;
+  const body = (x.body_types || [])[0];
+  return `<a class="lm-card ${x.kind}" href="/fura/${x.id}">
+    <div class="lm-top">
+      <span class="lm-owner">${x.owner.verified ? `<span class="lm-ver" title="${esc(t('company_verified'))}">${icon('check')}</span>` : `<span class="lm-ver off">${icon('user')}</span>`}<span>${esc(x.owner.name || '—')}</span></span>
+      <span class="lm-role ${roleCls}">${esc(t(roleKey))}</span>
     </div>
-    <div class="fr-c-side">
-      <b class="fr-price">${esc(x.price_formatted || t('fr_negotiable'))}</b>
-      ${x.price_formatted && x.price_unit && x.price_unit !== 'total' ? `<small>${esc(t(`fr_unit_${x.price_unit}`))}</small>` : x.price_formatted ? `<small>${esc(t('fr_unit_total'))}</small>` : ''}
-      <span class="fr-tags">${docTags(x)}</span>
-      ${x.matches ? `<span class="fr-match">${icon('target')} ${esc(t(x.kind === 'load' ? 'fr_matches_trucks' : 'fr_matches_loads', { n: x.matches }))}</span>` : ''}
+    <div class="lm-mid">
+      <span class="lm-date">${icon('calendar')} ${esc(dateText(x) || t('fr_any_date'))}</span>
+      <b class="lm-price ${x.price_formatted ? '' : 'neg'}">${esc(priceText(x))}</b>
     </div>
+    <div class="lm-route">
+      <div class="lm-pt">${icon('box')}<b>${esc(x.from.city || cname(x.from.country))}</b><em>${esc(x.from.country || '')}</em></div>
+      <div class="lm-pt">${icon('flag')}${x.to ? `<b>${esc(x.to.city || cname(x.to.country))}</b><em>${esc(x.to.country || '')}</em>` : `<b class="muted">${esc(t('fr_any_dir'))}</b>`}
+        ${body ? `<span class="lm-body">${icon('truck')} ${esc(t(`body_${body}`))}${x.body_types.length > 1 ? ` +${x.body_types.length - 1}` : ''}</span>` : ''}</div>
+    </div>
+    <div class="lm-foot">
+      ${x.distance_km ? `<span>${icon('map')} ${num(x.distance_km)} km</span>` : ''}
+      ${x.weight_t ? `<span>${icon('scale')} ${num(x.weight_t)} t</span>` : ''}
+      ${x.volume_m3 ? `<span>${icon('box')} ${num(x.volume_m3)} m³</span>` : ''}
+      ${x.trucks_count > 1 ? `<span class="tag yellow">×${x.trucks_count}</span>` : ''}${docTags(x)}
+      <em>${esc(fmtRel(x.bumped_at || x.created_at))}</em>
+    </div>
+    ${x.cargo ? `<div class="lm-cargo">${esc(x.cargo)}</div>` : ''}
+    ${x.matches ? `<span class="fr-match">${icon('target')} ${esc(t(x.kind === 'load' ? 'fr_matches_trucks' : 'fr_matches_loads', { n: x.matches }))}</span>` : ''}
   </a>`;
 }
 
-// Bannerdagi bezak: xarita ustidagi yo'nalish va fura (SVG — har qanday ekranda tiniq)
-const HERO_ART = `<svg class="fr-art" viewBox="0 0 420 220" aria-hidden="true">
-  <defs><linearGradient id="frg" x1="0" x2="1"><stop offset="0" stop-color="#ffc61a"/><stop offset="1" stop-color="#5aa7f0"/></linearGradient></defs>
-  <g fill="none" stroke="rgba(255,255,255,.10)" stroke-width="1">${Array.from({ length: 8 }, (_, i) => `<path d="M0 ${20 + i * 26} H420"/>`).join('')}${Array.from({ length: 12 }, (_, i) => `<path d="M${15 + i * 36} 0 V220"/>`).join('')}</g>
-  <path d="M40 170 C 120 60, 220 200, 380 50" fill="none" stroke="url(#frg)" stroke-width="4" stroke-dasharray="10 9" stroke-linecap="round"/>
-  <circle cx="40" cy="170" r="11" fill="#ffc61a"/><circle cx="40" cy="170" r="4.5" fill="#0e3352"/>
-  <path d="M380 22 c-13 0-22 9-22 21 0 16 22 37 22 37s22-21 22-37c0-12-9-21-22-21z" fill="#5aa7f0"/><circle cx="380" cy="43" r="7" fill="#0e3352"/>
-  <g transform="translate(176 98) rotate(-8)">
-    <rect x="0" y="0" width="64" height="30" rx="4" fill="#fff"/>
-    <path d="M64 8 h16 l12 12 v10 h-28z" fill="#ffc61a"/><rect x="70" y="11" width="10" height="8" rx="1.5" fill="#0e3352"/>
-    <circle cx="16" cy="32" r="7" fill="#0e3352" stroke="#fff" stroke-width="3"/><circle cx="50" cy="32" r="7" fill="#0e3352" stroke="#fff" stroke-width="3"/><circle cx="80" cy="32" r="7" fill="#0e3352" stroke="#fff" stroke-width="3"/>
-    <rect x="8" y="9" width="40" height="4" rx="2" fill="#dbe7f3"/><rect x="8" y="17" width="28" height="4" rx="2" fill="#dbe7f3"/>
-  </g>
-</svg>`;
+// Bannerdagi bezak: suzib yurgan qutilar va magnit (SVG — har qanday ekranda tiniq)
+const cube = (x, y, s, c1, c2, c3, r = 0) => `<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})"><path d="M0 8 L14 0 L28 8 L14 16 Z" fill="${c1}"/><path d="M0 8 L14 16 L14 32 L0 24 Z" fill="${c2}"/><path d="M28 8 L14 16 L14 32 L28 24 Z" fill="${c3}"/><path d="M7 4 L21 12 L21 16" stroke="rgba(0,0,0,.18)" stroke-width="1.4" fill="none"/></g>`;
+const BOXES = (side) => {
+  const pal = [['#e8c08a', '#c99a5b', '#b4854a'], ['#d9a35b', '#b9823f', '#a06d30'], ['#c7d3df', '#9fb0c1', '#8a9cae'], ['#e9b97a', '#cf9a52', '#b98340']];
+  const pts = side === 'l'
+    ? [[10, 30, 1.1, -8], [60, 80, .8, 12], [20, 130, 1.3, 4], [90, 170, .7, -14], [40, 215, 1, 10], [110, 40, .6, 20], [120, 120, .9, -6]]
+    : [[40, 20, .9, 10], [100, 70, 1.2, -10], [30, 120, .7, 16], [90, 165, 1, 6], [20, 200, 1.1, -12], [120, 210, .6, 4]];
+  return `<svg class="lm-boxes ${side}" viewBox="0 0 160 260" aria-hidden="true">
+    <g stroke="rgba(255,255,255,.28)" stroke-width="1" fill="none">${Array.from({ length: 7 }, (_, i) => `<path d="M${side === 'l' ? 0 : 160} ${40 + i * 30} C 70 ${60 + i * 24}, 90 ${120 + i * 10}, ${side === 'l' ? 160 : 0} ${130 + i * 8}"/>`).join('')}</g>
+    ${pts.map(([x, y, sc, r], i) => cube(x, y, sc, ...pal[i % pal.length], r)).join('')}
+    ${side === 'r' ? '<g transform="translate(96 96) rotate(-30)"><path d="M0 0 h26 a26 26 0 0 1 0 52 h-26 v-16 h26 a10 10 0 0 0 0-20 h-26z" fill="#e5483a"/><rect x="-14" y="0" width="16" height="16" fill="#cfd8e2"/><rect x="-14" y="36" width="16" height="16" fill="#cfd8e2"/></g>' : ''}
+  </svg>`;
+};
 
 // ---------- Ro'yxat: /fura?tab=trucks&from_country=UZ ... ----------
 export async function fura({ query }) {
@@ -79,51 +86,42 @@ export async function fura({ query }) {
   const f = { from_country: query.from_country, from_city: query.from_city, to_country: query.to_country, to_city: query.to_city, body: query.body, weight_min: query.weight_min, date: query.date, adr: query.adr };
   const data = await api(`/freight${qs({ kind, ...f, q: query.q, page: query.page })}`);
   const tabLink = (tab) => `/fura${qs({ ...query, tab, page: undefined })}`;
-  const extraOpen = Boolean(f.weight_min || f.adr);
+  const place = (city, cc) => city || (cc ? cname(cc) : '');
+  const fromTxt = place(f.from_city, f.from_country);
+  const toTxt = place(f.to_city, f.to_country);
+  const filtersOn = [f.from_country, f.from_city, f.to_country, f.to_city, f.body, f.weight_min, f.date, f.adr].filter(Boolean).length;
   const html = `
-  ${crumbs([[t('home'), '/'], [t('sec_title'), '/categories'], [t('sec_fura')]])}
-  <section class="fr-hero">
-    <div class="fr-hero-txt">
-      <span class="fr-kicker">${icon('truck')} ${esc(t('nav_logistics'))}</span>
-      <h1>${esc(t('sec_fura'))}</h1>
-      <p>${esc(t('fr_hero'))}</p>
-      <div class="fr-hero-btns"><button class="btn btn-accent" data-post="load">${icon('box')} ${esc(t('fr_post_load'))}</button><button class="btn btn-white" data-post="truck">${icon('truck')} ${esc(t('fr_post_truck'))}</button>
-        ${state.user ? `<button class="btn fr-ghost" data-mine>${icon('list')} ${esc(t('fr_my_posts'))}</button>` : ''}</div>
-    </div>
-    <div class="fr-hero-art">${HERO_ART}
-      <div class="fr-stat s1"><b>${num(data.stats.loads)}</b><span>${esc(t('fr_loads'))}</span></div>
-      <div class="fr-stat s2"><b>${num(data.stats.trucks)}</b><span>${esc(t('fr_trucks'))}</span></div>
-      <div class="fr-stat s3"><b>${num(m.countries.length)}</b><span>${esc(t('fr_countries'))}</span></div>
-    </div>
+  <section class="lm-hero">
+    ${BOXES('l')}${BOXES('r')}
+    <span class="lm-kicker">HEMU.UZ · ${esc(t('nav_logistics'))}</span>
+    <h1>${esc(t(kind === 'load' ? 'fr_title_loads' : 'fr_title_trucks'))}</h1>
+    <p>${esc(t('fr_hero'))}</p>
+    <div class="lm-hero-btns"><button class="btn btn-accent" data-post="load">${icon('box')} ${esc(t('fr_post_load'))}</button><button class="btn btn-white" data-post="truck">${icon('truck')} ${esc(t('fr_post_truck'))}</button>
+      ${state.user ? `<button class="btn lm-ghost" data-mine>${icon('list')} ${esc(t('fr_my_posts'))}</button>` : ''}</div>
   </section>
 
-  <form class="fr-search" data-ff>
-    <div class="fr-seg">
-      <a class="${kind === 'load' ? 'on' : ''}" href="${tabLink(undefined)}">${icon('box')}<span>${esc(t('fr_loads'))}</span><i>${num(data.stats.loads)}</i></a>
-      <a class="${kind === 'truck' ? 'on' : ''}" href="${tabLink('trucks')}">${icon('truck')}<span>${esc(t('fr_trucks'))}</span><i>${num(data.stats.trucks)}</i></a>
+  <div class="lm-panel">
+    <div class="lm-tabs">
+      <a class="${kind === 'load' ? 'on' : ''}" href="${tabLink(undefined)}"><i></i>${esc(t('fr_loads'))} <small>${num(data.stats.loads)}</small></a>
+      <a class="${kind === 'truck' ? 'on' : ''}" href="${tabLink('trucks')}"><i></i>${esc(t('fr_tab_transport'))} <small>${num(data.stats.trucks)}</small></a>
     </div>
-    <div class="fr-search-row">
-      <div class="fr-field"><label>${icon('pin')} ${esc(t('fr_from'))}</label><div class="fr-place"><select name="from_country">${countryOpts(m.countries, f.from_country, t('fr_any_country'))}</select><input name="from_city" value="${esc(f.from_city || '')}" placeholder="${esc(t('fr_city'))}"></div></div>
-      <button type="button" class="fr-swap" data-swap title="⇄">⇄</button>
-      <div class="fr-field"><label>${icon('pin')} ${esc(t('fr_to'))}</label><div class="fr-place"><select name="to_country">${countryOpts(m.countries, f.to_country, t('fr_any_country'))}</select><input name="to_city" value="${esc(f.to_city || '')}" placeholder="${esc(t('fr_city'))}"></div></div>
-      <div class="fr-field sm"><label>${icon('truck')} ${esc(t('fr_body'))}</label><select name="body"><option value="">${esc(t('fr_all_bodies'))}</option>${m.bodies.map((b) => `<option value="${b}" ${b === f.body ? 'selected' : ''}>${esc(t(`body_${b}`))}</option>`).join('')}</select></div>
-      <div class="fr-field sm"><label>${icon('calendar')} ${esc(t('fr_date_from'))}</label><input name="date" type="date" value="${esc(f.date || '')}"></div>
-      <button class="btn btn-primary fr-go">${icon('search')} <span>${esc(t('find'))}</span></button>
-    </div>
-    <details class="fr-more" ${extraOpen ? 'open' : ''}><summary>${icon('sliders')} ${esc(t('fr_more_filters'))}</summary>
-      <div class="fr-more-row">
-        <label class="fr-field sm"><span>${esc(t('fr_weight'))} ≥</span><input name="weight_min" type="number" min="0" max="200" value="${esc(f.weight_min || '')}"></label>
-        <label class="check"><input type="checkbox" name="adr" ${f.adr === '1' ? 'checked' : ''}> ${esc(t('fr_adr'))}</label>
-        <a class="link-blue" href="/fura${kind === 'truck' ? '?tab=trucks' : ''}">${esc(t('fr_reset'))}</a>
+    <button type="button" class="lm-searchcard" data-open-search>
+      <span class="lm-sicon">${icon('search')}</span>
+      <span class="lm-stext"><b>${esc(t('fr_search'))}</b><span>${fromTxt || toTxt ? `${esc(fromTxt || t('fr_any_country'))} → ${esc(toTxt || t('fr_any_dir'))}` : `${esc(t('fr_from'))} → ${esc(t('fr_to'))}`}</span></span>
+      <span class="lm-sbody">${icon('truck')}<span>${esc(f.body ? t(`body_${f.body}`) : t('fr_all'))}</span></span>
+    </button>
+    <div class="lm-count">
+      <b>${esc(t(kind === 'load' ? 'fr_all_loads' : 'fr_all_trucks', { n: num(data.total) }))}</b>
+      <div class="lm-count-acts">
+        ${filtersOn ? `<a class="link-blue small" href="/fura${kind === 'truck' ? '?tab=trucks' : ''}">${esc(t('fr_reset'))}</a>` : ''}
+        <button class="lm-filter" data-sub title="${esc(t('fr_subscribe'))}">${icon('bell')}</button>
+        <button class="lm-filter ${filtersOn ? 'on' : ''}" data-open-search>${icon('sliders')} ${esc(t('fr_filter'))}${filtersOn ? ` <i>${filtersOn}</i>` : ''}</button>
       </div>
-    </details>
-  </form>
-
-  ${data.routes.length ? `<div class="fr-routes"><b>${icon('chart')} ${esc(t('fr_popular_routes'))}</b><div>${data.routes.map((r) => `<a href="/fura${qs({ tab: query.tab, from_city: r.from_city, to_city: r.to_city })}"><span>${esc(r.from_city)}</span><i>→</i><span>${esc(r.to_city)}</span><em>${r.n}</em></a>`).join('')}</div></div>` : ''}
-
-  <div class="fr-results-head"><h2>${esc(t(kind === 'load' ? 'fr_loads' : 'fr_trucks'))} <small>${esc(t('found_items', { n: num(data.total) }))}</small></h2><button class="btn btn-soft btn-sm" data-sub>${icon('bell')} ${esc(t('fr_subscribe'))}</button></div>
-  <div class="fr-list">${data.items.length ? data.items.map(frCard).join('') : `<div class="fr-empty">${icon(kind === 'load' ? 'box' : 'truck')}<b>${esc(t('nothing_found'))}</b><button class="btn btn-primary" data-post="${kind}">${icon('plus')} ${esc(t(kind === 'load' ? 'fr_post_load' : 'fr_post_truck'))}</button></div>`}</div>
-  ${pager(data.page, data.pages, (p) => `/fura${qs({ ...query, page: p })}`)}
+    </div>
+    ${data.routes.length ? `<div class="lm-routes">${data.routes.map((r) => `<a href="/fura${qs({ tab: query.tab, from_city: r.from_city, to_city: r.to_city })}">${esc(r.from_city)} <i>→</i> ${esc(r.to_city)} <em>${r.n}</em></a>`).join('')}</div>` : ''}
+    <div class="lm-list">${data.items.length ? data.items.map(frCard).join('') : `<div class="fr-empty">${icon(kind === 'load' ? 'box' : 'truck')}<b>${esc(t('nothing_found'))}</b><button class="btn btn-primary" data-post="${kind}">${icon('plus')} ${esc(t(kind === 'load' ? 'fr_post_load' : 'fr_post_truck'))}</button></div>`}</div>
+    ${pager(data.page, data.pages, (p) => `/fura${qs({ ...query, page: p })}`)}
+  </div>
 
   <section class="fr-how">
     <h2>${esc(t('fr_how_title'))}</h2>
@@ -133,23 +131,46 @@ export async function fura({ query }) {
       <div><span class="n">3</span>${icon('phone')}<b>${esc(t('fr_how3'))}</b><p>${esc(t('fr_how3_sub'))}</p></div>
     </div>
   </section>`;
+
+  // Qidiruv oynasi: Qayerdan / Qayerga, transport turi, qo'shimcha filtrlar → "Tayyor"
+  const searchModal = () => {
+    const el = openModal(`<div class="lm-modal">
+      <div class="lm-m-hd"><h3>${esc(t(kind === 'load' ? 'fr_search_loads' : 'fr_search_trucks'))}</h3></div>
+      <form data-sf>
+        <div class="lm-places">
+          <label class="lm-place a"><i></i><input name="from_city" value="${esc(f.from_city || '')}" placeholder="${esc(t('fr_from'))}" autocomplete="off"><select name="from_country">${countryOpts(m.countries, f.from_country, '🌐')}</select></label>
+          <button type="button" class="lm-swap" data-swap title="⇄">⇅</button>
+          <label class="lm-place b"><i></i><input name="to_city" value="${esc(f.to_city || '')}" placeholder="${esc(t('fr_to'))}" autocomplete="off"><select name="to_country">${countryOpts(m.countries, f.to_country, '🌐')}</select></label>
+        </div>
+        <label class="lm-select">${icon('truck')}<select name="body"><option value="">${esc(t('fr_pick_body'))}</option>${m.bodies.map((b) => `<option value="${b}" ${b === f.body ? 'selected' : ''}>${esc(t(`body_${b}`))}</option>`).join('')}</select></label>
+        <div class="lm-more">
+          <label><span>${esc(t('fr_date_from'))}</span><input class="input" name="date" type="date" value="${esc(f.date || '')}"></label>
+          <label><span>${esc(t('fr_weight'))} ≥</span><input class="input" name="weight_min" type="number" min="0" max="200" value="${esc(f.weight_min || '')}"></label>
+          <label class="check"><input type="checkbox" name="adr" ${f.adr === '1' ? 'checked' : ''}> ${esc(t('fr_adr'))}</label>
+        </div>
+        <button class="btn btn-primary btn-block lm-done">${esc(t('fr_done'))}</button>
+      </form></div>`);
+    const fm = el.querySelector('[data-sf]');
+    el.querySelector('[data-swap]').onclick = () => {
+      for (const [a, b] of [['from_country', 'to_country'], ['from_city', 'to_city']]) [fm[a].value, fm[b].value] = [fm[b].value, fm[a].value];
+    };
+    setTimeout(() => fm.from_city.focus(), 50);
+    fm.onsubmit = (e) => {
+      e.preventDefault();
+      const q = { tab: query.tab };
+      for (const k of ['from_country', 'from_city', 'to_country', 'to_city', 'body', 'weight_min', 'date']) q[k] = fm[k].value.trim() || undefined;
+      q.adr = fm.adr.checked ? '1' : undefined;
+      closeModal();
+      go(`/fura${qs(q)}`);
+    };
+  };
+
   return {
     title: t('sec_fura'),
     html,
     mount(main) {
-      const form = $('[data-ff]', main);
-      form.onsubmit = (e) => {
-        e.preventDefault();
-        const q = { tab: query.tab };
-        for (const k of ['from_country', 'from_city', 'to_country', 'to_city', 'body', 'weight_min', 'date']) q[k] = form[k].value.trim() || undefined;
-        q.adr = form.adr.checked ? '1' : undefined;
-        go(`/fura${qs(q)}`);
-      };
       main.addEventListener('click', async (e) => {
-        if (e.target.closest('[data-swap]')) {
-          for (const [a, b] of [['from_country', 'to_country'], ['from_city', 'to_city']]) [form[a].value, form[b].value] = [form[b].value, form[a].value];
-          return;
-        }
+        if (e.target.closest('[data-open-search]')) return searchModal();
         const p = e.target.closest('[data-post]');
         if (p) { if (requireLogin(onAuthChanged)) postModal(p.dataset.post); return; }
         if (e.target.closest('[data-mine]')) return mineModal();
@@ -191,7 +212,7 @@ export async function furaDetail({ params }) {
         ${row(t('fr_payment'), x.payment ? esc(t(`pay_${x.payment}`)) : '')}
       </table>${x.note ? `<h3 style="margin-top:16px">${esc(t('fr_note'))}</h3><div class="prose">${esc(x.note)}</div>` : ''}</div>
       <h2 class="sec-title" style="margin-top:22px">${esc(t(x.kind === 'load' ? 'fr_match_title_trucks' : 'fr_match_title_loads'))} · ${num(x.matches)}</h2>
-      <div class="fr-list">${x.matches_list.length ? x.matches_list.map(frCard).join('') : emptyBox(t('nothing_found'))}</div>
+      <div class="lm-list">${x.matches_list.length ? x.matches_list.map(frCard).join('') : emptyBox(t('nothing_found'))}</div>
     </div>
     <aside><div class="side-card">
       <div class="big-price">${esc(priceText(x))}</div>

@@ -838,6 +838,12 @@ const COLUMNS = [
   ['companies', 'blocked', 'INTEGER NOT NULL DEFAULT 0'],
   ['company_documents', 'doc_type', "TEXT NOT NULL DEFAULT 'reg_cert'"],
   ['company_documents', 'size', 'INTEGER'],
+  ['promos', 'owner_user_id', 'INTEGER'], // sotuvchi/firma aksiyasi (NULL = platforma aksiyasi)
+  ['promos', 'company_id', 'INTEGER'],
+  ['promos', 'status', "TEXT NOT NULL DEFAULT 'active'"], // active | moderation | rejected
+  ['promos', 'starts_on', 'TEXT'], // sotuvchi aksiyasi: aniq sanalar (YYYY-MM-DD)
+  ['promos', 'ends_on', 'TEXT'],
+  ['promos', 'reject_reason', 'TEXT'],
 ];function migrate() {
   for (const [table, col, def] of COLUMNS) {
     const has = db.prepare(`PRAGMA table_info(${table})`).all().some((c) => c.name === col);

@@ -17,6 +17,7 @@ const routes = [
   [/^\/orders\/(\d+)$/, () => import('./pages/account.js'), 'orderPage'],
   [/^\/fura$/, () => import('./pages/fura.js'), 'fura'],
   [/^\/aksiya\/([a-z0-9-]+)$/, () => import('./pages/promos.js'), 'promo'],
+  [/^\/my\/promos$/, () => import('./pages/promos.js'), 'myPromos'],
   [/^\/fura\/(\d+)$/, () => import('./pages/fura.js'), 'furaDetail'],
   [/^\/terms$/, () => import('./pages/info.js'), 'terms'],
   [/^\/privacy$/, () => import('./pages/info.js'), 'privacy'],

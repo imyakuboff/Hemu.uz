@@ -87,7 +87,7 @@ export async function myListings({ query }) {
     ${head(t('my_listings'), t('my_listings_sub'))}
     <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start">
       <div class="tabs">${tabs.map(([v, l]) => `<a class="tab ${st === v ? 'on' : ''}" href="/my/listings${qs({ status: v })}">${esc(l)}</a>`).join('')}</div>
-      <div style="display:flex;gap:8px"><a href="/my/import" class="btn btn-soft">${icon('upload')} ${esc(t('import'))}</a><a href="/create" class="btn btn-primary">${icon('plus')} ${esc(t('post_listing'))}</a></div>
+      <div style="display:flex;gap:8px"><a href="/my/promos" class="btn btn-soft">${icon('target')} ${esc(t('my_promos'))}</a><a href="/my/import" class="btn btn-soft">${icon('upload')} ${esc(t('import'))}</a><a href="/create" class="btn btn-primary">${icon('plus')} ${esc(t('post_listing'))}</a></div>
     </div>
     ${st === 'deleted' ? `<p class="small muted" style="margin:0 0 10px">${icon('calendar')} ${esc(t('deleted_note'))}</p>` : ''}
     ${res.items.length ? res.items.map(row).join('') : emptyBox(t('empty'))}

@@ -1,5 +1,5 @@
 // HEMU.UZ Service Worker: ilova qobig'ini keshlaydi, internet yo'qolsa ham ochiladi
-const VERSION = 'mxg-v35';
+const VERSION = 'mxg-v37';
 const SHELL = ['/', '/css/app.css', '/js/app.js', '/js/core.js', '/js/ui.js', '/js/art.js', '/js/dict.js', '/js/features.js', '/js/theme-init.js', '/favicon.svg', '/img/icon-192.png', '/offline.html', '/vendor/inter/inter.css', '/vendor/inter/inter-latin-wght-normal.woff2', '/vendor/inter/inter-cyrillic-wght-normal.woff2'];
 
 self.addEventListener('install', (e) => {

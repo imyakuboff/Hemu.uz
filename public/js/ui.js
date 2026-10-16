@@ -190,6 +190,7 @@ export function accountLayout(active, content) {
   const items = [
     ['/dashboard', 'dash', t('dashboard')],
     ['/my/listings', 'list', t('my_listings')],
+    ['/my/promos', 'target', t('my_promos')],
     ['/my/orders', 'box', t('my_orders')],
     ['/favorites', 'heart', t('nav_fav')],
     ['/messages', 'chat', t('nav_msgs'), state.badges.messages],

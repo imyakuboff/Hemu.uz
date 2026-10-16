@@ -244,6 +244,12 @@ const D = {
   promo_listings: ["Aksiyadagi e'lonlar", 'Объявлений в акции', 'Listings in promo'],
   promo_open: ['Sahifani ochish', 'Открыть страницу', 'Open page'],
   promo_edit: ['Tahrirlash', 'Редактировать', 'Edit'],
+  promo_seller: ['Sotuvchi aksiyasi', 'Акция продавца', 'Seller deal'],
+  promo_pending: ['Tekshiruvda', 'На проверке', 'Pending'],
+  promo_rejected: ['Rad etilgan', 'Отклонена', 'Rejected'],
+  promo_approve: ['Tasdiqlash', 'Одобрить', 'Approve'],
+  promo_reject: ['Rad etish', 'Отклонить', 'Reject'],
+  promo_reason: ['Rad etish sababi', 'Причина отказа', 'Reason'],
   promo_del_q: ["Aksiya o'chirilsinmi? E'lonlardagi chegirmalar ham olib tashlanadi.", 'Удалить акцию? Скидки в объявлениях тоже снимутся.', 'Delete the promo? Listing discounts will be removed too.'],
   nav_support: ['Murojaatlar', 'Обращения', 'Support requests'],
   nav_integrations: ['Integratsiyalar', 'Интеграции', 'Integrations'],
@@ -1343,14 +1349,24 @@ function promoForm(p = {}) {
 }
 async function promosPage() {
   const list = await api('/admin/promos');
-  const status = (p) => (p.live ? ['green', a('promo_live')] : p.active ? ['orange', a('promo_off')] : ['grey', a('promo_disabled')]);
+  const status = (p) => (p.status === 'moderation' ? ['orange', a('promo_pending')] : p.status === 'rejected' ? ['red', a('promo_rejected')] : p.live ? ['green', a('promo_live')] : p.active ? ['orange', a('promo_off')] : ['grey', a('promo_disabled')]);
+  // Sotuvchi aksiyasi: matnini ko'rib, tasdiqlash yoki rad etish
+  const sellerRow = (p) => `<div class="box promo-adm t-${esc(p.theme)}">
+      <div class="promo-adm-hd"><span class="pt-emoji">${esc(p.emoji || '')}</span><div class="grow"><b>${esc(p.name)}</b><span class="tiny muted">${esc(a('promo_seller'))}: ${esc(p.seller?.name || '')}${p.seller?.verified ? ' ✔' : ''} · −${p.max_discount}% · ${esc(p.starts_on || '')} → ${esc(p.ends_on || '')} · ${esc(a('promo_listings'))}: ${num(p.count)}</span>${p.subtitle ? `<span class="small">${esc(p.subtitle)}</span>` : ''}${p.reject_reason ? `<span class="tiny" style="color:var(--red)">${esc(p.reject_reason)}</span>` : ''}</div>
+        <span class="tag ${status(p)[0]}">${esc(status(p)[1])}</span></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        ${p.status !== 'active' ? `<button class="btn btn-primary btn-sm" data-pst="active" data-id="${p.id}">${icon('check')} ${esc(a('promo_approve'))}</button>` : ''}
+        ${p.status !== 'rejected' ? `<button class="btn btn-ghost btn-sm" data-pst="rejected" data-id="${p.id}">${icon('x')} ${esc(a('promo_reject'))}</button>` : ''}
+        <a class="btn btn-soft btn-sm" href="/aksiya/${esc(p.slug)}" target="_blank">${esc(a('promo_open'))}</a>
+        <button type="button" class="btn btn-ghost btn-sm" data-pdel="${p.id}">${icon('trash')}</button>
+      </div></div>`;
   const html = shell('promos', a('nav_promos'), esc(a('promos_hint')), `
     <details class="box promo-adm-new"><summary class="btn btn-primary">${icon('plus')} ${esc(a('promo_new'))}</summary><div style="margin-top:14px">${promoForm()}</div></details>
-    ${list.map((p) => `<div class="box promo-adm t-${esc(p.theme)}">
+    ${list.map((p) => (p.owner_user_id ? sellerRow(p) : `<div class="box promo-adm t-${esc(p.theme)}">
       <div class="promo-adm-hd"><span class="pt-emoji">${esc(p.emoji || '')}</span><div class="grow"><b>${esc(p.name)}</b><span class="tiny muted">${esc(p.start_md && p.end_md ? `${p.start_md} → ${p.end_md}` : '∞')} · ${esc(a('promo_listings'))}: ${num(p.count)}</span></div>
         <span class="tag ${status(p)[0]}">${esc(status(p)[1])}</span></div>
       <details><summary class="link-blue small">${esc(a('promo_edit'))}</summary><div style="margin-top:12px">${promoForm(p)}</div></details>
-    </div>`).join('')}`);
+    </div>`)).join('')}`);
   return {
     title: a('nav_promos'),
     html,
@@ -1371,6 +1387,19 @@ async function promosPage() {
         render({ keepScroll: true });
       });
       main.addEventListener('click', async (e) => {
+        const st = e.target.closest('[data-pst]');
+        if (st) {
+          const body = { status: st.dataset.pst };
+          if (body.status === 'rejected') {
+            const reason = window.prompt(a('promo_reason'));
+            if (reason === null) return;
+            body.reject_reason = reason.trim();
+          }
+          await api(`/admin/promos/${st.dataset.id}`, { method: 'PUT', body });
+          toast(t('saved'), 'ok');
+          render({ keepScroll: true });
+          return;
+        }
         const d = e.target.closest('[data-pdel]');
         if (!d || !(await confirmBox(a('promo_del_q')))) return;
         await api(`/admin/promos/${d.dataset.pdel}`, { method: 'DELETE' });

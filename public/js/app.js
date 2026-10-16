@@ -17,7 +17,6 @@ const routes = [
   [/^\/orders\/(\d+)$/, () => import('./pages/account.js'), 'orderPage'],
   [/^\/fura$/, () => import('./pages/fura.js'), 'fura'],
   [/^\/materials$/, () => import('./pages/materials.js'), 'materials'],
-  [/^\/services$/, () => import('./pages/services.js'), 'services'],
   [/^\/aksiya\/([a-z0-9-]+)$/, () => import('./pages/promos.js'), 'promo'],
   [/^\/my\/promos$/, () => import('./pages/promos.js'), 'myPromos'],
   [/^\/fura\/(\d+)$/, () => import('./pages/fura.js'), 'furaDetail'],
@@ -35,7 +34,7 @@ const routes = [
   [/^\/transportsale$/, () => import('./pages/sections.js'), 'transportsale'],
   [/^\/transportrental$/, () => import('./pages/sections.js'), 'transportrental'],
   [/^\/sparepart$/, () => import('./pages/sections.js'), 'sparepart'],
-  [/^\/transport-repair$/, () => import('./pages/sections.js'), 'transportRepair'],
+  [/^\/transport-repair$/, () => import('./pages/sections.js'), 'mechanic'],
   // Eski logistika manzillari endi Fura birjasini ochadi
   [/^\/(?:cargologistic|transportlogistic)$/, () => import('./pages/fura.js'), 'fura'],
   [/^\/driver$/, () => import('./pages/sections.js'), 'driver'],

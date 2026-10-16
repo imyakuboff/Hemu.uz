@@ -6,7 +6,7 @@ import { ART } from '../art.js';
 // Bo'limlar ro'yxati (bosh sahifa, katalog, mobil menyu uchun)
 export const SECTIONS = [
   ['transportsale', 'excavator'], ['transportrental', 'calendar'], ['sparepart', 'gear'],
-  ['transport-repair', 'wrench'], ['fura', 'truck'],
+  ['fura', 'truck'],
   ['mechanic', 'gear'], ['driver', 'user'], ['application', 'clipboard'],
 ];
 const secKey = (s) => (s === 'transport-repair' ? 'repair' : s);
@@ -31,7 +31,6 @@ const PRESETS = {
   transportsale: { base: { kind: 'equipment', deal_type: 'sale' }, roots: ['special', 'trucks', 'construction'] },
   transportrental: { base: { deal_type: 'rent' }, roots: null },
   sparepart: { base: { kind: 'part' }, roots: null, rubric: 'parts' },
-  'transport-repair': { base: { category: 'services' }, rubric: 'services', subs: ['repair', 'maintenance'] },
 };
 
 async function listingSection(s, query) {
@@ -78,7 +77,6 @@ async function listingSection(s, query) {
 export const transportsale = ({ query }) => listingSection('transportsale', query);
 export const transportrental = ({ query }) => listingSection('transportrental', query);
 export const sparepart = ({ query }) => listingSection('sparepart', query);
-export const transportRepair = ({ query }) => listingSection('transport-repair', query);
 
 // ---------- Mexaniklar va haydovchilar ----------
 const rateText = (p) => (p.rate_formatted ? `${p.rate_formatted} ${t(`ru_${p.rate_unit || 'hour'}`)}` : '');

@@ -102,7 +102,6 @@ r.get('/my/listings/import/template', requireAuth, (req, res) => {
   const enumRows = [
     ['deal_type', 'sale', lang === 'uz' ? 'Sotish' : lang === 'ru' ? 'Продажа' : 'Sale'],
     ['deal_type', 'rent', lang === 'uz' ? 'Ijara' : lang === 'ru' ? 'Аренда' : 'Rent'],
-    ['deal_type', 'service', lang === 'uz' ? 'Xizmat' : lang === 'ru' ? 'Услуга' : 'Service'],
     ['condition', 'new', lang === 'uz' ? 'Yangi' : lang === 'ru' ? 'Новое' : 'New'],
     ['condition', 'used', lang === 'uz' ? 'Ishlatilgan' : lang === 'ru' ? 'Б/у' : 'Used'],
     ...CURRENCY_CODES.map((c) => ['currency', c, '']),

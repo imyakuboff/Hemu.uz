@@ -2,7 +2,7 @@ import { state, t, esc, icon, qs, api, num, fmtRel, initials, placeholder, catIc
 import { compareList, voiceButton } from './features.js';
 
 // Dizayndagi sarlavha va bosh sahifadagi 6 ta yo'nalish ("Строительная техника"siz)
-export const NAV_SLUGS = ['special', 'parts', 'trucks', 'materials', 'services'];
+export const NAV_SLUGS = ['special', 'parts', 'trucks', 'materials'];
 export const shortCat = (c) => (c.slug === 'trucks' ? t('trucks_short') : c.name);
 
 export function locationLabel() {
@@ -61,7 +61,7 @@ export function header(path) {
       <div class="m-search"><form class="search" data-search>${icon('search')}<input name="q" value="${esc(q)}" placeholder="${esc(t('search_ph'))}">${voiceButton()}<button class="btn btn-primary">${esc(t('find'))}</button></form></div>
     </div>
     <div class="row2">
-      <nav>${cats.map((c) => (['materials', 'services'].includes(c.slug)
+      <nav>${cats.map((c) => (c.slug === 'materials'
         ? `<a href="/${c.slug}" class="${path.startsWith(`/${c.slug}`) ? 'on' : ''}">${esc(shortCat(c))}</a>`
         : `<a href="/catalog?category=${c.slug}" class="${new URLSearchParams(location.search).get('category') === c.slug ? 'on' : ''}">${esc(shortCat(c))}</a>`)).join('')}<a href="/fura" class="${path.startsWith('/fura') ? 'on' : ''}">${esc(t('nav_logistics'))}</a></nav>
       <a href="/create" class="post-cta">${icon('plus')} ${esc(t('post_listing'))}</a>
@@ -365,7 +365,7 @@ export function mobileMenu() {
   if (u?.company) links.push(['/business', 'building', t('business')]);
   if (u?.role === 'admin' || u?.role === 'moderator') links.push(['/admin', 'shield', t('admin')]);
   links.push(['/prices', 'chart', t('prices_title')], ['/sellers', 'star', t('sellers_title')], ['/contact', 'phone', t('contact_title')]);
-  const secs = [['transportsale', 'excavator'], ['transportrental', 'calendar'], ['sparepart', 'gear'], ['fura', 'truck'], ['transport-repair', 'wrench', 'repair'], ['mechanic', 'gear'], ['driver', 'user'], ['application', 'clipboard']];
+  const secs = [['transportsale', 'excavator'], ['transportrental', 'calendar'], ['sparepart', 'gear'], ['fura', 'truck'], ['mechanic', 'gear'], ['driver', 'user'], ['application', 'clipboard']];
   const el = openModal(`<div class="sheet-menu" style="margin-top:14px">${links.map(([h, i, l]) => `<a href="${h}" data-close-link>${icon(i)} ${esc(l)}</a>`).join('')}
     <p class="tiny muted" style="margin:12px 0 4px;font-weight:600;text-transform:uppercase">${esc(t('sec_title'))}</p>
     ${secs.map(([s, i, k]) => `<a href="/${s}" data-close-link>${icon(i)} ${esc(t(`sec_${k || s}`))}</a>`).join('')}

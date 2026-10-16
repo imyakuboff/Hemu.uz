@@ -178,7 +178,7 @@ export async function feed({ query }) {
   const geo = withGeo(q);
   const res = await api(`/listings${qs({ ...geo, sort: q.sort || 'new', per_page: 16 })}`);
   const regionOpts = await regionOptions(geo.country, geo.region);
-  const deals = [['', t('all_offers')], ['sale', state.meta.deal_types[0].label], ['rent', state.meta.deal_types[1].label], ['service', t('services')]];
+  const deals = [['', t('all_offers')], ['sale', state.meta.deal_types[0].label], ['rent', state.meta.deal_types[1].label]];
   const html = `
   ${crumbs([[t('home'), '/'], [t('feed_title')]])}
   <div class="page-head"><h1 class="page-title">${esc(t('feed_title'))}</h1><p class="page-sub">${esc(t('feed_sub'))}</p></div>
@@ -239,7 +239,7 @@ export async function filters({ query }) {
           <div><label class="lbl">${esc(t('category'))}</label><select class="input" name="root"><option value="">${esc(t('any'))}</option>${roots.map((r) => `<option value="${r.slug}" ${root?.slug === r.slug ? 'selected' : ''}>${esc(shortCat(r))}</option>`).join('')}</select></div>
           <div><label class="lbl">${esc(t('subcategory'))}</label><select class="input" name="sub"><option value="">${esc(t('any'))}</option>${subOpts(root)}</select></div>
         </div>
-        <div class="seg" style="margin:14px 0 0">${[['sale', t('buy')], ['rent', t('rent_v')], ['service', t('services')]].map(([v, l]) => `<button type="button" data-deal="${v}" class="${deal === v ? 'on' : ''}">${esc(l)}</button>`).join('')}</div>
+        <div class="seg" style="margin:14px 0 0">${[['sale', t('buy')], ['rent', t('rent_v')]].map(([v, l]) => `<button type="button" data-deal="${v}" class="${deal === v ? 'on' : ''}">${esc(l)}</button>`).join('')}</div>
       </div>
       <div class="box"><h3>${esc(t('price'))}</h3>
         <div class="form-grid">

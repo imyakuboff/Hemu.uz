@@ -127,17 +127,13 @@ function seed(file = config.dbFile) {
     deal_type: 'sale', title: 'JCB 3CX, 2019', brand: 'JCB', model: '3CX', year: 2019, hours: 4800, power_hp: 92, condition: 'used', drive: 'Полный, 4×4', price: 900000000, currency: 'UZS', vat_rate: 12,
     description: 'JCB 3CX 2019 года, 4 800 м/ч. Сервисная история, ПСМ в наличии.', country: 'UZ', region: 'tashkent', city: 'Чирчик', docs: 'ПСМ',
   }, 22, 412, P('jcb2019'));
-  add(petrov, cTexno, 'services', 'repair', {
-    deal_type: 'service', title: 'Ремонт гидравлики спецтехники', price: 1000000, currency: 'UZS', price_from: 1, min_order: 'Выезд мастера · гарантия 6 мес.',
-    description: 'Выезд мастера, диагностика, ремонт гидроцилиндров и насосов. Гарантия 6 месяцев.', country: 'UZ', region: 'tashkent-city', city: 'Ташкент',
-  }, 20, 230, P('repair'));
 
   // --- Qozog'iston ---
   add(almaty, cAlmaty, 'special', 'excavators', {
     deal_type: 'sale', title: 'Гусеничный экскаватор Hyundai R220', brand: 'Hyundai', model: 'R220', year: 2020, hours: 5100, weight_kg: 22000, condition: 'used', price: 38000000, currency: 'KZT', vat_rate: 12, docs: 'Техпаспорт',
     description: 'Hyundai R220, 2020 г., 5 100 м/ч. Ковш 1,05 м³, гусеницы 70%. Возможна доставка по Казахстану.', country: 'KZ', region: 'almaty-city', city: 'Алматы',
   }, 3, 980, P('hyundai'));
-  add(almaty, cAlmaty, 'services', 'equipment-rental', {
+  add(almaty, cAlmaty, 'special', 'truck-cranes', {
     deal_type: 'rent', title: 'Аренда автокрана 25 тонн', brand: 'XCMG', capacity_t: 25, price: 18000, currency: 'KZT', price_unit: 'hour', price_from: 1, with_operator: 1, min_order: 'от 4 часов',
     description: 'Автокран 25 т с опытным машинистом. Стрела 33 м. Работаем по Алматы и области.', country: 'KZ', region: 'almaty-city', city: 'Алматы',
   }, 6, 702, P('crane'));
@@ -172,11 +168,11 @@ function seed(file = config.dbFile) {
   }, 12, 207, P('hyundai'));
 
   // --- Rossiya: СтройРент ---
-  add(moscow, cMoscow, 'services', 'equipment-rental', {
+  add(moscow, cMoscow, 'special', 'truck-cranes', {
     deal_type: 'rent', title: 'Аренда автокрана 25 тонн', capacity_t: 25, price: 2800, currency: 'RUB', price_unit: 'hour', price_from: 1, with_operator: 1, min_order: 'от 4 часов',
     description: 'Автокран 25 т с оператором. Москва и область, подача в день заказа.', country: 'RU', region: 'moscow', city: 'Москва',
   }, 5, 690, P('crane2'));
-  add(moscow, cMoscow, 'services', 'equipment-rental', {
+  add(moscow, cMoscow, 'special', 'backhoe-loaders', {
     deal_type: 'rent', title: 'Аренда JCB 3CX с оператором', brand: 'JCB', model: '3CX', price: 2500, currency: 'RUB', price_unit: 'hour', price_from: 1, with_operator: 1, min_order: 'от 4 часов',
     description: 'Экскаватор-погрузчик JCB 3CX с опытным оператором. Москва и область, подача в день заказа.', country: 'RU', region: 'moscow-obl', city: 'Химки',
   }, 4, 340, P('jcb_thumb1'));
@@ -296,7 +292,7 @@ function seed(file = config.dbFile) {
   db.insert('company_branches', { company_id: cTexno, name: 'Филиал Самарканд', country: 'UZ', region: 'samarkand', city: 'Самарканд', address: 'ул. Дагбитская, 44', phone: '+998901234511', work_hours: 'Пн–Пт, 09:00–18:00', lat: 39.65, lng: 66.96 });
   db.insert('company_members', { company_id: cTexno, phone: '+998901112233', name: 'Нигора Алиева', role: 'sales' });
   db.run('INSERT INTO company_follows (user_id, company_id) VALUES (?, ?), (?, ?)', buyer, cTexno, buyer2, cTexno);
-  for (const slug of ['backhoe-loaders', 'filters', 'equipment-rental']) db.run('INSERT INTO user_interests (user_id, category_id) VALUES (?, ?)', buyer, cats.bySlug(slug).id);
+  for (const slug of ['backhoe-loaders', 'filters', 'truck-cranes']) db.run('INSERT INTO user_interests (user_id, category_id) VALUES (?, ?)', buyer, cats.bySlug(slug).id);
   for (const [q, n, r] of [['JCB 3CX', 42, 4], ['экскаватор', 31, 3], ['КАМАЗ', 18, 2], ['фильтр JCB', 12, 3], ['аренда крана', 9, 2], ['МТЗ 82', 7, 2], ['Hyundai R220', 5, 2]]) {
     db.run('INSERT INTO search_log (q, display, n, results) VALUES (?, ?, ?, ?)', require('./src/i18n').normalizeSearch(q), q, n, r);
   }

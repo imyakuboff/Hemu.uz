@@ -52,13 +52,10 @@ r.get('/search/suggest', (req, res) => {
 // Bo'limlar: e'lonlar, mutaxassislar, logistika va zayavkalar soni
 r.get('/sections', (_req, res) => {
   const n = (sql, ...p) => db.get(sql, ...p).n;
-  const repair = ['repair', 'maintenance'].map((s) => cats.bySlug(s)?.id).filter(Boolean);
   res.json({
     transportsale: n(`SELECT COUNT(*) AS n FROM listings WHERE status = 'active' AND kind = 'equipment' AND deal_type = 'sale'`),
     transportrental: n(`SELECT COUNT(*) AS n FROM listings WHERE status = 'active' AND deal_type = 'rent'`),
     sparepart: n(`SELECT COUNT(*) AS n FROM listings WHERE status = 'active' AND kind = 'part'`),
-    'transport-repair': n(`SELECT COUNT(*) AS n FROM listings WHERE status = 'active' AND subcategory_id IN (${repair.map(() => '?').join(',') || 'NULL'})`, ...repair)
-      + n(`SELECT COUNT(*) AS n FROM specialists WHERE status = 'active' AND kind = 'mechanic'`),
     cargologistic: n(`SELECT COUNT(*) AS n FROM logistics WHERE status = 'open' AND kind = 'cargo'`),
     transportlogistic: n(`SELECT COUNT(*) AS n FROM logistics WHERE status = 'open' AND kind = 'transport'`),
     fura: n(`SELECT COUNT(*) AS n FROM freight WHERE status = 'open' AND (expires_at IS NULL OR expires_at > datetime('now'))`),

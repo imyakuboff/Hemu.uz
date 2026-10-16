@@ -109,7 +109,7 @@ test('telefon: mamlakatlar va +7 (KZ/RU) ajratish', async () => {
 
 test('kategoriyalar: daraxt, sonlar, ko\'p tilli qidiruv', async () => {
   const r = await api('GET', '/api/v1/categories?lang=ru');
-  assert.equal(r.body.length, 6);
+  assert.equal(r.body.length, 5);
   assert.equal(r.body[0].name, 'Спецтехника');
   assert.ok(r.body[0].count >= 3);
   for (const q of ['экскаватор', 'ekskavator', 'Excavator', 'Ekskawator']) {
@@ -122,8 +122,8 @@ test('kategoriyalar: daraxt, sonlar, ko\'p tilli qidiruv', async () => {
 test('bosh sahifa', async () => {
   const r = await api('GET', '/api/v1/home?lang=ru', { token: S.buyer.token });
   assert.equal(r.status, 200);
-  assert.equal(r.body.hero.total_active, 16);
-  assert.equal(r.body.categories.length, 6);
+  assert.equal(r.body.hero.total_active, 15);
+  assert.equal(r.body.categories.length, 5);
   assert.equal(r.body.popular.length, 4);
   assert.equal(r.body.recent.length, 4);
   assert.ok(r.body.recommended.length >= 1);
@@ -368,7 +368,7 @@ test('sotuvchi kabineti', async () => {
   const d = await api('GET', '/api/v1/seller/dashboard?lang=ru', { token: S.seller.token });
   assert.equal(d.status, 200);
   assert.equal(d.body.company.name, 'ООО «ТехноПарк»');
-  assert.ok(d.body.stats.active_listings.value >= 6);
+  assert.ok(d.body.stats.active_listings.value >= 5);
   assert.ok(d.body.stats.views.value > 1000);
   assert.ok(d.body.stats.views.change_pct > 0);
   assert.equal(d.body.views_chart.length, 7);

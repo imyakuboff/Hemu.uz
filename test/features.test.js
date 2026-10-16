@@ -207,14 +207,15 @@ test("xavfsiz bitim: to'lovsiz tasdiqlab bo'lmaydi, nizo, admin qarori", async (
 });
 
 test("shikoyat, seriya raqami tekshiruvi (qidiruvdagi texnika)", async () => {
-  const r = await api('POST', '/api/v1/listings/7/report', { token: S.buyer.token, body: { reason: 'fake', comment: 'Фото из интернета' } });
+  const hy = db.get("SELECT id FROM listings WHERE title = 'Гусеничный экскаватор Hyundai R220'").id;
+  const r = await api('POST', `/api/v1/listings/${hy}/report`, { token: S.buyer.token, body: { reason: 'fake', comment: 'Фото из интернета' } });
   assert.equal(r.status, 201);
   assert.equal((await api('POST', '/api/v1/listings/1/report', { token: S.seller.token, body: { reason: 'fake' } })).status, 409);
   const q = await api('GET', '/api/v1/admin/reports', { token: S.admin.token });
   assert.equal(q.body[0].reason, 'fake');
   const ok = await api('POST', `/api/v1/admin/reports/${q.body[0].id}/resolve`, { token: S.admin.token, body: { reason: 'Фото не соответствуют' } });
   assert.equal(ok.body.status, 'resolved');
-  assert.equal((await api('GET', '/api/v1/listings/7')).status, 404, "e'lon katalogdan olindi");
+  assert.equal((await api('GET', `/api/v1/listings/${hy}`)).status, 404, "e'lon katalogdan olindi");
   const s1 = await api('GET', '/api/v1/listings/1/serial-check');
   assert.equal(s1.body.ok, true);
   await api('PATCH', '/api/v1/listings/5', { token: S.seller.token, body: { serial_number: 'CAT-320D-0WANTED1' } });
@@ -260,7 +261,8 @@ test("xaritada qidiruv, narx tarixi, solishtirish", async () => {
   const h = await api('GET', '/api/v1/listings/1/price-history');
   assert.equal(h.body.length, 3);
   assert.ok(h.body[0].price > h.body[2].price);
-  const cmp = await api('GET', '/api/v1/compare?ids=1,5,6');
+  const ids = db.all("SELECT id FROM listings WHERE status = 'active' AND kind = 'equipment' ORDER BY id LIMIT 3").map((x) => x.id);
+  const cmp = await api('GET', `/api/v1/compare?ids=${ids.join(',')}`);
   assert.equal(cmp.body.length, 3);
 });
 

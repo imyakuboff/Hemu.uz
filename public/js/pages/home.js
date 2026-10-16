@@ -17,7 +17,7 @@ export default async function home() {
       <form class="search" data-search>${icon('search')}<input name="q" placeholder="${esc(t('search_ph'))}">${voiceButton()}<button class="btn btn-primary"><span class="desktop-only">${esc(t('find_listings'))}</span><span class="mobile-only">${esc(t('find'))}</span></button></form>
       <div class="often"><span>${esc(t('often_searched'))}</span>
         ${often.map((q) => `<a href="/catalog?q=${encodeURIComponent(q)}">${esc(q)}</a><span class="sep">·</span>`).join('')}
-        <a href="/catalog?category=equipment-rental">${esc(t('crane_rent'))}</a>
+        <a href="/transportrental">${esc(t('crane_rent'))}</a>
       </div>
     </div>
     <div class="right" style="background-image:url('/img/demo/hero.jpg')">

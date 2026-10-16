@@ -32,8 +32,8 @@ const routes = [
   [/^\/transportrental$/, () => import('./pages/sections.js'), 'transportrental'],
   [/^\/sparepart$/, () => import('./pages/sections.js'), 'sparepart'],
   [/^\/transport-repair$/, () => import('./pages/sections.js'), 'transportRepair'],
-  [/^\/cargologistic$/, () => import('./pages/sections.js'), 'cargologistic'],
-  [/^\/transportlogistic$/, () => import('./pages/sections.js'), 'transportlogistic'],
+  // Eski logistika manzillari endi Fura birjasini ochadi
+  [/^\/(?:cargologistic|transportlogistic)$/, () => import('./pages/fura.js'), 'fura'],
   [/^\/driver$/, () => import('./pages/sections.js'), 'driver'],
   [/^\/mechanic$/, () => import('./pages/sections.js'), 'mechanic'],
   [/^\/application$/, () => import('./pages/sections.js'), 'application'],

@@ -66,7 +66,7 @@ Build qadamisiz vanilla JS (ES modullar), backend bilan bitta serverda. Dizaynda
 | **Kirish** — parol yoki SMS-kod; **parolni tiklash** SMS orqali | Kirish oynasi, `/forgot` |
 | **Biznes kabinet** — filiallar (xaritada), xodimlar va rollar (menejer/sotuvchi/kuzatuvchi), obunalar | `/business` |
 | **Kompaniya do'koni** — obuna bo'lish, rubrikalar, filiallar, do'kon ichida qidiruv | `/company/:id` |
-| **Bo'limlar** | `/transportsale`, `/transportrental`, `/sparepart`, `/transport-repair`, `/cargologistic`, `/transportlogistic`, `/driver`, `/mechanic`, `/application`, `/specialist/:id` |
+| **Bo'limlar** | `/transportsale`, `/transportrental`, `/sparepart`, `/transport-repair`, `/fura`, `/driver`, `/mechanic`, `/application`, `/specialist/:id` |
 | **Aqlli qidiruv** — kategoriyalar, markalar, e'lonlar, o'xshash/ommabop so'rovlar, "N ta e'lon topildi" | Sarlavhadagi qidiruv |
 | **E'lon statistikasi** (30 kun grafigi), **o'chirilganni tiklash** (30 kun saqlanadi) | `/my/listings` |
 | **Hisob-faktura PDF** (yuridik shaxslar uchun) | Buyurtma → Hujjatlar |

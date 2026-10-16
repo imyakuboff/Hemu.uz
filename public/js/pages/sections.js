@@ -6,7 +6,7 @@ import { ART } from '../art.js';
 // Bo'limlar ro'yxati (bosh sahifa, katalog, mobil menyu uchun)
 export const SECTIONS = [
   ['transportsale', 'excavator'], ['transportrental', 'calendar'], ['sparepart', 'gear'],
-  ['fura', 'truck'], ['cargologistic', 'box'], ['transportlogistic', 'truck'], ['transport-repair', 'wrench'],
+  ['transport-repair', 'wrench'], ['fura', 'truck'],
   ['mechanic', 'gear'], ['driver', 'user'], ['application', 'clipboard'],
 ];
 const secKey = (s) => (s === 'transport-repair' ? 'repair' : s);

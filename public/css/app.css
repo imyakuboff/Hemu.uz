@@ -1291,17 +1291,15 @@ body:has(.adm-page) .install-bar { display: none; }
 .bento .st-transportsale b { font-size: 24px; }
 .bento .st-transportsale .st-text span { font-size: 14px; }
 .bento .st-transportsale .art { width: 78%; max-width: 440px; }
-.bento .st-transportrental, .bento .st-fura, .bento .st-application { grid-column: span 2; }
-.bento .st-transportrental .art, .bento .st-fura .art, .bento .st-application .art { width: 40%; }
+.bento .st-transportrental { grid-column: span 2; }
+.bento .st-transportrental .art { width: 40%; }
 .bento img.art { width: auto; max-width: 58%; height: 60%; object-fit: contain; inset-inline-end: 14px; bottom: 12px; filter: drop-shadow(0 8px 10px rgba(14, 51, 82, .16)); }
 .bento .st-transportsale img.art { width: auto; height: 72%; max-width: 92%; inset-inline-end: 22px; bottom: 18px; }
 .bento .st-transportrental img.art { width: auto; height: 66%; max-width: 45%; inset-inline-end: 26px; }
-.bento .st-application img.art { width: auto; height: 46%; max-width: 40%; inset-inline-end: 26px; bottom: 22px; }
+.bento .st-application img.art { height: 50%; bottom: 16px; }
 .bento .st-transportrental { --st-bg: linear-gradient(140deg, #fff8d6, #ffeaa0); }
 .bento .st-sparepart { --st-bg: #f1f3f6; }
 .bento .st-fura { --st-bg: linear-gradient(140deg, #e6f1fd, #cfe3fa); }
-.bento .st-cargologistic { --st-bg: #fbf1e4; }
-.bento .st-transportlogistic { --st-bg: #e8f6ee; }
 .bento .st-transport-repair { --st-bg: #fdece6; }
 .bento .st-mechanic { --st-bg: #e9f1fb; }
 .bento .st-driver { --st-bg: #eef0f3; }

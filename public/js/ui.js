@@ -355,7 +355,7 @@ export function mobileMenu() {
   if (u?.company) links.push(['/business', 'building', t('business')]);
   if (u?.role === 'admin' || u?.role === 'moderator') links.push(['/admin', 'shield', t('admin')]);
   links.push(['/prices', 'chart', t('prices_title')], ['/sellers', 'star', t('sellers_title')], ['/contact', 'phone', t('contact_title')]);
-  const secs = [['transportsale', 'excavator'], ['transportrental', 'calendar'], ['sparepart', 'gear'], ['fura', 'truck'], ['cargologistic', 'box'], ['transportlogistic', 'truck'], ['transport-repair', 'wrench', 'repair'], ['mechanic', 'gear'], ['driver', 'user'], ['application', 'clipboard']];
+  const secs = [['transportsale', 'excavator'], ['transportrental', 'calendar'], ['sparepart', 'gear'], ['fura', 'truck'], ['transport-repair', 'wrench', 'repair'], ['mechanic', 'gear'], ['driver', 'user'], ['application', 'clipboard']];
   const el = openModal(`<div class="sheet-menu" style="margin-top:14px">${links.map(([h, i, l]) => `<a href="${h}" data-close-link>${icon(i)} ${esc(l)}</a>`).join('')}
     <p class="tiny muted" style="margin:12px 0 4px;font-weight:600;text-transform:uppercase">${esc(t('sec_title'))}</p>
     ${secs.map(([s, i, k]) => `<a href="/${s}" data-close-link>${icon(i)} ${esc(t(`sec_${k || s}`))}</a>`).join('')}

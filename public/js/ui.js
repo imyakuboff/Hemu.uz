@@ -138,6 +138,9 @@ export function badgeOf(l) {
   return l.deal_label;
 }
 
+// Mavsumiy aksiya belgisi: "🏗️ −20%"
+export const promoBadge = (p) => `<a class="promo-badge t-${esc(p.theme)}" href="/aksiya/${esc(p.slug)}">${esc(p.emoji || '')} −${p.pct}%</a>`;
+
 // VIP / GOLD / PREMIUM belgisi
 export const tierBadge = (tier) => `<span class="tier-badge ${tier}">${tier === 'vip' ? icon('star') : ''}${tier.toUpperCase()}</span>`;
 
@@ -150,10 +153,11 @@ export function card(l) {
       <button class="fav ${l.is_favorite ? 'on' : ''}" data-fav="${l.id}" aria-label="${esc(t('to_favorites'))}">${icon('heart')}</button>
       ${l.kind !== 'service' && l.kind !== 'material' ? `<button class="cmp-btn ${inCmp ? 'on' : ''}" data-cmp="${l.id}" title="${esc(t('compare'))}">${icon('scale')}</button>` : ''}
       <span class="deal">${esc(badgeOf(l))}</span>
+      ${l.promo ? promoBadge(l.promo) : ''}
     </div>
     <div class="body">
       <a href="/listing/${l.id}" class="title">${esc(l.title)}</a>
-      <div class="price">${esc(priceText(l.price))}</div>
+      <div class="price">${esc(priceText(l.price))}${l.price?.old_formatted ? ` <s class="old-price">${esc(l.price.old_formatted)}</s>` : ''}</div>
       <div class="meta">${esc(factsLine(l))}</div>
       <div class="city">${esc(locLine(l.location))}</div>
       ${l.distance_km !== undefined ? `<div class="dist">${icon('pin')} ${esc(t('distance_km', { n: num(l.distance_km) }))}</div>` : ''}

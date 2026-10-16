@@ -2,6 +2,7 @@ import { state, t, esc, api, icon, num, money, qs, fmtRel, fmtDate, openModal, c
 import { crumbs, cards, card, accountLayout, pager, imgOf, priceText, emptyBox, factsLine, locLine, ratingHtml } from '../ui.js';
 import { go, render } from '../app.js';
 import { promoteModal, providerOptions, bindSeg, goPay } from '../features.js';
+import { promoJoinModal } from './promos.js';
 import { escrowPayModal } from './listing.js';
 
 const needLogin = () => ({ title: t('login'), html: `<div class="box empty"><h3>${esc(t('login_required'))}</h3><button class="btn btn-primary" data-login style="margin-top:14px">${esc(t('login'))}</button></div>` });
@@ -56,6 +57,7 @@ export async function myListings({ query }) {
     if (l.status === 'deleted') return rowHtml(l, acts);
     if (l.status === 'active') acts.push(`<button class="btn btn-soft btn-sm" data-act="bump" data-id="${l.id}">${esc(t('bump'))}</button>`);
     if (l.status === 'active') acts.push(`<button class="btn btn-primary btn-sm" data-promote="${l.id}">${icon('rocket')} ${esc(t('promote'))}</button>`);
+    if (l.status === 'active') acts.push(`<button class="btn btn-soft btn-sm promo-act" data-promo-join="${l.id}">${l.promo ? `${esc(l.promo.emoji || '')} −${l.promo.pct}%` : `% ${esc(t('promo_short'))}`}</button>`);
     if (['draft', 'rejected', 'archived'].includes(l.status)) acts.push(`<button class="btn btn-soft btn-sm" data-act="publish" data-id="${l.id}">${esc(t('publish_short'))}</button>`);
     acts.push(`<a class="btn btn-soft btn-sm" href="/listing/${l.id}">${esc(t('details'))}</a>`);
     if (l.status === 'active') acts.push(`<button class="btn btn-ghost btn-sm" data-act="sold" data-id="${l.id}">${esc(t('mark_sold'))}</button>`);
@@ -103,6 +105,8 @@ export async function myListings({ query }) {
       main.addEventListener('click', async (e) => {
         const pr = e.target.closest('[data-promote]');
         if (pr) return promoteModal(res.items.find((x) => String(x.id) === pr.dataset.promote));
+        const pj = e.target.closest('[data-promo-join]');
+        if (pj) return promoJoinModal(res.items.find((x) => String(x.id) === pj.dataset.promoJoin), () => render({ keepScroll: true }));
         const sb = e.target.closest('[data-stats]');
         if (sb) return statsModal(res.items.find((x) => String(x.id) === sb.dataset.stats));
         const b = e.target.closest('[data-act]');

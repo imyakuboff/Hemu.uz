@@ -1,5 +1,5 @@
 import { t, esc, api, icon, num, money, fmtRel, openModal, closeModal, toast, $, $$ } from '../core.js';
-import { crumbs, cards, imgOf, priceText, requireLogin, shortCat, tierBadge } from '../ui.js';
+import { crumbs, cards, imgOf, priceText, requireLogin, shortCat, tierBadge, promoBadge } from '../ui.js';
 import { state } from '../core.js';
 import { mapWidget, leasingModal, reportModal, inspectionModal, promoteModal, priceChart, calendarWidget, compareList, providerOptions, bindSeg, goPay, shareLink } from '../features.js';
 import { go, onAuthChanged } from '../app.js';
@@ -83,7 +83,7 @@ export default async function listing({ params }) {
 
   const priceCard = part
     ? `<div class="side-card">
-        <div class="big-price">${esc(priceText(l.price))}</div>${conv}
+        <div class="big-price">${esc(priceText(l.price))}</div>${l.promo ? `<div class="promo-price-line"><s class="old-price">${esc(l.price.old_formatted)}</s> ${promoBadge(l.promo)}</div>` : ''}${conv}
         <p class="tiny muted" style="margin:6px 0 10px">${esc(priceSub)}</p>
         ${stock ? `<span class="tag green">${esc(t('in_stock_n', { n: num(stock) }))}</span>` : stock === 0 ? `<span class="tag red">${esc(t('out_of_stock'))}</span>` : ''}
         ${l.is_owner ? '' : `<label class="lbl" style="margin-top:14px">${esc(t('quantity'))}</label>
@@ -93,7 +93,7 @@ export default async function listing({ params }) {
         ${l.delivery ? `<p class="tiny muted" style="margin:12px 0 0">${esc([l.delivery.local, l.delivery.pickup ? `${t('pickup')}: ${l.delivery.pickup}` : null].filter(Boolean).join(' · '))}</p>` : ''}
       </div>`
     : `<div class="side-card">
-        <div class="big-price">${esc(priceText(l.price))}</div>${conv}
+        <div class="big-price">${esc(priceText(l.price))}</div>${l.promo ? `<div class="promo-price-line"><s class="old-price">${esc(l.price.old_formatted)}</s> ${promoBadge(l.promo)}</div>` : ''}${conv}
         <p class="tiny muted" style="margin:6px 0 10px">${esc(priceSub)}</p>
         ${l.status === 'active' ? `<span class="tag green">${esc(t('available'))}</span>` : statusTag}
         <div class="stack"><button class="btn btn-soft" data-fav="${l.id}" data-label="1">${icon('heart')} <span>${esc(t(l.is_favorite ? 'in_favorites' : 'to_favorites'))}</span></button></div>

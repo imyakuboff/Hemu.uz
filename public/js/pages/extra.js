@@ -163,8 +163,9 @@ export async function importPage() {
     ${crumbs([[t('home'), '/'], [t('my_listings'), '/my/listings'], [t('import')]])}
     <div class="page-head"><h1 class="page-title">${esc(t('import'))}</h1><p class="page-sub">${esc(t('import_sub'))}</p></div>
     <form class="box" data-imp>
-      <button type="button" class="btn btn-soft" data-tpl>${icon('file')} ${esc(t('download_template'))}</button>
-      <div style="margin-top:16px"><input type="file" name="file" accept=".csv,text/csv" required class="input" style="padding:8px"></div>
+      <ol class="imp-steps">${['imp_step1', 'imp_step2', 'imp_step3'].map((k) => `<li>${esc(t(k))}</li>`).join('')}</ol>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn btn-soft" data-tpl="xlsx">${icon('file')} ${esc(t('download_template'))} (Excel)</button><button type="button" class="btn btn-ghost btn-sm" data-tpl="csv">CSV</button></div>
+      <div style="margin-top:16px"><input type="file" name="file" accept=".xlsx,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required class="input" style="padding:8px"></div>
       <label class="check" style="margin-top:12px"><input type="checkbox" name="publish"> ${esc(t('publish_after'))}</label>
       <button class="btn btn-primary" style="margin-top:14px">${icon('upload')} ${esc(t('upload'))}</button>
     </form>
@@ -173,13 +174,14 @@ export async function importPage() {
     title: t('import'),
     html,
     mount(main) {
-      $('[data-tpl]', main).onclick = async () => {
-        const r = await fetch('/api/v1/my/listings/import/template', { headers: { Authorization: `Bearer ${state.token}` } });
+      main.querySelectorAll('[data-tpl]').forEach((b) => { b.onclick = async () => {
+        const fmt = b.dataset.tpl;
+        const r = await fetch(`/api/v1/my/listings/import/template?format=${fmt}`, { headers: { Authorization: `Bearer ${state.token}`, 'X-Lang': state.lang } });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(await r.blob());
-        a.download = 'hemu-import.csv';
+        a.download = `hemu-import.${fmt}`;
         a.click();
-      };
+      }; });
       $('[data-imp]', main).onsubmit = async (e) => {
         e.preventDefault();
         const f = e.target;

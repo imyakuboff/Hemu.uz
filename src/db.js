@@ -749,6 +749,30 @@ CREATE TABLE IF NOT EXISTS sms_log (
   error TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+-- Mavsumiy aksiyalar: har yili start_md..end_md (MM-DD) oralig'ida faol (yil oxiridan o'tishi mumkin)
+CREATE TABLE IF NOT EXISTS promos (
+  id INTEGER PRIMARY KEY,
+  slug TEXT UNIQUE NOT NULL,
+  names TEXT NOT NULL,                           -- JSON {uz, ru, en}
+  subtitles TEXT NOT NULL DEFAULT '{}',          -- JSON {uz, ru, en}
+  emoji TEXT,
+  theme TEXT NOT NULL DEFAULT 'orange',          -- green | orange | blue | red | purple
+  categories TEXT NOT NULL DEFAULT '[]',         -- JSON: bosh yoki ichki kategoriya slug'lari ([] = hammasi)
+  max_discount INTEGER NOT NULL DEFAULT 20,      -- sarlavhadagi "−20% gacha"
+  start_md TEXT,                                 -- '03-01' (bo'sh = doim)
+  end_md TEXT,
+  active INTEGER NOT NULL DEFAULT 1,
+  sort INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE IF NOT EXISTS promo_listings (
+  promo_id INTEGER NOT NULL REFERENCES promos(id) ON DELETE CASCADE,
+  listing_id INTEGER NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
+  discount_pct INTEGER NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (promo_id, listing_id)
+);
+CREATE INDEX IF NOT EXISTS ix_promo_listings_listing ON promo_listings(listing_id);
 `;
 
 let db;
@@ -820,6 +844,19 @@ const COLUMNS = [
     if (!has) db.exec(`ALTER TABLE ${table} ADD COLUMN ${col} ${def}`);
   }
   db.exec('CREATE UNIQUE INDEX IF NOT EXISTS ux_users_username ON users(username COLLATE NOCASE) WHERE username IS NOT NULL');
+  // Boshlang'ich mavsumiy aksiyalar (faqat jadval bo'sh bo'lsa; admin keyin o'zgartiradi)
+  if (!db.prepare('SELECT COUNT(*) AS n FROM promos').get().n) {
+    const ins = db.prepare('INSERT INTO promos (slug, names, subtitles, emoji, theme, categories, max_discount, start_md, end_md, sort) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+    ins.run('bahor', JSON.stringify({ uz: "Bahor: qishloq xo'jaligi texnikasi", ru: 'Весна: сельхозтехника', en: 'Spring: agricultural machinery' }),
+      JSON.stringify({ uz: "Traktor, seyalka va kombaynlarga mavsumiy chegirmalar", ru: 'Сезонные скидки на тракторы, сеялки и комбайны', en: 'Seasonal discounts on tractors, seeders and combines' }),
+      '🌱', 'green', JSON.stringify(['agri']), 20, '02-15', '05-31', 1);
+    ins.run('qurilish', JSON.stringify({ uz: 'Qurilish mavsumi', ru: 'Строительный сезон', en: 'Construction season' }),
+      JSON.stringify({ uz: 'Ekskavator, yuklagich va beton texnikasi arzonroq', ru: 'Экскаваторы, погрузчики и бетонная техника дешевле', en: 'Excavators, loaders and concrete machinery for less' }),
+      '🏗️', 'orange', JSON.stringify(['special', 'construction', 'trucks']), 15, '03-15', '11-15', 2);
+    ins.run('qish', JSON.stringify({ uz: 'Qishga tayyorgarlik: ehtiyot qismlar', ru: 'Готовимся к зиме: запчасти', en: 'Winter prep: spare parts' }),
+      JSON.stringify({ uz: "Filtr, akkumulyator, shina va moylar — qishdan oldin chegirmada", ru: 'Фильтры, аккумуляторы, шины и масла — со скидкой до зимы', en: 'Filters, batteries, tyres and oils — discounted before winter' }),
+      '❄️', 'blue', JSON.stringify(['parts']), 25, '10-01', '02-28', 3);
+  }
 }
 
 // node:sqlite undefined/boolean/obyektlarni qabul qilmaydi — o'giramiz

@@ -2,9 +2,10 @@ import { state, t, esc, api, icon, num, qs } from '../core.js';
 import { cards, card, tierBadge, secHead, NAV_SLUGS, shortCat, catIcon, priceText, LOGO } from '../ui.js';
 import { voiceButton } from '../features.js';
 import { sectionsGrid } from './sections.js';
+import { promoStrip } from './promos.js';
 
 export default async function home() {
-  const [d, secs, ads] = await Promise.all([api(`/home${qs({ country: state.country })}`), api('/sections').catch(() => ({})), api('/banners', { silent: true }).catch(() => [])]);
+  const [d, secs, ads, promos] = await Promise.all([api(`/home${qs({ country: state.country })}`), api('/sections').catch(() => ({})), api('/banners', { silent: true }).catch(() => []), api('/promos', { silent: true }).catch(() => [])]);
   const tiles = d.categories.filter((c) => NAV_SLUGS.includes(c.slug));
   const often = (d.hero.popular_queries.length ? d.hero.popular_queries : ['JCB 3CX', 'КАМАЗ']).slice(0, 2);
   const html = `
@@ -30,6 +31,8 @@ export default async function home() {
   </section>
 
   ${carousel(ads, d.tiers)}
+
+  ${promoStrip(promos)}
 
   <section class="sec">
     ${secHead(t('sec_title'), '', t('all_categories'), '/categories')}

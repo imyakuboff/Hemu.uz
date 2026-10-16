@@ -226,6 +226,25 @@ const D = {
   th_dark: ['Qora', 'Чёрный', 'Black'],
   bad_link: ["\"{v}\" sahifasi saytda yo'q. Ro'yxatdan sahifa tanlang yoki https:// bilan to'liq manzil yozing", 'Страницы «{v}» нет на сайте. Выберите страницу из списка или укажите полный адрес с https://', 'Page "{v}" does not exist. Pick a page from the list or enter a full https:// address'],
   nav_tiers: ['VIP / GOLD / PREMIUM', 'VIP / GOLD / PREMIUM', 'VIP / GOLD / PREMIUM'],
+  nav_promos: ['Mavsumiy aksiyalar', 'Сезонные акции', 'Seasonal promos'],
+  promos_hint: ["Aksiya har yili belgilangan sanalar oralig'ida avtomatik yonadi. Sotuvchilar e'lonlarini o'zi qo'shib, chegirma qo'yadi.", 'Акция включается автоматически каждый год в заданные даты. Продавцы сами добавляют объявления и ставят скидку.', 'A promo turns on automatically every year between the set dates. Sellers add their listings and set a discount.'],
+  promo_new: ['Yangi aksiya', 'Новая акция', 'New promo'],
+  promo_name: ['Nomi', 'Название', 'Name'],
+  promo_sub: ['Qisqa tavsif', 'Короткое описание', 'Short description'],
+  promo_theme: ['Rang', 'Цвет', 'Color'],
+  promo_cats: ['Kategoriyalar (hech biri = hammasi)', 'Категории (ничего = все)', 'Categories (none = all)'],
+  promo_max: ['"… gacha" chegirma, %', 'Скидка «до …», %', '"Up to" discount, %'],
+  promo_from: ['Boshlanishi (OO-KK)', 'Начало (ММ-ДД)', 'Start (MM-DD)'],
+  promo_to: ['Tugashi (OO-KK)', 'Конец (ММ-ДД)', 'End (MM-DD)'],
+  promo_dates_hint: ["Masalan 03-15 va 11-15. Ikkalasi bo'sh — doim faol.", 'Например 03-15 и 11-15. Оба пустые — всегда активна.', 'E.g. 03-15 and 11-15. Both empty — always on.'],
+  promo_live: ['Hozir faol', 'Сейчас активна', 'Live now'],
+  promo_off: ['Mavsum emas', 'Не сезон', 'Off season'],
+  promo_disabled: ["O'chirilgan", 'Выключена', 'Disabled'],
+  promo_enabled: ['Yoqilgan', 'Включена', 'Enabled'],
+  promo_listings: ["Aksiyadagi e'lonlar", 'Объявлений в акции', 'Listings in promo'],
+  promo_open: ['Sahifani ochish', 'Открыть страницу', 'Open page'],
+  promo_edit: ['Tahrirlash', 'Редактировать', 'Edit'],
+  promo_del_q: ["Aksiya o'chirilsinmi? E'lonlardagi chegirmalar ham olib tashlanadi.", 'Удалить акцию? Скидки в объявлениях тоже снимутся.', 'Delete the promo? Listing discounts will be removed too.'],
   nav_support: ['Murojaatlar', 'Обращения', 'Support requests'],
   nav_integrations: ['Integratsiyalar', 'Интеграции', 'Integrations'],
   nav_pages: ['Sahifalar', 'Страницы', 'Pages'],
@@ -331,12 +350,12 @@ export function a(k, p) {
 const NAV = [
   ['overview', 'dash', '/admin'], ['users', 'user', '/admin/users'], ['companies', 'building', '/admin/companies'],
   ['listings', 'list', '/admin/listings'], ['orders', 'box', '/admin/orders'], ['finance', 'card', '/admin/finance'],
-  ['tiers', 'star', '/admin/tiers'], ['freight', 'truck', '/admin/freight'], ['broadcast', 'bell', '/admin/broadcast'], ['banners', 'image', '/admin/banners'], ['support', 'inbox', '/admin/support'], ['trust', 'shield', '/admin/trust'],
+  ['tiers', 'star', '/admin/tiers'], ['promos', 'target', '/admin/promos'], ['freight', 'truck', '/admin/freight'], ['broadcast', 'bell', '/admin/broadcast'], ['banners', 'image', '/admin/banners'], ['support', 'inbox', '/admin/support'], ['trust', 'shield', '/admin/trust'],
   ['pages', 'file', '/admin/pages'], ['integrations', 'globe', '/admin/integrations'], ['system', 'chart', '/admin/system'],
   ['settings', 'gear', '/admin/settings'], ['log', 'list', '/admin/log'],
 ];
 // Moderator ko'radigan bo'limlar
-const MOD_SECTIONS = ['overview', 'listings', 'companies', 'tiers', 'support', 'trust', 'freight'];
+const MOD_SECTIONS = ['overview', 'listings', 'companies', 'tiers', 'promos', 'support', 'trust', 'freight'];
 const isAdmin = () => state.user?.role === 'admin';
 const allowed = (k) => isAdmin() || MOD_SECTIONS.includes(k);
 const ACCOUNT_TYPES = ['client', 'company', 'mechanic', 'driver'];
@@ -465,7 +484,7 @@ export async function adminPage({ params, query }) {
   if (state.user.role !== 'admin' && state.user.role !== 'moderator') return { title: a('admin'), html: gate(`<p>${esc(a('no_access'))}</p><div style="display:flex;gap:8px;justify-content:center"><a class="btn btn-soft" href="/">${esc(a('to_site'))}</a><button class="btn btn-soft" data-logout>${esc(t('logout'))}</button></div>`) };
   const [section = 'overview', id] = params;
   if (!state.adminQueue && section !== 'overview') await loadQueue();
-  const map = { overview, users, companies, listings, orders, finance, broadcast, banners: bannersPage, trust, system, settings, log, tiers: tiersPage, freight: freightPage, support: supportPage, integrations: integrationsPage, pages: pagesPage };
+  const map = { overview, users, companies, listings, orders, finance, broadcast, banners: bannersPage, trust, system, settings, log, tiers: tiersPage, promos: promosPage, freight: freightPage, support: supportPage, integrations: integrationsPage, pages: pagesPage };
   if (!allowed(section)) return { title: a('admin'), html: shell('', a('admin'), '', `<div class="box empty"><h3>${esc(a('no_access'))}</h3></div>`) };
   const fn = id && section === 'users' ? userDetail : id && section === 'companies' ? companyDetail : map[section];
   if (!fn) return { title: a('admin'), html: shell('', a('admin'), '', `<div class="box empty">404</div>`) };
@@ -1297,6 +1316,67 @@ function tierModal(lid) {
     closeModal();
     toast(a('saved'), 'ok');
     refresh();
+  };
+}
+
+// ---------- Mavsumiy aksiyalar ----------
+const PROMO_THEMES = [['green', '🟢'], ['orange', '🟠'], ['blue', '🔵'], ['red', '🔴'], ['purple', '🟣']];
+const MD_PATTERN = 'pattern="(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"';
+function promoForm(p = {}) {
+  const roots = (state.cats || []).filter((c) => !c.parent_id);
+  const L3 = (k, o) => ['uz', 'ru', 'en'].map((l) => field(`${a(k)} · ${l.toUpperCase()}`, inp(`${k}_${l}`, o?.[l], 'maxlength="120"'))).join('');
+  return `<form class="promo-adm-form" data-pf="${p.id || ''}">
+    <div class="form-grid">
+      ${L3('promo_name', p.names)}${L3('promo_sub', p.subtitles)}
+      ${field('Slug (URL)', inp('slug', p.slug, 'required pattern="[a-z0-9-]{2,40}" placeholder="bahor"'))}
+      ${field('Emoji', inp('emoji', p.emoji, 'maxlength="8" placeholder="🌱"'))}
+      ${field(a('promo_theme'), sel('theme', PROMO_THEMES.map(([v, e]) => [v, `${e} ${v}`]), p.theme || 'orange', false))}
+      ${field(a('promo_max'), inp('max_discount', p.max_discount ?? 20, 'type="number" min="1" max="90" required'))}
+      ${field(a('promo_from'), inp('start_md', p.start_md, `${MD_PATTERN} placeholder="03-15"`))}
+      ${field(a('promo_to'), inp('end_md', p.end_md, `${MD_PATTERN} placeholder="11-15"`))}
+      <p class="tiny muted full" style="margin:-4px 0 0">${esc(a('promo_dates_hint'))}</p>
+      <div class="full"><label class="lbl">${esc(a('promo_cats'))}</label><div class="pick-grid">${roots.map((c) => `<label class="pick"><input type="checkbox" name="cat" value="${esc(c.slug)}" ${(p.categories || []).includes(c.slug) ? 'checked' : ''}><span>${esc(c.name)}</span></label>`).join('')}</div></div>
+      <label class="check full"><input type="checkbox" name="active" ${!p.id || p.active ? 'checked' : ''}> ${esc(a('promo_enabled'))}</label>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap"><button class="btn btn-primary">${esc(a('save'))}</button>${p.id ? `<a class="btn btn-soft" href="/aksiya/${esc(p.slug)}" target="_blank">${esc(a('promo_open'))}</a><button type="button" class="btn btn-ghost" data-pdel="${p.id}" title="${esc(t('delete'))}">${icon('trash')}</button>` : ''}</div>
+  </form>`;
+}
+async function promosPage() {
+  const list = await api('/admin/promos');
+  const status = (p) => (p.live ? ['green', a('promo_live')] : p.active ? ['orange', a('promo_off')] : ['grey', a('promo_disabled')]);
+  const html = shell('promos', a('nav_promos'), esc(a('promos_hint')), `
+    <details class="box promo-adm-new"><summary class="btn btn-primary">${icon('plus')} ${esc(a('promo_new'))}</summary><div style="margin-top:14px">${promoForm()}</div></details>
+    ${list.map((p) => `<div class="box promo-adm t-${esc(p.theme)}">
+      <div class="promo-adm-hd"><span class="pt-emoji">${esc(p.emoji || '')}</span><div class="grow"><b>${esc(p.name)}</b><span class="tiny muted">${esc(p.start_md && p.end_md ? `${p.start_md} → ${p.end_md}` : '∞')} · ${esc(a('promo_listings'))}: ${num(p.count)}</span></div>
+        <span class="tag ${status(p)[0]}">${esc(status(p)[1])}</span></div>
+      <details><summary class="link-blue small">${esc(a('promo_edit'))}</summary><div style="margin-top:12px">${promoForm(p)}</div></details>
+    </div>`).join('')}`);
+  return {
+    title: a('nav_promos'),
+    html,
+    mount(main) {
+      main.addEventListener('submit', async (e) => {
+        const f = e.target.closest('[data-pf]');
+        if (!f) return;
+        e.preventDefault();
+        const pick = (k) => Object.fromEntries(['uz', 'ru', 'en'].map((l) => [l, f[`${k}_${l}`].value.trim()]));
+        const body = {
+          slug: f.slug.value.trim(), names: pick('promo_name'), subtitles: pick('promo_sub'), emoji: f.emoji.value.trim(),
+          theme: f.theme.value, max_discount: Number(f.max_discount.value), start_md: f.start_md.value.trim(), end_md: f.end_md.value.trim(),
+          categories: $$('[name=cat]:checked', f).map((x) => x.value), active: f.active.checked,
+        };
+        if (f.dataset.pf) await api(`/admin/promos/${f.dataset.pf}`, { method: 'PUT', body });
+        else await api('/admin/promos', { method: 'POST', body });
+        toast(t('saved'), 'ok');
+        render({ keepScroll: true });
+      });
+      main.addEventListener('click', async (e) => {
+        const d = e.target.closest('[data-pdel]');
+        if (!d || !(await confirmBox(a('promo_del_q')))) return;
+        await api(`/admin/promos/${d.dataset.pdel}`, { method: 'DELETE' });
+        render({ keepScroll: true });
+      });
+    },
   };
 }
 

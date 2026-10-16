@@ -3,6 +3,7 @@ const db = require('../db');
 const config = require('../config');
 const L = require('../lib/listings');
 const money = require('../lib/money');
+const promos = require('../lib/promos');
 const { notify } = require('../lib/notify');
 const { requireAuth } = require('../lib/auth');
 const { fail, notFound, forbidden, validate, paging, pageResult } = require('../lib/http');
@@ -112,21 +113,24 @@ r.post('/orders', requireAuth, (req, res) => {
     if (l.user_id === req.user.id) fail(409, 'err.own_listing');
     if (l.deal_type !== 'sale' || l.price === null) fail(409, 'err.invalid_status');
     if (l.stock_qty !== null && v.qty > l.stock_qty) fail(409, 'err.out_of_stock', { available: l.stock_qty });
+    // Mavsumiy aksiya chegirmasi (kartochkadagi narx bilan bir xil)
+    const disc = promos.discounts().get(l.id);
+    const price = disc ? Math.round(l.price * (100 - disc.pct)) / 100 : l.price;
     const oid = db.insert('orders', {
       listing_id: l.id,
       buyer_id: req.user.id,
       seller_id: l.user_id,
       title: l.title,
       qty: v.qty,
-      unit_price: l.price,
+      unit_price: price,
       currency: l.currency,
       delivery_method: v.delivery_method,
       delivery_address: v.delivery_address,
-      total: l.price * v.qty,
+      total: price * v.qty,
       note: v.note,
       escrow: v.escrow ? 1 : 0,
       escrow_status: v.escrow ? 'unpaid' : null,
-      escrow_fee: v.escrow ? Math.round(l.price * v.qty * config.escrowFeePct) / 100 : 0,
+      escrow_fee: v.escrow ? Math.round(price * v.qty * config.escrowFeePct) / 100 : 0,
     });
     const yy = String(new Date().getFullYear()).slice(2);
     db.run('UPDATE orders SET number = ? WHERE id = ?', `MG-${yy}${String(oid).padStart(4, '0')}`, oid);

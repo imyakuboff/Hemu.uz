@@ -2,6 +2,7 @@ const db = require('../db');
 const config = require('../config');
 const cats = require('./categories');
 const money = require('./money');
+const promos = require('./promos');
 const { t, normalizeSearch } = require('../i18n');
 const { countryName, regionName, maskPhone } = require('../geo');
 const { parseJson } = require('./http');
@@ -116,6 +117,15 @@ function card(l, ctx, cache = sellerCache()) {
   if (!cache.has(key)) cache.set(key, sellerInfo(l.user_id, l.company_id));
   const s = cache.get(key);
   const cover = l.cover !== undefined ? l.cover : db.get('SELECT path FROM listing_photos WHERE listing_id = ? ORDER BY sort, id LIMIT 1', l.id)?.path;
+  // Mavsumiy aksiya: chegirmali narx + eski narx (chizilgan)
+  const disc = l.price !== null && l.price !== undefined ? promos.discounts().get(l.id) : null;
+  let price = money.priceView(l, lang, currency);
+  let promo = null;
+  if (disc) {
+    const old = price;
+    price = { ...money.priceView({ ...l, price: Math.round(l.price * (100 - disc.pct)) / 100 }, lang, currency), old_formatted: old.formatted };
+    promo = { slug: disc.promo.slug, pct: disc.pct, theme: disc.promo.theme, emoji: disc.promo.emoji };
+  }
   return {
     id: l.id,
     title: l.title,
@@ -124,7 +134,8 @@ function card(l, ctx, cache = sellerCache()) {
     kind: l.kind,
     category: cats.brief(cats.byId(l.category_id), lang),
     subcategory: cats.brief(cats.byId(l.subcategory_id), lang),
-    price: money.priceView(l, lang, currency),
+    price,
+    promo,
     facts: facts(l, lang),
     location: location(l, lang),
     seller: { name: s.name, verified: s.verified, rating: s.rating, reviews_count: s.reviews_count, company_id: s.company_id, user_id: s.user_id },

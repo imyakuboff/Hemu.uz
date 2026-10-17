@@ -12,6 +12,7 @@ const DEFS = [
   ['prices.promoDays', 'int', 1, 90],
   ['prices.plan.business', 'number', 0, 100000],
   ['prices.inspection', 'number', 0, 100000],
+  ['prices.badge', 'number', 0, 100000],
   ['freeListingLimit', 'int', 0, 100000],
   ['businessTopCredits', 'int', 0, 1000],
   ['escrowFeePct', 'number', 0, 20],

@@ -179,6 +179,7 @@ const M = {
   'plan.free': ['Bepul', 'Бесплатный', 'Free', 'Тегін', 'Акысыз', 'Ройгон', 'Mugt', 'Pulsuz', 'رایگان', 'وړیا'],
   'plan.business': ['Biznes', 'Бизнес', 'Business', 'Бизнес', 'Бизнес', 'Бизнес', 'Biznes', 'Biznes', 'کسب‌وکار', 'سوداګري'],
   'pp.promo': ["E'lonni ko'tarish", 'Продвижение объявления', 'Listing promotion', 'Хабарландыруды жылжыту', 'Жарнаманы илгерилетүү', 'Пешбурди эълон', 'Bildirişi öňe çykarmak', 'Elanın irəli çəkilməsi', 'ارتقای آگهی', 'د اعلان وده'],
+  'pp.badge': ['Tasdiq belgisi (oylik)', 'Галочка подтверждения (в месяц)', 'Verified badge (monthly)', 'Растау белгісі (ай сайын)', 'Ырастоо белгиси (ай сайын)', 'Нишони тасдиқ (моҳона)', 'Tassyklama belgisi (aýlyk)', 'Təsdiq nişanı (aylıq)', 'نشان تأیید (ماهانه)', 'د تایید نښه (میاشتنۍ)'],
   'pp.plan': ['Tarif', 'Тариф', 'Plan', 'Тариф', 'Тариф', 'Тариф', 'Tarif', 'Tarif', 'طرح', 'پلان'],
   'pp.escrow': ['Xavfsiz bitim', 'Безопасная сделка', 'Safe deal', 'Қауіпсіз мәміле', 'Коопсуз бүтүм', 'Аҳди бехатар', 'Howpsuz ylalaşyk', 'Təhlükəsiz sövdələşmə', 'معامله امن', 'خوندي معامله'],
   'n.broadcast': ['{title}: {body}', '{title}: {body}', '{title}: {body}', '{title}: {body}', '{title}: {body}', '{title}: {body}', '{title}: {body}', '{title}: {body}', '{title}: {body}', '{title}: {body}'],

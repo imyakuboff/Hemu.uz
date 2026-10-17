@@ -50,6 +50,7 @@ function userView(u) {
     role: u.role,
     account_type: u.account_type || 'client',
     has_password: Boolean(u.password_hash),
+    badge_until: u.badge_until && u.badge_until > new Date().toISOString().replace('T', ' ').slice(0, 19) ? u.badge_until : null,
     lang: u.lang,
     country: u.country,
     city: u.city,

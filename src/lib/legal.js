@@ -134,8 +134,16 @@ const COUNTRIES = {
   },
 };
 
-// Majburiy hujjat — barcha shakllar uchun guvohnoma
+// Tasdiq belgisi (tekshirilgan kompaniya) uchun kerakli hujjat — guvohnoma
 const REQUIRED_DOCS = ['reg_cert'];
+// Asosiy shakllar — yakka tadbirkor (YaTT/ИП) va MChJ (ООО/ТОО ...): har mamlakatdagi birinchi yakka va birinchi yuridik shakl
+const isMainForm = (forms, i) => i === 0 || i === forms.findIndex((x) => !x.individual);
+// Ro'yxatdan o'tishda guvohnoma faqat asosiy shakllar (YaTT, MChJ) uchun majburiy; boshqalarga — ixtiyoriy
+function certRequired(country, code) {
+  const forms = (COUNTRIES[country] || COUNTRIES.UZ).forms;
+  const i = forms.findIndex((f) => f.code === code);
+  return i >= 0 && isMainForm(forms, i);
+}
 const FIELDS = ['tin', 'reg_number', 'reg_date', 'kpp', 'activity_code', 'director', 'legal_address', 'bank_name', 'bank_code', 'bank_account', 'corr_account', 'vat'];
 
 function formOf(country, code) {
@@ -162,10 +170,10 @@ function spec(country, lang) {
     forms: c.forms.map((f, i) => ({
       code: f.code,
       // Asosiy shakllar (ro'yxatdan o'tishda ko'rsatiladi): yakka tadbirkor (YaTT) va MChJ
-      main: i === 0 || i === c.forms.findIndex((x) => !x.individual),
+      main: isMainForm(c.forms, i),
       name: pick(f.names, lang),
       individual: Boolean(f.individual),
-      docs: f.docs.map((d) => ({ type: d, name: pick(DOCS[d], lang), required: REQUIRED_DOCS.includes(d) })),
+      docs: f.docs.map((d) => ({ type: d, name: pick(DOCS[d], lang), required: REQUIRED_DOCS.includes(d) && isMainForm(c.forms, i) })),
       fields: FIELDS
         .filter((k) => !(f.individual && (k === 'kpp' || k === 'director')))
         .map((k) => field(k, k === 'tin' && f.tin ? { ...c.tin, ...f.tin } : c[k], f.individual))
@@ -197,4 +205,4 @@ function validateRequisites(country, form, body = {}) {
 
 const docName = (type, lang) => pick(DOCS[type] || DOCS.reg_cert, lang);
 
-module.exports = { COUNTRIES, DOCS, REQUIRED_DOCS, FIELDS, formOf, spec, validateRequisites, docName };
+module.exports = { COUNTRIES, DOCS, REQUIRED_DOCS, FIELDS, formOf, spec, validateRequisites, docName, certRequired };

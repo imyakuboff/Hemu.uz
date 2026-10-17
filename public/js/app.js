@@ -49,6 +49,7 @@ const routes = [
   [/^\/payments\/(\d+)$/, () => import('./pages/extra.js'), 'payment'],
   [/^\/payments$/, () => import('./pages/extra.js'), 'payments'],
   [/^\/plans$/, () => import('./pages/extra.js'), 'plans'],
+  [/^\/verified$/, () => import('./pages/extra.js'), 'badgePage'],
   [/^\/compare$/, () => import('./pages/extra.js'), 'compare'],
   [/^\/my\/import$/, () => import('./pages/extra.js'), 'importPage'],
   [/^\/analytics$/, () => import('./pages/extra.js'), 'analytics'],

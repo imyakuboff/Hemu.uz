@@ -350,3 +350,31 @@ test("ulashish: havola orqali 5 noyob tashrif — e'lon bepul TOPga chiqadi", as
   const n = await api('GET', '/api/v1/notifications', { token: S.seller.token });
   assert.ok(JSON.stringify(n.body).includes('share_top'));
 });
+
+test("tasdiq belgisi: guvohnoma YaTT/MChJ uchun majburiy, oylik obuna bilan galochka", async () => {
+  // Ro'yxatdan o'tish shakllari: YaTT va MChJ — guvohnoma majburiy, XK/AJ — ixtiyoriy
+  const sp = (await api('GET', '/api/v1/legal-forms?country=UZ')).body;
+  const req = Object.fromEntries(sp.forms.map((f) => [f.code, f.docs.find((d) => d.type === 'reg_cert')?.required]));
+  assert.equal(req.yatt, true);
+  assert.equal(req.mchj, true);
+  assert.equal(req.xk, false);
+  assert.equal(req.aj, false);
+  // Narx: oyiga 10$
+  const b = await api('GET', '/api/v1/badge', { token: S.buyer.token, currency: 'USD' });
+  assert.equal(b.body.price.amount, 10);
+  assert.equal(b.body.status.active, false);
+  // Xaridor (kompaniyasiz) e'lon joylaydi — avval belgisiz
+  const uid = db.get(`SELECT id FROM users WHERE phone = '+998907654321'`).id;
+  const L = require('../src/lib/listings');
+  assert.equal(L.hasPaidBadge(uid), false);
+  const p = await api('POST', '/api/v1/badge/subscribe', { token: S.buyer.token, body: { provider: 'dev', months: 2 }, currency: 'USD' });
+  assert.equal(p.status, 201);
+  assert.equal(p.body.amount, 20);
+  assert.equal((await api('POST', `/api/v1/payments/${p.body.id}/dev-confirm`, { token: S.buyer.token })).status, 200);
+  assert.equal(L.hasPaidBadge(uid), true);
+  const after = await api('GET', '/api/v1/badge', { token: S.buyer.token });
+  assert.equal(after.body.status.active, true);
+  const me = await api('GET', '/api/v1/me', { token: S.buyer.token });
+  assert.ok(me.body.badge_until);
+  assert.equal(L.verifiedType(uid, null), 'paid');
+});

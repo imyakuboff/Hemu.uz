@@ -24,6 +24,14 @@ function buildSearchText(l) {
 }
 
 // Sotuvchi kartochkasi ("ООО «ТехноПарк» · Компания проверена · ★ 4,9 · 42 отзыва")
+// Pullik tasdiq belgisi (galochka) amal qiladimi
+const hasPaidBadge = (userId) => Boolean(userId && db.get(`SELECT 1 FROM users WHERE id = ? AND COALESCE(badge_until, '') > datetime('now')`, userId));
+// Tasdiq turi: 'docs' — hujjatlar (guvohnoma) tekshirilgan, 'paid' — obuna, null — yo'q
+function verifiedType(userId, company) {
+  if (company && company.verification === 'verified') return 'docs';
+  return hasPaidBadge(userId) ? 'paid' : null;
+}
+
 function sellerInfo(userId, companyId) {
   if (companyId) {
     const c = db.get(
@@ -37,7 +45,8 @@ function sellerInfo(userId, companyId) {
         user_id: c.owner_id,
         company_id: c.id,
         name: c.name,
-        verified: c.verification === 'verified',
+        verified: Boolean(verifiedType(c.owner_id, c)),
+        verified_type: verifiedType(c.owner_id, c),
         rating: Math.round(c.rating_avg * 10) / 10,
         reviews_count: c.rating_count,
         since: c.created_at.slice(0, 4),
@@ -57,7 +66,8 @@ function sellerInfo(userId, companyId) {
     user_id: userId,
     company_id: null,
     name: u?.name || '—',
-    verified: false,
+    verified: hasPaidBadge(userId),
+    verified_type: hasPaidBadge(userId) ? 'paid' : null,
     rating: r.n ? Math.round(r.avg * 10) / 10 : 0,
     reviews_count: r.n,
     since: u?.created_at.slice(0, 4),
@@ -144,7 +154,7 @@ function card(l, ctx, cache = sellerCache()) {
     promo,
     facts: facts(l, lang),
     location: location(l, lang),
-    seller: { name: s.name, verified: s.verified, rating: s.rating, reviews_count: s.reviews_count, company_id: s.company_id, user_id: s.user_id },
+    seller: { name: s.name, verified: s.verified, verified_type: s.verified_type, rating: s.rating, reviews_count: s.reviews_count, company_id: s.company_id, user_id: s.user_id },
     cover: thumbUrl(cover),
     photos_count: l.photos_count ?? undefined,
     status: l.status,
@@ -258,7 +268,7 @@ function buildWhere(q, currency, exclude = null) {
     if (brands.length) add(`LOWER(l.brand) IN (${brands.map(() => '?').join(',')})`, ...brands);
   }
   if (q.verified === '1' || q.verified === 'true' || q.verified === true) {
-    where.push(`l.company_id IN (SELECT id FROM companies WHERE verification = 'verified')`);
+    where.push(`(l.company_id IN (SELECT id FROM companies WHERE verification = 'verified') OR l.user_id IN (SELECT id FROM users WHERE COALESCE(badge_until, '') > datetime('now')))`);
   }
   if (q.company) add('l.company_id = ?', Number(q.company));
   if (q.seller) add('l.user_id = ?', Number(q.seller));
@@ -377,4 +387,4 @@ function cardsByIds(sql, params, ctx) {
   return db.all(sql.replace('SELECT l.*', `SELECT ${CARD_COLS}`), ...params).map((r) => card(r, ctx, cache));
 }
 
-module.exports = { nearOf, distanceKm, fileUrl, thumbUrl, buildSearchText, sellerInfo, responseMinutes, card, detail, search, facets, matchesQuery, favoritesSet, cardsByIds, CARD_COLS, SORTS };
+module.exports = { hasPaidBadge, verifiedType, nearOf, distanceKm, fileUrl, thumbUrl, buildSearchText, sellerInfo, responseMinutes, card, detail, search, facets, matchesQuery, favoritesSet, cardsByIds, CARD_COLS, SORTS };

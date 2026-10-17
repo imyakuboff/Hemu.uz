@@ -1,5 +1,5 @@
 import { t, esc, api, icon, num, money, fmtRel, fmtDate, openModal, closeModal, toast, $, $$ } from '../core.js';
-import { crumbs, cards, imgOf, priceText, requireLogin, shortCat, tierBadge, promoBadge } from '../ui.js';
+import { crumbs, cards, imgOf, priceText, requireLogin, shortCat, tierBadge, promoBadge, tickIf } from '../ui.js';
 import { state } from '../core.js';
 import { mapWidget, yandexSearchUrl, leasingModal, reportModal, inspectionModal, promoteModal, priceChart, calendarWidget, compareList, providerOptions, bindSeg, goPay, shareLink } from '../features.js';
 import { go, onAuthChanged } from '../app.js';
@@ -56,8 +56,8 @@ function sellerCard(l, part) {
   const reply = s.response_minutes ? t('replies_in', { m: s.response_minutes }) : '';
   const own = l.is_owner;
   return `<div class="side-card">
-    <h3>${s.company_id ? `<a href="/company/${s.company_id}">${esc(s.name)}</a>` : esc(s.name)}</h3>
-    ${s.verified ? `<div style="margin:8px 0 6px"><span class="tag green">${esc(t('company_verified'))}</span></div>` : ''}
+    <h3>${s.company_id ? `<a href="/company/${s.company_id}">${esc(s.name)}</a>` : esc(s.name)}${tickIf(s)}</h3>
+    ${s.verified ? `<div class="tiny muted" style="margin:4px 0 6px">${esc(t(s.verified_type === 'paid' ? 'tick_paid' : 'tick_docs'))}</div>` : ''}
     ${s.reviews_count ? `<div class="rating" style="font-size:12px">${icon('star')} ${String(s.rating).replace('.', ',')} · ${esc(t('reviews', { n: s.reviews_count }))}</div>` : ''}
     <p class="tiny muted" style="margin:8px 0 0">${esc(since)}<br>${esc(place)}</p>
     ${own ? `<div class="stack">${l.status === 'active' ? `<button class="btn btn-primary" data-promote>${icon('rocket')} ${esc(t('promote'))}</button>` : ''}<a class="btn btn-soft" href="/create/${l.id}">${icon('file')} ${esc(t('edit'))}</a><a class="btn btn-soft" href="/my/listings">${esc(t('my_listings'))}</a></div>` : `

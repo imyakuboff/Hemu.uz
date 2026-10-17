@@ -1663,3 +1663,10 @@ em.mt-del { color: #1f9d55; font-weight: 600; }
 .seo-ssr .seo-list { padding-left: 18px; line-height: 1.8; }
 .seo-ssr .seo-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
 .seo-ssr .seo-table th, .seo-ssr .seo-table td { border-bottom: 1px solid var(--line, #e5e9f0); padding: 8px 6px; text-align: left; }
+
+/* Tasdiq belgisi (galochka) */
+.vtick { width: 16px; height: 16px; vertical-align: -3px; display: inline-block; flex: none; }
+h1 .vtick, h2 .vtick { width: 22px; height: 22px; vertical-align: -4px; }
+.badge-buy { display: grid; gap: 10px; }
+.badge-buy .bb-head { display: flex; align-items: center; gap: 10px; }
+.badge-buy .bb-head .vtick { width: 34px; height: 34px; }

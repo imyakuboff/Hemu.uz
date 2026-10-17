@@ -1,5 +1,5 @@
 import { state, t, esc, api, icon, toast, setToken, markErrors, ApiErr, $, $$ } from '../core.js';
-import { crumbs, phoneField, readPhone, regionsOf, shortCat } from '../ui.js';
+import { crumbs, phoneField, readPhone, regionsOf, shortCat, verifiedTick } from '../ui.js';
 import { go } from '../app.js';
 import { legalSpec, legalBlock, bindLegal, readRequisites, checkRequisites, uploadDocs, markLegalErrors } from '../legal.js';
 
@@ -11,6 +11,7 @@ const TYPES = [
 ];
 const ACTIVITIES = [['equipment_sale', 'excavator'], ['equipment_rent', 'calendar'], ['parts', 'gear'], ['repair', 'wrench'], ['logistics', 'truck'], ['materials', 'layers']];
 
+const certTag = (req) => `<span class="tag ${req ? 'red' : 'grey'}">${esc(t(req ? 'required_mark' : 'optional_mark'))}</span>`;
 const stepper = (n) => `<div class="steps">${[t('step_phone'), t('step_code'), t('step_who'), t('step_details')].map((s, i) => `<span class="${i + 1 < n ? 'done' : i + 1 === n ? 'on' : ''}"><b>${i + 1 < n ? '✓' : i + 1}</b>${esc(s)}</span>`).join('')}</div>`;
 const chip = (name, value, label, on = false) => `<label class="pick"><input type="checkbox" name="${name}" value="${esc(value)}" ${on ? 'checked' : ''}><span>${esc(label)}</span></label>`;
 const regionOptions = (regs, sel = '') => `<option value="">${esc(t('choose'))}</option>${regs.map((r) => `<option value="${r.code}" ${r.code === sel ? 'selected' : ''}>${esc(r.name)}</option>`).join('')}`;
@@ -102,7 +103,8 @@ export async function register({ query }) {
         const regs = await regionsOf(country);
         if (tp === 'company') {
           const spec = await legalSpec(country);
-          const forms = spec.forms.filter((x) => x.main);
+          // Barcha shakllar: YaTT va MChJ birinchi (ular uchun guvohnoma majburiy), qolganlari — ixtiyoriy
+          const forms = [...spec.forms.filter((x) => x.main), ...spec.forms.filter((x) => !x.main)];
           const cert = forms[0]?.docs.find((d) => d.type === 'reg_cert');
           return `<div class="legal" data-legal>
             <label class="lbl">${esc(t('legal_form'))} *</label>
@@ -113,9 +115,10 @@ export async function register({ query }) {
               <div><label class="lbl">${esc(t('last_name'))} *</label><input class="input" name="c_last" required maxlength="40" autocomplete="family-name"></div>
               <div class="full"><label class="lbl">${esc(t('address'))} *</label><input class="input" name="c_address" required maxlength="200" autocomplete="street-address"></div>
             </div>
-            <div class="doc-row" data-doc-type="reg_cert" data-required style="margin-top:14px">
+            <div class="doc-row" data-doc-type="reg_cert" ${cert?.required ? 'data-required' : ''} style="margin-top:14px">
               <div class="doc-ico">${icon('file')}</div>
-              <div class="doc-info"><b>${esc(cert?.name || '')} <span class="tag red">${esc(t('required_mark'))}</span></b><span class="doc-picked" data-picked></span></div>
+              <div class="doc-info"><b>${esc(cert?.name || '')} <span data-cert-tag>${certTag(cert?.required)}</span></b><span class="doc-picked" data-picked></span>
+                <span class="tiny muted">${verifiedTick()} ${esc(t('cert_badge_hint'))}</span></div>
               <label class="btn btn-soft btn-sm">${icon('upload')} ${esc(t('doc_upload'))}<input type="file" name="doc_reg_cert" accept="application/pdf,image/jpeg,image/png" multiple hidden></label>
             </div>
           </div>`;
@@ -147,7 +150,19 @@ export async function register({ query }) {
         if (!b) return;
         type = b.dataset.type;
         $('[data-typeform]', main).innerHTML = await typeForm(type);
-        if (type === 'company') bindLegal(main, await legalSpec(country), { canDelete: false });
+        if (type === 'company') {
+          const spec = await legalSpec(country);
+          bindLegal(main, spec, { canDelete: false });
+          // Shakl almashganda guvohnoma majburiy/ixtiyoriy bo'ladi (YaTT va MChJ — majburiy)
+          $('[data-legal]', main).addEventListener('change', (ev) => {
+            if (ev.target.name !== 'legal_form') return;
+            const req = Boolean(spec.forms.find((x) => x.code === ev.target.value)?.docs.find((d) => d.type === 'reg_cert')?.required);
+            const row = $('.doc-row[data-doc-type="reg_cert"]', main);
+            row.toggleAttribute('data-required', req);
+            row.classList.remove('err');
+            $('[data-cert-tag]', row).innerHTML = certTag(req);
+          });
+        }
         for (const n of ['name', 'email']) {
           const el = s[4][n];
           el.closest('div').hidden = type === 'company';

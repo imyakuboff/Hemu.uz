@@ -806,6 +806,7 @@ const COLUMNS = [
   ['users', 'city', 'TEXT'],
   ['users', 'position', 'TEXT'],
   ['users', 'email_verified_at', 'TEXT'], // email kod orqali tasdiqlangan vaqt
+  ['users', 'badge_until', 'TEXT'], // pullik tasdiq belgisi (galochka) muddati
   ['companies', 'reg_number', 'TEXT'],
   ['messages', 'attachment_name', 'TEXT'],
   ['messages', 'attachment_size', 'INTEGER'],

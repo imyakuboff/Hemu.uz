@@ -1,5 +1,5 @@
 import { state, t, esc, api, icon, num, fmtDate, toast, openModal, closeModal, $, $$ } from '../core.js';
-import { crumbs, accountLayout, imgOf, priceText, emptyBox, factsLine } from '../ui.js';
+import { crumbs, accountLayout, imgOf, priceText, emptyBox, factsLine, verifiedTick } from '../ui.js';
 import { providerOptions, bindSeg, goPay, compareList, toggleCompare } from '../features.js';
 import { go, render, refreshBadges } from '../app.js';
 
@@ -109,6 +109,40 @@ export async function plans() {
       const prov = bindSeg(main, '[data-provider]');
       $('[data-sub]', main)?.addEventListener('click', async () => {
         const r = await api('/plans/subscribe', { method: 'POST', body: { plan: 'business', months: Number(months() || 1), provider: prov() || d.providers[0]?.id } });
+        goPay(r);
+      });
+    },
+  };
+}
+
+// ---------- Tasdiq belgisi (galochka): guvohnoma bilan bepul yoki oylik obuna ----------
+export async function badgePage() {
+  const d = await api('/badge');
+  const st = d.status;
+  const li = (txt) => `<li>${icon('check')} ${esc(txt)}</li>`;
+  const html = `
+    ${crumbs([[t('home'), '/'], [t('tick_title')]])}
+    <div class="page-head"><h1 class="page-title">${verifiedTick()} ${esc(t('tick_title'))}</h1><p class="page-sub">${esc(t('tick_sub'))}</p></div>
+    ${st.by_docs ? `<div class="note" style="margin:0 0 18px">${verifiedTick()}<div><b>${esc(t('tick_docs'))}</b><p>${esc(t('tick_docs_free'))}</p></div></div>` : ''}
+    ${st.active ? `<div class="note" style="margin:0 0 18px">${verifiedTick('paid')}<div><b>${esc(t('tick_active', { d: fmtDate(st.until) }))}</b></div></div>` : ''}
+    <div class="plans">
+      <div class="plan"><h3>${verifiedTick()} ${esc(t('tick_free_title'))}</h3><div class="pp">0</div>
+        <ul>${li(t('tick_free_1'))}${li(t('tick_free_2'))}</ul>
+        ${st.by_docs ? `<span class="tag green">${esc(t('tick_have'))}</span>` : st.docs_pending ? `<span class="tag orange">${esc(t('ver_pending'))}</span>` : `<a class="btn btn-soft btn-block" href="/profile#p-company">${icon('upload')} ${esc(t('tick_upload_cert'))}</a>`}</div>
+      <div class="plan pro badge-buy"><h3>${verifiedTick('paid')} ${esc(t('tick_paid_title'))}</h3><div class="pp">${esc(t('per_month_price', { p: d.price.formatted }))}</div>
+        <ul>${li(t('tick_paid_1'))}${li(t('tick_paid_2'))}${li(t('tick_paid_3'))}</ul>
+        ${state.user ? `<label class="lbl">${esc(t('term_months'))}</label><div class="seg" data-months>${[1, 3, 6, 12].map((n, i) => `<button type="button" data-v="${n}" class="${i === 0 ? 'on' : ''}">${esc(t('months_n', { n }))}</button>`).join('')}</div>
+        <label class="lbl">${esc(t('pay_with'))}</label>${providerOptions(d.providers)}
+        <button class="btn btn-primary btn-block" data-buy>${esc(t(st.active ? 'tick_extend' : 'tick_buy'))}</button>` : `<button class="btn btn-primary btn-block" data-login>${esc(t('login'))}</button>`}</div>
+    </div>`;
+  return {
+    title: t('tick_title'),
+    html,
+    mount(main) {
+      const months = bindSeg(main, '[data-months]');
+      const prov = bindSeg(main, '[data-provider]');
+      $('[data-buy]', main)?.addEventListener('click', async () => {
+        const r = await api('/badge/subscribe', { method: 'POST', body: { months: Number(months() || 1), provider: prov() || d.providers[0]?.id } });
         goPay(r);
       });
     },

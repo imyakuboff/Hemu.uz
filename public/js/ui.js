@@ -147,6 +147,9 @@ export function badgeOf(l) {
 export const promoBadge = (p) => `<a class="promo-badge t-${esc(p.theme)}" href="/aksiya/${esc(p.slug)}">${esc(p.emoji || '')} −${p.pct}%</a>`;
 
 // VIP / GOLD / PREMIUM belgisi
+// Instagram uslubidagi ko'k tasdiq belgisi. type: 'docs' — hujjatlar tekshirilgan, 'paid' — obuna
+export const verifiedTick = (type = 'docs') => `<svg class="vtick" viewBox="0 0 24 24" role="img" aria-label="${esc(t(type === 'paid' ? 'tick_paid' : 'tick_docs'))}"><title>${esc(t(type === 'paid' ? 'tick_paid' : 'tick_docs'))}</title><path fill="#1d9bf0" d="M22.5 12.5c0-1.6-.9-3-2.2-3.7.2-.4.2-.9.2-1.3 0-2.2-1.7-4-3.9-4-.5 0-1 .1-1.4.3C14.6 2.4 13.4 1.5 12 1.5s-2.6.9-3.2 2.3c-.4-.2-.9-.3-1.4-.3-2.2 0-3.9 1.8-3.9 4 0 .5.1.9.2 1.3-1.3.7-2.2 2.1-2.2 3.7 0 1.5.8 2.8 2 3.5-.1.3-.1.7-.1 1 0 2.2 1.7 4 3.9 4 .5 0 1-.1 1.4-.3.6 1.4 1.8 2.3 3.3 2.3s2.7-.9 3.3-2.3c.4.2.9.3 1.4.3 2.2 0 3.9-1.8 3.9-4 0-.3 0-.7-.1-1 1.2-.7 2-2 2-3.5z"/><path fill="#fff" d="m10.5 16.4-3.7-3.7 1.4-1.4 2.3 2.3 5.1-5.1 1.4 1.4z"/></svg>`;
+export const tickIf = (x) => (x?.verified ? ` ${verifiedTick(x.verified_type || 'docs')}` : '');
 export const tierBadge = (tier) => `<span class="tier-badge ${tier}">${tier === 'vip' ? icon('star') : ''}${tier.toUpperCase()}</span>`;
 
 export function card(l) {
@@ -166,7 +169,7 @@ export function card(l) {
       <div class="meta">${esc(factsLine(l))}</div>
       <div class="city">${esc(locLine(l.location))}</div>
       ${l.distance_km !== undefined ? `<div class="dist">${icon('pin')} ${esc(t('distance_km', { n: num(l.distance_km) }))}</div>` : ''}
-      <div class="seller">${esc(l.seller?.name || '')}</div>
+      <div class="seller">${esc(l.seller?.name || '')}${tickIf(l.seller)}</div>
       ${ratingHtml(l.seller)}
       <div class="foot"><span class="date">${esc(fmtRel(l.bumped_at || l.published_at))}<span class="views" title="${esc(t('views_title'))}">${icon('eye')} ${num(l.views || 0)}</span></span><a href="/listing/${l.id}" class="btn btn-soft btn-sm">${esc(t('details'))}</a></div>
     </div>

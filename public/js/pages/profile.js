@@ -1,5 +1,5 @@
 import { state, t, esc, api, icon, num, fmtRel, fmtDate, fmtTime, initials, toast, markErrors, ApiErr, setLang, setCurrency, $, $$ } from '../core.js';
-import { crumbs, accountLayout, imgOf, priceText, regionsOf, shortCat } from '../ui.js';
+import { crumbs, accountLayout, imgOf, priceText, regionsOf, shortCat, verifiedTick } from '../ui.js';
 import { go, render, onAuthChanged } from '../app.js';
 import { legalSpec, legalBlock, bindLegal, readRequisites, checkRequisites, uploadDocs, markLegalErrors } from '../legal.js';
 
@@ -22,7 +22,7 @@ export async function profile() {
   const specRegs = isSpec ? await regionsOf(spec?.location.country || u.country) : [];
   const [first, ...rest] = (u.name || '').split(' ');
   const last = rest.join(' ');
-  const verTag = company ? (company.verified ? `<span class="tag green">${esc(t('company_verified_on', { d: fmtDate(company.verified_at) }))}</span>` : `<span class="tag ${company.verification === 'pending' ? 'orange' : company.verification === 'rejected' ? 'red' : 'grey'}">${esc(t(`ver_${company.verification}`))}</span>`) : '';
+  const verTag = company ? (company.verified_type === 'docs' ? `<span class="tag green">${verifiedTick()} ${esc(t('company_verified_on', { d: fmtDate(company.verified_at) }))}</span>` : `<span class="tag ${company.verification === 'pending' ? 'orange' : company.verification === 'rejected' ? 'red' : 'grey'}">${esc(t(`ver_${company.verification}`))}</span> <a class="link-blue small" href="/verified">${verifiedTick('paid')} ${esc(t(company.verified ? 'tick_have' : 'tick_get'))}</a>`) : '';
   const m = state.meta;
   const html = accountLayout('/profile', `
     ${crumbs([[t('home'), '/'], [t('dashboard'), '/dashboard'], [t('nav_profile')]])}
@@ -303,7 +303,7 @@ export async function dashboard() {
     ${d.company ? `<div class="banner-navy"><div><h2>${esc(d.company.name)}</h2><p>${esc([d.company.activity, d.company.city].filter(Boolean).join(' · '))}</p>${d.company.verified ? `<span class="tag green">${esc(t('verified_seller'))}</span>` : `<span class="tag orange">${esc(t(`ver_${d.company.verification}`))}</span>`}</div>
       <a href="/create" class="btn btn-primary">${icon('plus')} ${esc(t('post_listing'))}</a></div>`
     : `<div class="banner-navy"><div><h2>${esc(state.user.name || state.user.phone)}</h2><p>${esc(t('no_company_dash'))}</p></div><a href="/profile#p-company" class="btn btn-white">${esc(t('create_company'))}</a></div>`}
-    <div class="tool-row" style="margin:12px 0 0"><a class="btn btn-soft btn-sm" href="/analytics">${icon('chart')} ${esc(t('analytics'))}</a><a class="btn btn-soft btn-sm" href="/plans">${icon('rocket')} ${esc(t('plans_link'))}${state.user.plan?.plan === 'business' ? ' · PRO' : ''}</a><a class="btn btn-soft btn-sm" href="/my/import">${icon('upload')} ${esc(t('import'))}</a><a class="btn btn-soft btn-sm" href="/my/orders?tab=bookings">${icon('calendar')} ${esc(t('bookings_tab'))}</a></div>
+    <div class="tool-row" style="margin:12px 0 0"><a class="btn btn-soft btn-sm" href="/analytics">${icon('chart')} ${esc(t('analytics'))}</a><a class="btn btn-soft btn-sm" href="/plans">${icon('rocket')} ${esc(t('plans_link'))}${state.user.plan?.plan === 'business' ? ' · PRO' : ''}</a><a class="btn btn-soft btn-sm" href="/my/import">${icon('upload')} ${esc(t('import'))}</a><a class="btn btn-soft btn-sm" href="/verified">${verifiedTick(state.user.badge_until ? 'paid' : 'docs')} ${esc(t(d.company?.verified || state.user.badge_until ? 'tick_have' : 'tick_get'))}</a><a class="btn btn-soft btn-sm" href="/my/orders?tab=bookings">${icon('calendar')} ${esc(t('bookings_tab'))}</a></div>
     <div class="stats">
       <div class="stat"><span>${esc(t('active_listings'))}</span><b>${num(s.active_listings.value)}</b><small>${esc(t('per_month', { n: s.active_listings.delta_month }))}</small></div>
       <div class="stat"><span>${esc(t('views_lbl'))}</span><b>${num(s.views.value)}</b><small>${pct !== null ? `↑ ${esc(t('pct_week', { p: pctTxt }))}` : '&nbsp;'}</small></div>

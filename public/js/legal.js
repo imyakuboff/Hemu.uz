@@ -53,8 +53,9 @@ export function bindLegal(root, spec, { docs = [], showDocs = true, canDelete = 
     if (e.target.name === 'legal_form') {
       const form = spec.forms.find((f) => f.code === e.target.value);
       const keep = readRequisites(root);
-      $('[data-legal-body]', box).innerHTML = `<p class="tiny muted" style="margin:12px 0 8px">${esc(t('requisites_hint'))}</p>${fieldsHtml(form, keep)}`;
-      if (showDocs) $('[data-legal-docs]', box).innerHTML = `<h3 class="legal-h">${icon('file')} ${esc(t('docs_title'))}</h3><p class="tiny muted" style="margin:-4px 0 8px">${esc(t('docs_hint'))}</p>${docsHtml(form, docs, { canDelete })}`;
+      const body = $('[data-legal-body]', box);
+      if (body) body.innerHTML = `<p class="tiny muted" style="margin:12px 0 8px">${esc(t('requisites_hint'))}</p>${fieldsHtml(form, keep)}`;
+      if (showDocs && $('[data-legal-docs]', box)) $('[data-legal-docs]', box).innerHTML = `<h3 class="legal-h">${icon('file')} ${esc(t('docs_title'))}</h3><p class="tiny muted" style="margin:-4px 0 8px">${esc(t('docs_hint'))}</p>${docsHtml(form, docs, { canDelete })}`;
       box.querySelector('.legal-forms').classList.remove('err');
     }
     const file = e.target.closest('input[type=file][name^="doc_"]');

@@ -98,12 +98,37 @@ r.post('/plans/subscribe', requireAuth, (req, res) => {
   res.status(201).json(p);
 });
 
+// ---------- Tasdiq belgisi (galochka) — oylik obuna ----------
+// Hujjati (guvohnomasi) tekshirilgan kompaniyalarda belgi bepul; qolganlar sotib oladi
+r.get('/badge', (req, res) => {
+  const u = req.user ? db.get(`SELECT badge_until, (COALESCE(badge_until, '') > datetime('now')) AS active FROM users WHERE id = ?`, req.user.id) : null;
+  const company = req.user ? db.get('SELECT * FROM companies WHERE owner_id = ?', req.user.id) : null;
+  res.json({
+    price: priceView(config.prices.badge, req),
+    status: {
+      active: Boolean(u?.active),
+      until: u?.active ? u.badge_until : null,
+      by_docs: company?.verification === 'verified',
+      docs_pending: company?.verification === 'pending',
+    },
+    providers: pay.providers(),
+  });
+});
+
+r.post('/badge/subscribe', requireAuth, (req, res) => {
+  const v = validate(req.body, { months: { type: 'int', min: 1, max: 12 }, provider: { type: 'enum', values: pay.PROVIDER_IDS, required: true } });
+  const months = v.months || 1;
+  const p = pay.create(req.user, { purpose: 'badge', meta: { months }, usd: config.prices.badge * months, provider: v.provider, currency: req.currency });
+  res.status(201).json(p);
+});
+
 // ---------- To'lovlar ----------
 function paymentView(p, req) {
   const meta = parseJson(p.meta, {});
   let title = t(req.lang, `pp.${p.purpose}`);
   if (p.purpose === 'promo') title += ` · ${t(req.lang, `promo.${meta.package}`)}`;
   if (p.purpose === 'plan') title += ` · ${t(req.lang, `plan.${meta.plan}`)} × ${meta.months || 1}`;
+  if (p.purpose === 'badge') title += ` × ${meta.months || 1}`;
   let ref = null;
   if (p.purpose === 'promo' || p.purpose === 'inspection') {
     const lid = p.purpose === 'promo' ? p.ref_id : db.get('SELECT listing_id FROM inspections WHERE id = ?', p.ref_id)?.listing_id;

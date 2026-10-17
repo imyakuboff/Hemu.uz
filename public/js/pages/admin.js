@@ -174,6 +174,7 @@ const D = {
   'prices.promoDays': ['Reklama muddati (kun)', 'Срок продвижения (дней)', 'Promotion period (days)'],
   'prices.plan.business': ['Biznes tarif (oyiga)', 'Бизнес-тариф (в месяц)', 'Business plan (monthly)'],
   'prices.inspection': ["Texnik ko'rik narxi", 'Цена тех. проверки', 'Inspection price'],
+  'prices.badge': ['Tasdiq belgisi (galochka), oyiga', 'Галочка подтверждения, в месяц', 'Verified badge, per month'],
   freeListingLimit: ["Bepul tarifda e'lonlar soni", 'Объявлений на бесплатном тарифе', 'Free plan listing limit'],
   businessTopCredits: ['Biznes tarifda TOP kreditlar', 'ТОП-кредитов в бизнес-тарифе', 'Business plan TOP credits'],
   escrowFeePct: ['Xavfsiz bitim komissiyasi, %', 'Комиссия безопасной сделки, %', 'Escrow fee, %'],
@@ -1266,7 +1267,7 @@ async function settings() {
   const by = Object.fromEntries(items.map((x) => [x.key, x]));
   const GROUPS = [
     // VIP / GOLD / PREMIUM narxlari — alohida bo'limda (/admin/tiers)
-    ['g_prices', ['prices.plan.business', 'prices.inspection']],
+    ['g_prices', ['prices.plan.business', 'prices.inspection', 'prices.badge']],
     ['g_limits', ['freeListingLimit', 'businessTopCredits', 'escrowFeePct']],
     ['g_platform', ['registrationOpen', 'autoApproveVerified', 'requireCompanyDocs', 'supportPhone', 'supportTelegram', 'announcementType', 'announcement']],
     ['g_bonus', ['welcomeBonus.enabled', 'welcomeBonus.amount', 'welcomeBonus.currency']],

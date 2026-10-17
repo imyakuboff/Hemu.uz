@@ -57,6 +57,8 @@ module.exports = {
     promoDays: Number(env.PROMO_DAYS || 7),
     plan: { business: Number(env.PRICE_BUSINESS_USD || 49) },
     inspection: Number(env.PRICE_INSPECTION_USD || 25),
+    // Tasdiq belgisi (galochka) — oyiga, USD
+    badge: Number(env.PRICE_BADGE_USD || 10),
   },
   freeListingLimit: Number(env.FREE_LISTING_LIMIT || 10),
   businessTopCredits: Number(env.BUSINESS_TOP_CREDITS || 3),

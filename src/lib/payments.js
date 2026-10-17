@@ -85,6 +85,7 @@ function fulfill(p) {
   const meta = parseJson(p.meta, {});
   if (p.purpose === 'promo') applyPromotion(p.ref_id, meta.package, p.id);
   if (p.purpose === 'plan') applyPlan(p.user_id, meta.plan, meta.months || 1);
+  if (p.purpose === 'badge') applyBadge(p.user_id, meta.months || 1);
   if (p.purpose === 'topup') require('./wallet').change(p.user_id, money.toUsd(p.amount, p.currency), 'topup', { paymentId: p.id, note: `#${p.id}`, amount: p.amount, currency: p.currency });
   if (p.purpose === 'escrow') {
     const o = db.get('SELECT * FROM orders WHERE id = ?', p.ref_id);
@@ -139,6 +140,14 @@ function applyPlan(userId, plan, months) {
     `INSERT INTO user_plans (user_id, plan, until, top_credits) VALUES (?, ?, ?, ?)
      ON CONFLICT(user_id) DO UPDATE SET plan = excluded.plan, until = excluded.until, top_credits = user_plans.top_credits + excluded.top_credits`,
     userId, plan, until, config.businessTopCredits * months,
+  );
+}
+
+// Tasdiq belgisi: amaldagi muddat ustiga qo'shiladi
+function applyBadge(userId, months) {
+  db.run(
+    `UPDATE users SET badge_until = datetime(MAX(COALESCE(badge_until, ''), datetime('now')), ?) WHERE id = ?`,
+    `+${Number(months) || 1} months`, userId,
   );
 }
 
@@ -271,4 +280,4 @@ function paymeHandler(req, res) {
   }
 }
 
-module.exports = { TIERS, applyTier, PROVIDER_IDS, providers, create, markPaid, applyPromotion, applyPlan, activePlan, priceIn, clickHandler, clickSign, paymeHandler };
+module.exports = { TIERS, applyTier, PROVIDER_IDS, providers, create, markPaid, applyPromotion, applyPlan, activePlan, priceIn, clickHandler, clickSign, paymeHandler, applyBadge };

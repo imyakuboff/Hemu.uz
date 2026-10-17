@@ -1,5 +1,5 @@
 import { state, t, esc, api, icon, num, qs, fmtRel, initials, openModal, closeModal, toast, confirmBox, $ } from '../core.js';
-import { crumbs, cards, pager, accountLayout, emptyBox, regionsOf } from '../ui.js';
+import { crumbs, cards, pager, accountLayout, emptyBox, regionsOf, tickIf } from '../ui.js';
 import { render } from '../app.js';
 import { mapWidget } from '../features.js';
 
@@ -117,7 +117,7 @@ export async function store({ params, query }) {
     <div class="banner-navy" style="align-items:flex-start">
       <div style="display:flex;gap:16px;align-items:center">
         <span class="avatar" style="width:64px;height:64px;font-size:20px;background:#fff;color:var(--navy)">${c.logo ? `<img src="${esc(c.logo)}" alt="">` : esc(initials(c.name))}</span>
-        <div><h2>${esc(c.name)}</h2><p>${esc([c.activity, c.city || c.region_name, c.country_name].filter(Boolean).join(' · '))}</p>
+        <div><h2>${esc(c.name)}${tickIf(c)}</h2><p>${esc([c.activity, c.city || c.region_name, c.country_name].filter(Boolean).join(' · '))}</p>
           <div style="display:flex;gap:6px;flex-wrap:wrap">${c.verified ? `<span class="tag green">${esc(t('verified_seller'))}</span>` : ''}${c.activities.map((a) => `<span class="tag">${esc(t(`act_${a}`))}</span>`).join('')}</div></div>
       </div>
       <div style="text-align:end">

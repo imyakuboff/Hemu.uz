@@ -46,7 +46,11 @@ jobs:
             step "Kod yangilandi: $(cat .deployed) (egasi: $U)"
             sudo -u "$U" npm install --omit=dev --no-audit --no-fund --cache /tmp/hemu-npm >/tmp/hemu-npm.log 2>&1 || { echo "::error::npm install: $(tail -3 /tmp/hemu-npm.log | tr '\n' ' ')"; exit 1; }
             step "Kutubxonalar o'rnatildi"
-            sudo -u "$U" node -e "require('sharp')" >/dev/null 2>&1 && step "sharp: OK" || echo "::warning::sharp yo'q — rasmlar siqilmaydi"
+            if ! sudo -u "$U" node -e "require('sharp')" >/dev/null 2>&1; then
+              # optionalDependencies xatosi jim o'tadi — sabab ko'rinishi uchun alohida o'rnatamiz
+              sudo -u "$U" npm install --no-save --no-audit --no-fund --cache /tmp/hemu-npm sharp@0.34.4 >/tmp/hemu-sharp.log 2>&1 || true
+            fi
+            if sudo -u "$U" node -e "require('sharp')" >/tmp/hemu-sharp2.log 2>&1; then step "sharp: OK (rasmlar siqiladi)"; else echo "::warning::sharp yo'q: $(grep -iE 'err|error' /tmp/hemu-sharp.log /tmp/hemu-sharp2.log | tail -4 | tr '\n' ' ' | cut -c1-500)"; fi
             systemctl restart hemu
             trap - ERR
             set +e

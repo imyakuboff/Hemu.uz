@@ -50,7 +50,11 @@ jobs:
               # optionalDependencies xatosi jim o'tadi — sabab ko'rinishi uchun alohida o'rnatamiz
               sudo -u "$U" npm install --no-save --no-audit --no-fund --cache /tmp/hemu-npm --include=optional --os=linux --cpu=x64 --libc=glibc sharp@0.34.4 @img/sharp-linux-x64@0.34.4 >/tmp/hemu-sharp.log 2>&1 || true
             fi
-            if sudo -u "$U" node -e "require('sharp')" >/tmp/hemu-sharp2.log 2>&1; then step "sharp: OK (rasmlar siqiladi)"; else echo "::warning::sharp yo'q: $(grep -vE '^\s*at |^$' /tmp/hemu-sharp2.log | tail -8 | tr '\n' ' ' | cut -c1-700) | @img: $(ls node_modules/@img 2>&1 | tr '\n' ' ') | cpu: $(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2) sse4_2=$(grep -c sse4_2 /proc/cpuinfo) | npm: $(tail -2 /tmp/hemu-sharp.log 2>/dev/null | tr '\n' ' ' | cut -c1-200)"; fi
+            if ! sudo -u "$U" node -e "require('sharp')" >/dev/null 2>&1; then
+              # Eski virtual CPU (SSE4.2 yo'q) — tayyor binar ishlamaydi; WebAssembly versiyasi istalgan protsessorda ishlaydi
+              sudo -u "$U" npm install --no-save --force --no-audit --no-fund --cache /tmp/hemu-npm @img/sharp-wasm32@0.34.4 >>/tmp/hemu-sharp.log 2>&1 || true
+            fi
+            if sudo -u "$U" node -e "require('sharp')" >/tmp/hemu-sharp2.log 2>&1; then step "sharp: OK (rasmlar siqiladi) $(sudo -u "$U" node -e "const s=require('sharp');console.log(s.versions.sharp, s.versions.vips, require('fs').existsSync('node_modules/@img/sharp-wasm32')?'wasm':'native')" 2>/dev/null)"; else echo "::warning::sharp yo'q: $(grep -vE '^\s*at |^$' /tmp/hemu-sharp2.log | tail -8 | tr '\n' ' ' | cut -c1-700) | @img: $(ls node_modules/@img 2>&1 | tr '\n' ' ') | cpu: $(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2) sse4_2=$(grep -c sse4_2 /proc/cpuinfo) | npm: $(tail -2 /tmp/hemu-sharp.log 2>/dev/null | tr '\n' ' ' | cut -c1-200)"; fi
             systemctl restart hemu
             trap - ERR
             set +e

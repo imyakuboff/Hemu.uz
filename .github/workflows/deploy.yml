@@ -25,27 +25,48 @@ jobs:
           port: 22
           command_timeout: 15m
           script: |
-            set -e
-            # SSH blokini olib tashlash (ko'p xato urinishdan keyin)
+            # Natijalar ::notice:: / ::error:: ko'rinishida chiqadi — GitHub'da "Annotations" bo'limida ko'rinadi
+            step() { echo "::notice::$1"; }
+            trap 'echo "::error::Xato: $BASH_COMMAND (qator $LINENO)"' ERR
+            set -eE
             fail2ban-client unban --all >/dev/null 2>&1 || true
-            # Zaxira nusxa (oxirgi 5 tasi saqlanadi)
+            step "SSH: kirildi ($(hostname))"
             mkdir -p /root/hemu-backups
             tar czf /root/hemu-backups/hemu-$(date +%F-%H%M).tgz --exclude=node_modules -C /opt hemu
             ls -1t /root/hemu-backups/*.tgz | tail -n +6 | xargs -r rm -f
-            # Yangi kod (baza `data/` va `.env` ga tegilmaydi)
+            step "Zaxira olindi"
             U=$(stat -c %U /opt/hemu/package.json)
             rm -rf /tmp/hemu-new
             git clone -q --depth 1 https://github.com/imyakuboff/Hemu.uz /tmp/hemu-new
-            git -C /tmp/hemu-new rev-parse HEAD > /tmp/hemu-new/.deployed
+            git -C /tmp/hemu-new rev-parse --short HEAD > /tmp/hemu-new/.deployed
             rm -rf /tmp/hemu-new/.git /tmp/hemu-new/.github
             chown -R "$U": /tmp/hemu-new
             sudo -u "$U" cp -r /tmp/hemu-new/. /opt/hemu/
             cd /opt/hemu
-            sudo -u "$U" npm install --omit=dev --no-audit --no-fund --cache /tmp/hemu-npm
+            step "Kod yangilandi: $(cat .deployed) (egasi: $U)"
+            sudo -u "$U" npm install --omit=dev --no-audit --no-fund --cache /tmp/hemu-npm >/tmp/hemu-npm.log 2>&1 || { echo "::error::npm install: $(tail -3 /tmp/hemu-npm.log | tr '\n' ' ')"; exit 1; }
+            step "Kutubxonalar o'rnatildi"
+            sudo -u "$U" node -e "require('sharp')" >/dev/null 2>&1 && step "sharp: OK" || echo "::warning::sharp yo'q — rasmlar siqilmaydi"
             systemctl restart hemu
-            sleep 4
-            systemctl is-active hemu
-            curl -fsS http://127.0.0.1:4700/health
-            echo
-            sudo -u "$U" node -e "require('sharp');console.log('sharp OK')" || echo "sharp yo'q (rasmlar siqilmaydi)"
-            echo "Yangilandi: $(cat .deployed)"
+            trap - ERR
+            set +e
+            PORT=$(grep -E '^PORT=' .env 2>/dev/null | cut -d= -f2 | tr -d '"\r '); PORT=${PORT:-4700}
+            OK=""
+            for i in 1 2 3 4 5 6 7 8 9 10; do
+              sleep 2
+              H=$(curl -s --max-time 3 "http://127.0.0.1:$PORT/health") && [ -n "$H" ] && { OK=1; break; }
+            done
+            if [ "$(systemctl is-active hemu)" != "active" ]; then
+              echo "::error::hemu xizmati ishlamayapti: $(journalctl -u hemu -n 5 --no-pager | tail -5 | tr '\n' ' ' | cut -c1-600)"
+              exit 1
+            fi
+            if [ -n "$OK" ]; then step "Sayt javob beryapti (port $PORT): $H"; else echo "::warning::health javob bermadi (port $PORT), lekin xizmat ishlayapti: $(journalctl -u hemu -n 3 --no-pager | tr '\n' ' ' | cut -c1-400)"; fi
+            # Email sozlamasi va oxirgi yuborishlar (diagnostika)
+            DB=$(grep -E '^DB_FILE=' .env 2>/dev/null | cut -d= -f2 | tr -d '"\r '); DB=${DB:-data/movexgo.db}
+            INFO=$(sudo -u "$U" node --disable-warning=ExperimentalWarning -e "
+              const {DatabaseSync}=require('node:sqlite'); const d=new DatabaseSync(process.argv[1],{readOnly:true});
+              const s=d.prepare(\"SELECT key,value FROM settings WHERE key IN ('mailProvider','smtp.host','smtp.user','otpDevEcho','otpTestRegistration','smsProvider')\").all().map(r=>r.key+'='+r.value).join(', ');
+              const l=d.prepare('SELECT created_at,provider,ok,error FROM sms_log ORDER BY id DESC LIMIT 3').all().map(r=>[r.created_at,r.provider,r.ok,r.error||''].join(' ')).join(' | ');
+              console.log('Sozlamalar: '+(s||'(yo\'q)')+' || Oxirgi yuborishlar: '+(l||'(yo\'q)'));" "$DB" 2>&1 | tail -1)
+            step "$INFO"
+            step "Tayyor ✅"

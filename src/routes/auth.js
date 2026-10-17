@@ -88,8 +88,8 @@ function emailOf(raw) {
 }
 
 // isNew — raqam hali ro'yxatdan o'tmagan: "test ro'yxatdan o'tish" rejimida kod faqat shunda ekranga chiqadi
-// email — kod SMS o'rniga shu manzilga (Gmail va h.k.) yuboriladi
-async function sendCode(req, phoneE164, smsKey = 'sms.otp', { isNew = false, email = null } = {}) {
+// email — kod shu manzilga bog'lanadi; via = 'email' bo'lsa kod SMS o'rniga shu manzilga (Gmail) yuboriladi
+async function sendCode(req, phoneE164, smsKey = 'sms.otp', { isNew = false, email = null, via = email ? 'email' : 'sms' } = {}) {
   // Test rejimi: kod ekranga chiqadi. Admin/moderator hisoblari uchun HECH QACHON (serverda) — panelni egallab olishning oldini olish
   const staff = process.env.NODE_ENV === 'production' && Boolean(db.get(`SELECT 1 FROM users WHERE phone = ? AND role IN ('admin', 'moderator')`, phoneE164));
   const echo = !staff && (config.otpDevEcho || (config.otpTestRegistration && isNew));
@@ -103,7 +103,7 @@ async function sendCode(req, phoneE164, smsKey = 'sms.otp', { isNew = false, ema
     phoneE164, otpHash(phoneE164, code, email), now + config.otpTtlSec * 1000, now,
   );
   try {
-    if (email) {
+    if (via === 'email') {
       const mail = require('../lib/mail');
       await mail.sendMail({ to: email, ...mail.codeEmail(req.lang, code) });
     } else {
@@ -111,7 +111,7 @@ async function sendCode(req, phoneE164, smsKey = 'sms.otp', { isNew = false, ema
     }
   } catch (e) {
     // Sinov rejimida kod ekranga chiqadi — SMS/email xatosi kirishni to'xtatmaydi
-    if (!echo) fail(502, email ? 'err.mail_failed' : 'err.sms_failed');
+    if (!echo) fail(502, via === 'email' ? 'err.mail_failed' : 'err.sms_failed');
   }
   return echo ? { dev_code: code } : {};
 }
@@ -143,8 +143,9 @@ function signIn(req, res, user, extra = {}) {
 }
 
 // Ro'yxatdan o'tish chiptasi: telefon (yoki email) tasdiqlanganini 30 daqiqa saqlaydi
-const ticketFor = (phone, email = null) => {
-  const body = Buffer.from(JSON.stringify({ phone, email: email || undefined, exp: Date.now() + 30 * 60000 })).toString('base64url');
+// ev — email kod orqali tasdiqlangan (kod emailga yuborilgan)
+const ticketFor = (phone, email = null, ev = false) => {
+  const body = Buffer.from(JSON.stringify({ phone, email: email || undefined, ev: ev || undefined, exp: Date.now() + 30 * 60000 })).toString('base64url');
   return `${body}.${sha(`reg:${body}`)}`;
 };
 function readTicket(tk) {
@@ -152,8 +153,11 @@ function readTicket(tk) {
   if (!body || sig !== sha(`reg:${body}`)) fail(422, 'err.otp_invalid');
   const d = JSON.parse(Buffer.from(body, 'base64url').toString());
   if (d.exp < Date.now()) fail(422, 'err.otp_invalid');
-  return { phone: d.phone, email: d.email || null };
+  return { phone: d.phone, email: d.email || null, emailVerified: Boolean(d.ev) };
 }
+// Ro'yxatdan o'tish kodi qayerga yuboriladi: email (SMTP sozlangan bo'lsa yoki sinov rejimida), aks holda SMS —
+// Gmail hali sozlanmagan serverda ro'yxatdan o'tish to'xtab qolmasligi uchun
+const regChannel = () => (require('../lib/mail').enabled() || config.otpDevEcho || config.otpTestRegistration ? 'email' : 'sms');
 const emailTaken = (email) => Boolean(email && db.get('SELECT 1 FROM users WHERE email = ? COLLATE NOCASE', email));
 
 // ---------- SMS orqali tezkor kirish (eski oqim, yangi foydalanuvchi — "mijoz") ----------
@@ -181,23 +185,26 @@ r.post('/auth/register/start', authLimit, async (req, res) => {
   if (config.registrationOpen === false) fail(403, 'err.registration_closed');
   const p = phoneOf(req);
   if (db.get('SELECT 1 FROM users WHERE phone = ?', p.e164)) fail(409, 'err.already_registered');
-  // Email kiritilgan bo'lsa — kod emailga (Gmail) yuboriladi, aks holda SMS
+  // Email (Gmail) majburiy: tasdiqlash kodi shu manzilga yuboriladi
   const email = emailOf(req.body?.email);
+  if (!email) fail(422, 'err.validation', { email: 'required' });
   if (emailTaken(email)) fail(409, 'err.email_taken', { email: 'taken' });
-  const sent = await sendCode(req, p.e164, 'sms.otp', { isNew: true, email });
-  res.json({ phone: p.e164, country: p.country, channel: email ? 'email' : 'sms', email: email || undefined, expires_in: config.otpTtlSec, ...sent });
+  const via = regChannel();
+  const sent = await sendCode(req, p.e164, 'sms.otp', { isNew: true, email, via });
+  res.json({ phone: p.e164, country: p.country, channel: via, email, expires_in: config.otpTtlSec, ...sent });
 });
 
 r.post('/auth/register/verify', authLimit, (req, res) => {
   const p = phoneOf(req);
   if (db.get('SELECT 1 FROM users WHERE phone = ?', p.e164)) fail(409, 'err.already_registered');
   const email = emailOf(req.body?.email);
+  if (!email) fail(422, 'err.validation', { email: 'required' });
   consumeCode(p.e164, req.body?.code, email);
-  res.json({ ticket: ticketFor(p.e164, email), phone: p.e164, country: p.country, email: email || undefined });
+  res.json({ ticket: ticketFor(p.e164, email, regChannel() === 'email'), phone: p.e164, country: p.country, email });
 });
 
 r.post('/auth/register', authLimit, (req, res) => {
-  const { phone, email: verifiedEmail } = readTicket(req.body?.ticket);
+  const { phone, email: ticketEmail, emailVerified } = readTicket(req.body?.ticket);
   if (db.get('SELECT 1 FROM users WHERE phone = ?', phone)) fail(409, 'err.already_registered');
   const country = normalizePhone(phone).country;
   const v = validate(req.body, {
@@ -208,8 +215,8 @@ r.post('/auth/register', authLimit, (req, res) => {
     lang: { type: 'enum', values: LANGS },
   });
   if (v.password) assertStrong(v.password);
-  // Kod orqali tasdiqlangan email ustun turadi
-  if (verifiedEmail) v.email = verifiedEmail;
+  // 1-qadamda kiritilgan (kod yuborilgan) email ustun turadi
+  if (ticketEmail) v.email = ticketEmail;
   if (emailTaken(v.email)) fail(409, 'err.email_taken', { email: 'taken' });
   const b = req.body || {};
   // Kompaniya ma'lumotlarini oldindan tekshirish (foydalanuvchi yaratilishidan oldin)
@@ -237,7 +244,7 @@ r.post('/auth/register', authLimit, (req, res) => {
   }
   const id = db.tx(() => {
     const uid = db.insert('users', {
-      phone, name: v.name, email: v.email, email_verified_at: verifiedEmail ? new Date().toISOString() : null, country, lang: v.lang || req.lang, currency: COUNTRY[country].currency,
+      phone, name: v.name, email: v.email, email_verified_at: ticketEmail && emailVerified ? new Date().toISOString() : null, country, lang: v.lang || req.lang, currency: COUNTRY[country].currency,
       account_type: v.account_type, password_hash: v.password ? hashPassword(v.password) : null,
       password_set_at: v.password ? new Date().toISOString() : null, city: company?.city || b.specialist?.city,
     });

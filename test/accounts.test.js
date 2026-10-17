@@ -33,9 +33,11 @@ async function api(method, url, { token, body, lang = 'ru', form } = {}) {
 }
 
 async function register(phone, data) {
-  const s = await api('POST', '/api/v1/auth/register/start', { body: { phone } });
+  // Gmail majburiy: kod emailga keladi
+  const email = data?.email || `u${phone.replace(/\D/g, '')}@gmail.com`;
+  const s = await api('POST', '/api/v1/auth/register/start', { body: { phone, email } });
   assert.equal(s.status, 200, JSON.stringify(s.body));
-  const v = await api('POST', '/api/v1/auth/register/verify', { body: { phone, code: s.body.dev_code } });
+  const v = await api('POST', '/api/v1/auth/register/verify', { body: { phone, email, code: s.body.dev_code } });
   assert.equal(v.status, 200);
   const r = await api('POST', '/api/v1/auth/register', { body: { ticket: v.body.ticket, ...data } });
   return r;
@@ -59,7 +61,7 @@ after(() => {
 
 test("ro'yxatdan o'tish: kompaniya (faoliyat turlari bilan)", async () => {
   assert.ok(S.seller.token, 'parol bilan kirish');
-  const dup = await api('POST', '/api/v1/auth/register/start', { body: { phone: '+998901234567' } });
+  const dup = await api('POST', '/api/v1/auth/register/start', { body: { phone: '+998901234567', email: 'dup@gmail.com' } });
   assert.equal(dup.status, 409);
   assert.equal(dup.body.error.code, 'already_registered');
   const bad = await register('+998911110001', { account_type: 'company', name: 'Олим', password: 'Strong2026', company: { name: 'ООО «Спецтранс»', activities: [] } });
@@ -237,4 +239,24 @@ test("kompaniya: faoliyat turlarini o'zgartirish va do'kon ichida qidiruv", asyn
   assert.ok(found.body.listings.items.every((l) => /jcb/i.test(l.title)));
   const none = await api('GET', `/api/v1/companies/${ok.body.id}?q=zzzqqq`);
   assert.equal(none.body.listings.total, 0);
+});
+test("ro'yxatdan o'tish: Gmail majburiy, kod emailga bog'lanadi", async () => {
+  const phone = '+998935550101';
+  const no = await api('POST', '/api/v1/auth/register/start', { body: { phone } });
+  assert.equal(no.status, 422);
+  assert.equal(no.body.error.details.email, 'required');
+  const s = await api('POST', '/api/v1/auth/register/start', { body: { phone, email: 'Mail.Test@Gmail.com' } });
+  assert.equal(s.status, 200);
+  assert.equal(s.body.email, 'mail.test@gmail.com');
+  // Boshqa email bilan kod ishlamaydi
+  const bad = await api('POST', '/api/v1/auth/register/verify', { body: { phone, email: 'other@gmail.com', code: s.body.dev_code } });
+  assert.equal(bad.status, 422);
+  const v = await api('POST', '/api/v1/auth/register/verify', { body: { phone, email: 'mail.test@gmail.com', code: s.body.dev_code } });
+  assert.equal(v.status, 200);
+  const r = await api('POST', '/api/v1/auth/register', { body: { ticket: v.body.ticket, account_type: 'client', name: 'Mail Test', password: 'Parol1234' } });
+  assert.equal(r.status, 201);
+  assert.equal(r.body.user.email, 'mail.test@gmail.com');
+  // Shu email bilan ikkinchi hisob ochib bo'lmaydi
+  const dup = await api('POST', '/api/v1/auth/register/start', { body: { phone: '+998935550102', email: 'mail.test@gmail.com' } });
+  assert.equal(dup.status, 409);
 });

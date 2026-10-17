@@ -222,7 +222,7 @@ test("yangi foydalanuvchiga ro'yxatdan o'tganda 200 000 so'm bonus (bir marta)",
 
 test("test ro'yxatdan o'tish: kod faqat yangi raqamga ekranda, mavjud hisobga — yo'q", async () => {
   await A('PUT', '/integrations', { otpDevEcho: false, otpTestRegistration: true });
-  const fresh = await api('POST', '/api/v1/auth/register/start', { body: { phone: '+998935557711' } });
+  const fresh = await api('POST', '/api/v1/auth/register/start', { body: { phone: '+998935557711', email: 'fresh7711@gmail.com' } });
   assert.match(String(fresh.body.dev_code), /^\d{6}$/);
   const quick = await api('POST', '/api/v1/auth/otp/request', { body: { phone: '+998935557722' } });
   assert.equal(quick.body.exists, false);

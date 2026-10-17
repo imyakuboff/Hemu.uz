@@ -19,8 +19,6 @@ const regionOptions = (regs, sel = '') => `<option value="">${esc(t('choose'))}<
 export async function register({ query }) {
   if (state.user) return { redirect: '/dashboard' };
   const opts = await api('/specialists/options');
-  // Kodni emailga (Gmail) yuborish server sozlamalarida yoqilgan bo'lsa
-  const emailOtp = Boolean(state.meta?.auth?.email_otp);
   const html = `
   ${crumbs([[t('home'), '/'], [t('register')]])}
   <div class="auth-card">
@@ -30,12 +28,7 @@ export async function register({ query }) {
 
     <form data-s1 class="auth-step">
       <label class="lbl">${esc(t('phone'))}</label>${phoneField()}
-      ${emailOtp ? `<label class="lbl" style="margin-top:14px">${esc(t('code_where'))}</label>
-      <div class="pick-grid">
-        <label class="pick big"><input type="radio" name="channel" value="email" checked><span>${icon('mail')} ${esc(t('via_email'))}</span></label>
-        <label class="pick big"><input type="radio" name="channel" value="sms"><span>${icon('phone')} ${esc(t('via_sms'))}</span></label>
-      </div>
-      <div data-email-box style="margin-top:12px"><label class="lbl">${esc(t('email'))} *</label><input class="input" name="email" type="email" inputmode="email" autocomplete="email" maxlength="120" placeholder="name@gmail.com"><div class="hint">${esc(t('email_code_hint'))}</div></div>` : ''}
+      <div style="margin-top:14px"><label class="lbl">${esc(t('via_email'))} *</label><input class="input" name="email" type="email" inputmode="email" autocomplete="email" maxlength="120" placeholder="name@gmail.com" required><div class="hint">${icon('mail')} ${esc(t('email_code_hint'))}</div></div>
       <button class="btn btn-primary btn-block" style="margin-top:16px">${esc(t('get_code'))}</button>
     </form>
 
@@ -74,21 +67,14 @@ export async function register({ query }) {
       const show = (n) => { Object.entries(s).forEach(([k, el]) => { el.hidden = Number(k) !== n; }); $('[data-steps]', main).innerHTML = stepper(n); };
       let phone; let country; let ticket; let type; let email;
       if (query.phone) s[1].phone.value = query.phone;
-      const chan = () => (emailOtp ? $('[name="channel"]:checked', s[1]).value : 'sms');
-      if (emailOtp) {
-        s[1].addEventListener('change', (e) => {
-          if (e.target.name !== 'channel') return;
-          $('[data-email-box]', s[1]).hidden = chan() !== 'email';
-          if (chan() === 'email') s[1].email.focus();
-        });
-        s[1].email.addEventListener('input', () => s[1].email.classList.remove('err'));
-      }
+      s[1].email.addEventListener('input', () => s[1].email.classList.remove('err'));
 
       s[1].onsubmit = async (e) => {
         e.preventDefault();
         ({ phone, country } = readPhone(s[1]));
-        email = chan() === 'email' ? s[1].email.value.trim().toLowerCase() : undefined;
-        if (chan() === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { markErrors(s[1], { email: 1 }); s[1].email.focus(); return; }
+        // Gmail majburiy: tasdiqlash kodi shu manzilga keladi
+        email = s[1].email.value.trim().toLowerCase();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { markErrors(s[1], { email: 1 }); s[1].email.focus(); return; }
         try {
           const r = await api('/auth/register/start', { method: 'POST', body: { phone, country, email } });
           phone = r.phone; country = r.country; email = r.email;

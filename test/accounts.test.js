@@ -241,6 +241,8 @@ test("kompaniya: faoliyat turlarini o'zgartirish va do'kon ichida qidiruv", asyn
   assert.equal(none.body.listings.total, 0);
 });
 test("ro'yxatdan o'tish: Gmail majburiy, kod emailga bog'lanadi", async () => {
+  // Fayl oxirida — oldingi testlar auth limitini (10 daqiqada 30) tugatgan bo'ladi
+  require('../src/lib/auth').resetRateLimits();
   const phone = '+998935550101';
   const no = await api('POST', '/api/v1/auth/register/start', { body: { phone } });
   assert.equal(no.status, 422);

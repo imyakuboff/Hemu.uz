@@ -46,15 +46,19 @@ jobs:
             step "Kod yangilandi: $(cat .deployed) (egasi: $U)"
             sudo -u "$U" npm install --omit=dev --include=optional --no-audit --no-fund --cache /tmp/hemu-npm >/tmp/hemu-npm.log 2>&1 || { echo "::error::npm install: $(tail -3 /tmp/hemu-npm.log | tr '\n' ' ')"; exit 1; }
             step "Kutubxonalar o'rnatildi"
-            if ! sudo -u "$U" node -e "require('sharp')" >/dev/null 2>&1; then
-              # optionalDependencies xatosi jim o'tadi — sabab ko'rinishi uchun alohida o'rnatamiz
-              sudo -u "$U" npm install --no-save --no-audit --no-fund --cache /tmp/hemu-npm --include=optional --os=linux --cpu=x64 --libc=glibc sharp@0.34.4 @img/sharp-linux-x64@0.34.4 >/tmp/hemu-sharp.log 2>&1 || true
+            # Rasm siqish: sharp (yangi CPU) yoki vipsthumbnail (har qanday CPU, masalan eski QEMU)
+            if ! sudo -u "$U" node -e "require('sharp')" >/dev/null 2>&1 && ! command -v vipsthumbnail >/dev/null; then
+              DEBIAN_FRONTEND=noninteractive apt-get install -y -q --no-install-recommends libvips-tools >/tmp/hemu-apt.log 2>&1 \
+                || { apt-get update -q >/dev/null 2>&1; DEBIAN_FRONTEND=noninteractive apt-get install -y -q --no-install-recommends libvips-tools >/tmp/hemu-apt.log 2>&1; } \
+                || echo "::warning::libvips-tools o'rnatilmadi: $(tail -2 /tmp/hemu-apt.log | tr '\n' ' ')"
             fi
-            if ! sudo -u "$U" node -e "require('sharp')" >/dev/null 2>&1; then
-              # Eski virtual CPU (SSE4.2 yo'q) — tayyor binar ishlamaydi; WebAssembly versiyasi istalgan protsessorda ishlaydi
-              sudo -u "$U" npm install --no-save --force --no-audit --no-fund --cache /tmp/hemu-npm @img/sharp-wasm32@0.34.4 >>/tmp/hemu-sharp.log 2>&1 || true
-            fi
-            if sudo -u "$U" node -e "require('sharp')" >/tmp/hemu-sharp2.log 2>&1; then step "sharp: OK (rasmlar siqiladi) $(sudo -u "$U" node -e "const s=require('sharp');console.log(s.versions.sharp, s.versions.vips, require('fs').existsSync('node_modules/@img/sharp-wasm32')?'wasm':'native')" 2>/dev/null)"; else echo "::warning::sharp yo'q: $(grep -vE '^\s*at |^$' /tmp/hemu-sharp2.log | tail -8 | tr '\n' ' ' | cut -c1-700) | @img: $(ls node_modules/@img 2>&1 | tr '\n' ' ') | cpu: $(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2) sse4_2=$(grep -c sse4_2 /proc/cpuinfo) | npm: $(tail -2 /tmp/hemu-sharp.log 2>/dev/null | tr '\n' ' ' | cut -c1-200)"; fi
+            cp public/img/demo/hero.jpg /tmp/hemu-imgtest.jpg 2>/dev/null && chown "$U": /tmp/hemu-imgtest.jpg
+            IMG=$(sudo -u "$U" node -e "
+              const im=require('./src/lib/images'); const fs=require('fs'); const b=fs.statSync('/tmp/hemu-imgtest.jpg').size;
+              im.optimizeFile('/tmp/hemu-imgtest.jpg','listings').then(r=>console.log(r?('dvigatel='+im.engine()+', '+Math.round(b/1024)+' KB -> '+Math.round(r.size/1024)+' KB, kichik nusxa: '+(r.thumb?'bor':'yo\'q')):'siqish o\'chiq'))
+              .catch(e=>console.log('XATO '+e.message));" 2>&1 | tail -1)
+            rm -f /tmp/hemu-imgtest*
+            case "$IMG" in dvigatel=*) step "Rasm siqish: $IMG";; *) echo "::warning::Rasm siqish ishlamayapti: $IMG";; esac
             systemctl restart hemu
             trap - ERR
             set +e

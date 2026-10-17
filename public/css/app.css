@@ -1651,3 +1651,15 @@ em.mt-del { color: #1f9d55; font-weight: 600; }
 .ymap { position: relative; overflow: hidden; }
 .ymap [class*="ymaps-2"][class*="-balloon"] a { color: var(--ink); }
 .ymap [class*="ymaps-2"][class*="-copyrights-promo"] { opacity: .85; }
+
+/* Ulashish evaziga TOP */
+.top-badge.share-top { background: linear-gradient(90deg, #ff7a18, #ffb347); color: #3b1400; }
+.share-progress { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); display: grid; gap: 6px; }
+.share-progress .sp-bar { height: 6px; border-radius: 6px; background: var(--line); overflow: hidden; }
+.share-progress .sp-bar span { display: block; height: 100%; background: linear-gradient(90deg, #ff7a18, #f2b01e); border-radius: 6px; }
+
+/* Serverda chizilgan sahifa matni (ilova yuklanguncha / qidiruv botlari uchun) */
+.seo-ssr h1 { font-size: 24px; margin: 16px 0 8px; }
+.seo-ssr .seo-list { padding-left: 18px; line-height: 1.8; }
+.seo-ssr .seo-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
+.seo-ssr .seo-table th, .seo-ssr .seo-table td { border-bottom: 1px solid var(--line, #e5e9f0); padding: 8px 6px; text-align: left; }

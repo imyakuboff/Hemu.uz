@@ -154,6 +154,8 @@ function card(l, ctx, cache = sellerCache()) {
     tier: l.tier && l.tier_until > nowSql() ? l.tier : null,
     tier_until: l.tier && l.tier_until > nowSql() ? l.tier_until : null,
     highlighted: Boolean(l.highlighted_until && l.highlighted_until > nowSql()),
+    share_top: Boolean(l.share_until && l.share_until > nowSql()),
+    share_count: l.share_count || 0,
     geo: l.lat !== null && l.lat !== undefined ? { lat: l.lat, lng: l.lng } : null,
     views: l.views,
     published_at: l.published_at,
@@ -199,14 +201,16 @@ function detail(l, ctx) {
 
 // ---------- Qidiruv ----------
 // TOP e'lonlar har doim yuqorida (standart saralashda)
-// Darajalar: VIP > GOLD > PREMIUM > TOP > oddiy
+// Darajalar: VIP > GOLD > PREMIUM > TOP (pullik) > ulashish TOPi (ko'p ulashilgani yuqorida) > oddiy
 const TIER_RANK = `(CASE WHEN COALESCE(l.tier_until, '') > datetime('now') THEN (CASE l.tier WHEN 'vip' THEN 3 WHEN 'gold' THEN 2 WHEN 'premium' THEN 1 ELSE 0 END) ELSE 0 END) DESC`;
-const PROMO = `${TIER_RANK}, (COALESCE(l.promoted_until, '') > datetime('now')) DESC`;
+const SHARE_TOP = `(COALESCE(l.share_until, '') > datetime('now'))`;
+const PROMO = `${TIER_RANK}, (COALESCE(l.promoted_until, '') > datetime('now')) DESC, ${SHARE_TOP} DESC, (CASE WHEN ${SHARE_TOP} THEN l.share_count ELSE 0 END) DESC`;
 const SORTS = {
   new: `${PROMO}, l.bumped_at DESC, l.id DESC`,
   price_asc: 'l.price_usd IS NULL, l.price_usd ASC, l.id DESC',
   price_desc: 'l.price_usd IS NULL, l.price_usd DESC, l.id DESC',
   popular: 'l.views DESC, l.id DESC',
+  shared: 'l.share_count DESC, l.views DESC, l.id DESC',
   year_desc: 'l.year IS NULL, l.year DESC, l.id DESC',
 };
 

@@ -154,7 +154,7 @@ export function card(l) {
   return `<article class="card ${l.highlighted ? 'hl' : ''} ${l.tier ? `tier-${l.tier}` : ''}">
     <div class="img">
       <a href="/listing/${l.id}" style="display:block;height:100%"><img src="${esc(imgOf(l))}" alt="${esc(l.title)}" loading="lazy"></a>
-      ${l.tier ? tierBadge(l.tier) : l.promoted ? `<span class="top-badge">${esc(t('promoted_badge'))}</span>` : ''}
+      ${l.tier ? tierBadge(l.tier) : l.promoted ? `<span class="top-badge">${esc(t('promoted_badge'))}</span>` : l.share_top ? `<span class="top-badge share-top" title="${esc(t('share_top_badge_hint'))}">🔥 ${esc(t('share_top_badge'))}</span>` : ''}
       <button class="fav ${l.is_favorite ? 'on' : ''}" data-fav="${l.id}" aria-label="${esc(t('to_favorites'))}">${icon('heart')}</button>
       ${l.kind !== 'service' && l.kind !== 'material' ? `<button class="cmp-btn ${inCmp ? 'on' : ''}" data-cmp="${l.id}" title="${esc(t('compare'))}">${icon('scale')}</button>` : ''}
       <span class="deal">${esc(badgeOf(l))}</span>

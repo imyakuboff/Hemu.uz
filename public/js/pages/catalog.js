@@ -107,7 +107,7 @@ export async function catalog({ query }) {
           <span class="view-toggle"><a href="/catalog${qs({ ...q, view: undefined, page: undefined })}" class="${isMap ? '' : 'on'}">${icon('list')} ${esc(t('list_view'))}</a><a href="/catalog${qs({ ...q, view: 'map', page: undefined })}" class="${isMap ? 'on' : ''}">${icon('map')} ${esc(t('map'))}</a></span>
           ${q.near ? `<select class="sort-select" data-radius>${[25, 50, 100, 250, 500].map((r) => `<option value="${r}" ${Number(q.radius_km || 100) === r ? 'selected' : ''}>${esc(t('radius'))}: ${r} km</option>`).join('')}</select>` : `<button class="btn btn-soft btn-sm" data-near>${icon('target')} ${esc(t('near_me'))}</button>`}
         </div>
-        <select class="sort-select" data-sort>${['new', 'price_asc', 'price_desc', 'popular', 'year_desc', ...(q.near ? ['distance'] : [])].map((s) => `<option value="${s}" ${(q.sort || 'new') === s ? 'selected' : ''}>${esc(s === 'new' ? t('sort_actual') : t(`sort_${s}`))}</option>`).join('')}</select></div>
+        <select class="sort-select" data-sort>${['new', 'price_asc', 'price_desc', 'popular', 'shared', 'year_desc', ...(q.near ? ['distance'] : [])].map((s) => `<option value="${s}" ${(q.sort || 'new') === s ? 'selected' : ''}>${esc(s === 'new' ? t('sort_actual') : t(`sort_${s}`))}</option>`).join('')}</select></div>
       <div class="active-filters">${activeChips(q, f)}${state.user && (q.q || q.category) ? `<button class="chip-x" data-save-search>${icon('heart')} ${esc(t('save_search'))}</button>` : ''}</div>
       ${isMap ? '<div class="map-big" data-bigmap style="margin-bottom:16px"></div>' : ''}
       ${res.items.length ? cards(res.items, 3) : emptyBox(t('nothing_found'), t('nothing_found_sub'))}
@@ -196,7 +196,7 @@ export async function feed({ query }) {
       <select class="chip-x" name="region_sel" style="border:0;height:28px">${regionOpts}</select>
       <select class="chip-x" name="period_days" style="border:0;height:28px"><option value="">${esc(t('all'))}</option><option value="7" ${q.period_days === '7' ? 'selected' : ''}>${esc(t('last_7'))}</option></select>
     </div>
-    <select class="chip-x" name="sort" style="border:0;height:32px">${['new', 'price_asc', 'price_desc', 'popular'].map((s) => `<option value="${s}" ${(q.sort || 'new') === s ? 'selected' : ''}>${esc(t(`sort_${s}`))}</option>`).join('')}</select>
+    <select class="chip-x" name="sort" style="border:0;height:32px">${['new', 'price_asc', 'price_desc', 'popular', 'shared'].map((s) => `<option value="${s}" ${(q.sort || 'new') === s ? 'selected' : ''}>${esc(t(`sort_${s}`))}</option>`).join('')}</select>
   </div>
   <h2 style="font-size:17px;margin:18px 0 14px">${esc(t('feed_offers', { n: num(res.total) }))}</h2>
   ${res.items.length ? cards(res.items, 4) : emptyBox(t('nothing_found'), t('nothing_found_sub'))}

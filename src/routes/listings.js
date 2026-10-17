@@ -18,6 +18,7 @@ const { ensureConversation, postMessage } = require('./chat');
 
 const r = Router();
 const ctx = (req) => ({ lang: req.lang, currency: req.currency, favs: L.favoritesSet(req.user?.id) });
+const growth = require('../lib/growth');
 const today = () => new Date().toISOString().slice(0, 10);
 
 // ---------- Bosh sahifa ----------
@@ -112,10 +113,14 @@ r.get('/listings/:id', (req, res, next) => {
   const l = loadListing(req.params.id);
   if (l.status !== 'active' && !canManage(req, l)) notFound();
   if (l.status === 'active' && req.user?.id !== l.user_id) countView(req, l);
+  // Ulashilgan havola orqali kelgan bo'lsa (?s=kanal) — e'lon ulashish hisobiga
+  const shareCh = req.get('x-share-channel');
+  if (shareCh) growth.recordShareVisit(req, l, shareCh.toLowerCase());
   const c = ctx(req);
   const out = L.detail(db.get('SELECT * FROM listings WHERE id = ?', l.id), c);
   out.similar = similar(l, c, 4);
   out.is_owner = req.user?.id === l.user_id;
+  out.share = out.is_owner ? growth.shareStatus(l) : { step: growth.SHARE_STEP, hours: growth.SHARE_HOURS };
   out.serial = require('./trust').serialCheck(l);
   out.price_history = priceHistory(l, req);
   out.rent = l.deal_type === 'rent';
@@ -382,9 +387,11 @@ function activate(id) {
   }
   // Qiziqishlari mos foydalanuvchilarga (bo'lim yoki yo'nalish)
   const cat = cats.byId(l.subcategory_id) || cats.byId(l.category_id);
+  // Kuniga 5 tadan oshmaydi — ko'p xabar odamni bezdiradi va bildirishnomalarni o'chirib qo'yadi
   for (const i of db.all('SELECT DISTINCT user_id FROM user_interests WHERE category_id IN (?, ?) LIMIT 2000', l.category_id, l.subcategory_id || 0)) {
     if (notified.has(i.user_id)) continue;
     notified.add(i.user_id);
+    if (db.get(`SELECT COUNT(*) AS n FROM notifications WHERE user_id = ? AND type = 'interest' AND created_at > datetime('now', '-1 day')`, i.user_id).n >= 5) continue;
     notify(i.user_id, 'interest', { category_slug: cat?.slug, category: cat ? pick(cat.names, 'ru') : '', title: l.title, listing_id: l.id }, `/listing/${l.id}`);
   }
   // Saqlangan qidiruvlar bo'yicha xabar berish

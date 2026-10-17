@@ -34,7 +34,7 @@ r.get('/meta', (req, res) => {
     listing_statuses: ['draft', 'moderation', 'active', 'rejected', 'archived', 'sold', 'deleted'].map((v) => ({ value: v, label: t(lang, `ls.${v}`) })),
     order_statuses: ['new', 'confirmed', 'shipped', 'delivered', 'completed', 'cancelled'].map((v) => ({ value: v, label: t(lang, `os.${v}`) })),
     lead_statuses: ['new', 'awaiting', 'negotiating', 'closed'].map((v) => ({ value: v, label: t(lang, `lead.${v}`) })),
-    sorts: ['new', 'price_asc', 'price_desc', 'popular', 'year_desc', 'distance'],
+    sorts: ['new', 'price_asc', 'price_desc', 'popular', 'shared', 'year_desc', 'distance'],
     escrow_fee_pct: require('../config').escrowFeePct,
     payment_providers: require('../lib/payments').providers(),
     // Ro'yxatdan o'tishda kodni email (Gmail) orqali olish mumkinmi

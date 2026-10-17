@@ -90,7 +90,13 @@ function createApp() {
   // ---------- SEO ----------
   const seo = require('./lib/seo');
   app.get('/robots.txt', (_req, res) => res.type('text/plain').send(seo.robots()));
-  app.get('/sitemap.xml', (_req, res) => res.type('application/xml').send(seo.sitemap()));
+  app.get('/sitemap.xml', (_req, res) => res.type('application/xml').send(seo.sitemapIndex()));
+  // Har til uchun alohida xarita: /sitemap-main.xml (tilsiz), /sitemap-uz.xml, /sitemap-ru.xml ...
+  app.get(/^\/sitemap-([a-z]{2,4})\.xml$/, (req, res, next) => {
+    const xml = seo.sitemap(req.params[0] === 'main' ? '' : req.params[0]);
+    if (!xml) return next();
+    res.type('application/xml').send(xml);
+  });
 
   // ---------- Frontend (SPA) ----------
   const pub = path.join(__dirname, '..', 'public');

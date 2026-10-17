@@ -1,4 +1,4 @@
-import { t, esc, api, icon, num, money, fmtRel, openModal, closeModal, toast, $, $$ } from '../core.js';
+import { t, esc, api, icon, num, money, fmtRel, fmtDate, openModal, closeModal, toast, $, $$ } from '../core.js';
 import { crumbs, cards, imgOf, priceText, requireLogin, shortCat, tierBadge, promoBadge } from '../ui.js';
 import { state } from '../core.js';
 import { mapWidget, yandexSearchUrl, leasingModal, reportModal, inspectionModal, promoteModal, priceChart, calendarWidget, compareList, providerOptions, bindSeg, goPay, shareLink } from '../features.js';
@@ -70,8 +70,11 @@ function sellerCard(l, part) {
   </div>`;
 }
 
-export default async function listing({ params }) {
-  const l = await api(`/listings/${params[0]}`, { headers: { 'X-View-Source': state.viewSource || 'direct' } });
+export default async function listing({ params, query }) {
+  // Ulashilgan havola (?s=telegram ...) orqali kelgan — e'lon ulashish hisobiga yoziladi
+  const shareCh = /^[a-z]{2,10}$/.test(query?.s || '') ? query.s : '';
+  const l = await api(`/listings/${params[0]}`, { headers: { 'X-View-Source': shareCh ? 'share' : (state.viewSource || 'direct'), ...(shareCh ? { 'X-Share-Channel': shareCh } : {}) } });
+  if (shareCh) { const u = new URL(location.href); u.searchParams.delete('s'); history.replaceState(history.state, '', u.pathname + u.search + u.hash); }
   const part = l.kind === 'part';
   const photos = l.photos.length ? l.photos.map((p) => p.url) : [imgOf(l)];
   const thumbs = l.photos.length ? l.photos.map((p) => p.thumb || p.url) : photos;
@@ -166,6 +169,12 @@ export default async function listing({ params }) {
           ${l.kind === 'equipment' ? `<button class="btn btn-soft btn-sm" data-cmp="${l.id}">${icon('scale')} ${esc(t('compare'))}</button>` : ''}
           ${!l.is_owner ? `<button class="btn btn-ghost btn-sm" data-report>${icon('flag')} ${esc(t('report'))}</button>` : ''}
         </div>
+        ${l.is_owner && l.share && l.status === 'active' ? `<div class="share-progress">
+          <div class="small">${esc(t('share_hint_owner', { n: l.share.step, h: l.share.hours }))}</div>
+          <div class="sp-bar"><span style="width:${Math.round(((l.share.step - l.share.to_next) / l.share.step) * 100)}%"></span></div>
+          <div class="tiny muted">${esc(t('share_progress', { n: num(l.share.count), k: l.share.to_next }))}</div>
+          ${l.share.top_until ? `<div class="tiny green" style="margin-top:4px">🔥 ${esc(t('share_top_until', { d: fmtDate(l.share.top_until, true) }))}</div>` : ''}
+        </div>` : ''}
       </div>
       ${part ? '' : `<div class="side-card" style="padding:14px 16px"><b class="small">${esc(t('safety'))}</b><p class="tiny muted" style="margin:6px 0 0">${esc(t('safety_sub'))}</p>
         ${!l.is_owner && l.kind === 'equipment' && l.deal_type === 'sale' ? `<p class="tiny" style="margin:10px 0 6px">${esc(t('inspection_sub'))}</p><button class="btn btn-soft btn-sm btn-block" data-inspect>${icon('shield')} ${esc(t('order_inspection'))}</button>` : ''}</div>`}
@@ -229,7 +238,7 @@ export default async function listing({ params }) {
       $('[data-promote]', main)?.addEventListener('click', () => promoteModal(l));
       $('[data-leasing]', main)?.addEventListener('click', () => leasingModal(l.price.amount, l.price.currency));
       $('[data-report]', main)?.addEventListener('click', () => { if (requireLogin(onAuthChanged)) reportModal(l.id); });
-      $('[data-share]', main)?.addEventListener('click', () => shareLink(`/listing/${l.id}`, l.title, l.price?.formatted || ''));
+      $('[data-share]', main)?.addEventListener('click', () => shareLink(`/listing/${l.id}`, l.title, l.price?.formatted || '', { track: true }));
       $('[data-inspect]', main)?.addEventListener('click', () => { if (requireLogin(onAuthChanged)) inspectionModal(l); });
       const mapEl = $('[data-map]', main);
       if (mapEl && l.geo) mapWidget(mapEl, { markers: [{ lat: l.geo.lat, lng: l.geo.lng, html: esc(l.title) }] }).catch(() => { mapEl.remove(); });

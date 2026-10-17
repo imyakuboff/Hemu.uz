@@ -603,6 +603,15 @@ CREATE TABLE IF NOT EXISTS search_log (
 );
 
 -- Ko'rishlar manbasi (kengaytirilgan statistika)
+-- Ulashish orqali kelganlar: har bir tashrifchi bitta e'lon uchun bir marta hisoblanadi
+CREATE TABLE IF NOT EXISTS listing_share_visits (
+  listing_id INTEGER NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
+  visitor TEXT NOT NULL,
+  channel TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (listing_id, visitor)
+);
+CREATE INDEX IF NOT EXISTS ix_share_visits_time ON listing_share_visits(listing_id, created_at);
 CREATE TABLE IF NOT EXISTS listing_view_sources (
   listing_id INTEGER NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
   day TEXT NOT NULL,
@@ -804,6 +813,8 @@ const COLUMNS = [
   ['listings', 'tier', 'TEXT'], // vip | gold | premium
   ['users', 'username', 'TEXT'], // ixtiyoriy login (asosan admin/moderator uchun): telefon o'rniga
   ['listings', 'tier_until', 'TEXT'],
+  ['listings', 'share_count', 'INTEGER NOT NULL DEFAULT 0'], // ulashish orqali kelgan noyob tashrifchilar (jami)
+  ['listings', 'share_until', 'TEXT'], // ulashish evaziga bepul TOP muddati
   ['listings', 'highlighted_until', 'TEXT'],
   ['listings', 'serial_number', 'TEXT'],
   ['orders', 'escrow', 'INTEGER NOT NULL DEFAULT 0'],

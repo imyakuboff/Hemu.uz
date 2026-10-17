@@ -307,7 +307,46 @@ test('SEO: sahifa meta, JSON-LD, sitemap, robots', async () => {
   assert.match(html, /og:image" content="[^"]*\/img\/demo\/jcb\.jpg"/);
   const cat = await (await fetch(`${base}/catalog?category=special`, { headers: { 'Accept-Language': 'ru' } })).text();
   assert.match(cat, /<title>Спецтехника — купить и арендовать/);
-  const sm = await (await fetch(`${base}/sitemap.xml`)).text();
+  // Sayt xaritasi: indeks + har til uchun alohida fayl
+  const idx = await (await fetch(`${base}/sitemap.xml`)).text();
+  assert.match(idx, /<sitemapindex/);
+  assert.match(idx, /sitemap-uz\.xml/);
+  const sm = await (await fetch(`${base}/sitemap-main.xml`)).text();
   assert.match(sm, /<loc>[^<]*\/listing\/1<\/loc>/);
+  assert.match(await (await fetch(`${base}/sitemap-uz.xml`)).text(), /\/listing\/1\?lang=uz<\/loc>/);
+  // 10 tilli sahifa: hreflang, til bo'yicha sarlavha va serverda chizilgan matn
+  const uz = await (await fetch(`${base}/catalog?category=special&lang=uz`)).text();
+  assert.match(uz, /<html lang="uz"/);
+  assert.match(uz, /hreflang="kk" href="[^"]*catalog\?category=special&amp;lang=kk"/);
+  assert.match(uz, /hreflang="x-default"/);
+  assert.match(uz, /sotib olish va ijaraga olish/);
+  assert.match(uz, /<main class="page seo-ssr">[\s\S]*\/listing\/\d+\?lang=uz/);
+  const pr = await (await fetch(`${base}/prices?category=special&lang=ru`)).text();
+  assert.match(pr, /<title>Цены на /);
+  assert.match(pr, /<table class="seo-table">/);
   assert.match(await (await fetch(`${base}/robots.txt`)).text(), /Disallow: \/api\//);
+});
+
+test("ulashish: havola orqali 5 noyob tashrif — e'lon bepul TOPga chiqadi", async () => {
+  const id = db.get(`SELECT id FROM listings WHERE status = 'active' AND user_id = (SELECT id FROM users WHERE phone = '+998901234567') ORDER BY id LIMIT 1`).id;
+  const visit = (ua, extra = {}) => api('GET', `/api/v1/listings/${id}`, { headers: { 'User-Agent': ua, 'X-Share-Channel': 'telegram' }, ...extra });
+  // Egasi va botlar hisoblanmaydi
+  await visit('Mozilla/5.0 owner', { token: S.seller.token });
+  await visit('TelegramBot (like TwitterBot)');
+  for (let i = 0; i < 4; i++) await visit(`Mozilla/5.0 visitor-${i}`);
+  await visit('Mozilla/5.0 visitor-0'); // takror — hisoblanmaydi
+  let mine = await api('GET', `/api/v1/listings/${id}`, { token: S.seller.token });
+  assert.equal(mine.body.share.count, 4);
+  assert.equal(mine.body.share.to_next, 1);
+  assert.equal(mine.body.share.top_until, null);
+  await visit('Mozilla/5.0 visitor-4');
+  mine = await api('GET', `/api/v1/listings/${id}`, { token: S.seller.token });
+  assert.equal(mine.body.share.count, 5);
+  assert.ok(mine.body.share.top_until, 'ulashish TOPi berilishi kerak');
+  // Ro'yxatda belgisi bor; "Ko'p ulashilgan" saralashida birinchi
+  const list = await api('GET', '/api/v1/listings?sort=shared');
+  assert.equal(list.body.items[0].id, id);
+  assert.equal(list.body.items[0].share_top, true);
+  const n = await api('GET', '/api/v1/notifications', { token: S.seller.token });
+  assert.ok(JSON.stringify(n.body).includes('share_top'));
 });

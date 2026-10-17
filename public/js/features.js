@@ -361,21 +361,24 @@ export function startVoice(form) {
 export { num };
 
 // ---------- Ulashish ----------
-export async function shareLink(url, title, text = '') {
-  const full = new URL(url, location.origin).href;
+// track — havolaga ?s=kanal qo'shiladi: shu havola orqali kirganlar e'lonning ulashish hisobiga yoziladi
+export async function shareLink(url, title, text = '', { track = false } = {}) {
+  const withCh = (ch) => { const x = new URL(url, location.origin); if (track) x.searchParams.set('s', ch); return x.href; };
+  const full = withCh('copy');
   // Telefon brauzerlari: o'rnatilgan ulashish menyusi
   if (navigator.share && matchMedia('(pointer: coarse)').matches) {
-    try { await navigator.share({ title, text: text || title, url: full }); return; } catch (e) { if (e.name === 'AbortError') return; }
+    try { await navigator.share({ title, text: text || title, url: withCh('native') }); return; } catch (e) { if (e.name === 'AbortError') return; }
   }
   const u = encodeURIComponent(full);
+  const uc = (ch) => encodeURIComponent(withCh(ch));
   const msg = encodeURIComponent(text ? `${title} — ${text}` : title);
   const nets = [
-    ['telegram', 'Telegram', `https://t.me/share/url?url=${u}&text=${msg}`, '#229ed9'],
-    ['whatsapp', 'WhatsApp', `https://wa.me/?text=${msg}%20${u}`, '#25d366'],
-    ['facebook', 'Facebook', `https://www.facebook.com/sharer/sharer.php?u=${u}`, '#1877f2'],
-    ['vk', 'VK', `https://vk.com/share.php?url=${u}`, '#0077ff'],
-    ['viber', 'Viber', `viber://forward?text=${msg}%20${u}`, '#7360f2'],
-    ['email', 'E-mail', `mailto:?subject=${msg}&body=${u}`, '#5b6b7c'],
+    ['telegram', 'Telegram', `https://t.me/share/url?url=${uc('telegram')}&text=${msg}`, '#229ed9'],
+    ['whatsapp', 'WhatsApp', `https://wa.me/?text=${msg}%20${uc('whatsapp')}`, '#25d366'],
+    ['facebook', 'Facebook', `https://www.facebook.com/sharer/sharer.php?u=${uc('facebook')}`, '#1877f2'],
+    ['vk', 'VK', `https://vk.com/share.php?url=${uc('vk')}`, '#0077ff'],
+    ['viber', 'Viber', `viber://forward?text=${msg}%20${uc('viber')}`, '#7360f2'],
+    ['email', 'E-mail', `mailto:?subject=${msg}&body=${uc('email')}`, '#5b6b7c'],
   ];
   const m = openModal(`<h3>${esc(t('share'))}</h3><p class="small muted" style="margin:4px 0 14px">${esc(title)}</p>
     <div class="share-grid">${nets.map(([k, name, href, c]) => `<a class="share-btn" href="${href}" target="_blank" rel="noopener" style="--c:${c}"><span>${name.slice(0, 1)}</span>${name}</a>`).join('')}</div>

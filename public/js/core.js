@@ -6,11 +6,15 @@ const ls = {
   set(k, v) { try { v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch { /* */ } },
 };
 
+// ?lang=uz — qidiruv tizimlaridan kelgan til sahifasi (hreflang); tanlov eslab qolinadi
+const urlLang = (() => { try { const l = new URLSearchParams(location.search).get('lang'); return LANGS.includes(l) ? l : null; } catch { return null; } })();
+if (urlLang) ls.set('mx_lang', urlLang);
+
 export const state = {
   token: ls.get('mx_token'),
   user: null,
   meta: null,
-  lang: ls.get('mx_lang') || 'ru', // dizayn rus tilida
+  lang: urlLang || ls.get('mx_lang') || 'ru', // dizayn rus tilida
   currency: ls.get('mx_currency') || null,
   country: ls.get('mx_country') || '', // '' = butun mintaqa
   region: ls.get('mx_region') || '',

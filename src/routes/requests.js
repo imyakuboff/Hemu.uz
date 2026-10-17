@@ -160,9 +160,15 @@ r.post('/requests', requireAuth, rateLimit({ name: 'req', windowMs: 3600000, max
 function openRequest(id, userId) {
   db.run(`UPDATE requests SET status = 'open', expires_at = datetime('now', '+30 days') WHERE id = ?`, id);
   const x = db.get('SELECT * FROM requests WHERE id = ?', id);
+  // Mos sotuvchilar: avval aniq bo'lim, so'ng butun yo'nalish; o'sha viloyatdagilar birinchi.
+  // (Avval faqat bo'lim bo'yicha qidirilardi — bo'lim tanlanmagan zayavkalar hech kimga yetmasdi)
   const sellers = db.all(
-    `SELECT DISTINCT user_id FROM listings WHERE status = 'active' AND subcategory_id = ? AND country = ? AND user_id != ? LIMIT 200`,
-    x.subcategory_id, x.country, userId,
+    `SELECT user_id FROM listings
+     WHERE status = 'active' AND country = ? AND user_id != ? AND (subcategory_id = ? OR category_id = ?)
+     GROUP BY user_id
+     ORDER BY MAX(subcategory_id = ?) DESC, MAX(region = ?) DESC, MAX(bumped_at) DESC
+     LIMIT 200`,
+    x.country, userId, x.subcategory_id ?? -1, x.category_id, x.subcategory_id ?? -1, x.region ?? '',
   );
   for (const s of sellers) notify(s.user_id, 'request_match', { title: x.title, request_id: x.id }, `/requests/${x.id}`);
   return sellers.length;

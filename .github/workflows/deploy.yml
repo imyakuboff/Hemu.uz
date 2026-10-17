@@ -18,12 +18,17 @@ jobs:
     steps:
       - name: Serverda yangilash
         uses: appleboy/ssh-action@v1.2.0
+        env:
+          # Gmail: GitHub → Settings → Secrets → SMTP_USER (Gmail manzil) va SMTP_PASS (16 harfli ilova paroli)
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
         with:
           host: 189.74.98.45
           username: root
           password: ${{ secrets.SSH_PASSWORD }}
           port: 22
           command_timeout: 15m
+          envs: SMTP_USER,SMTP_PASS
           script: |
             # Natijalar ::notice:: / ::error:: ko'rinishida chiqadi — GitHub'da "Annotations" bo'limida ko'rinadi
             step() { echo "::notice::$1"; }
@@ -59,6 +64,20 @@ jobs:
               .catch(e=>console.log('XATO '+e.message));" 2>&1 | tail -1)
             rm -f /tmp/hemu-imgtest*
             case "$IMG" in dvigatel=*) step "Rasm siqish: $IMG";; *) echo "::warning::Rasm siqish ishlamayapti: $IMG";; esac
+            # Gmail (SMTP) sozlamasi .env ga yoziladi (secret'lar berilgan bo'lsa)
+            if [ -n "$SMTP_USER" ] && [ -n "$SMTP_PASS" ]; then
+              touch .env
+              [ -s .env ] && [ -n "$(tail -c1 .env)" ] && echo >> .env
+              sed -i '/^MAIL_PROVIDER=/d;/^SMTP_HOST=/d;/^SMTP_PORT=/d;/^SMTP_USER=/d;/^SMTP_PASS=/d' .env
+              printf 'MAIL_PROVIDER=smtp\nSMTP_HOST=smtp.gmail.com\nSMTP_PORT=465\nSMTP_USER=%s\nSMTP_PASS=%s\n' "$SMTP_USER" "$(printf %s "$SMTP_PASS" | tr -d ' ')" >> .env
+              chown "$U": .env && chmod 600 .env
+              # Admin panelda avval "o'chiq" saqlangan bo'lsa — .env ustun bo'lishi uchun o'sha yozuvlar olib tashlanadi
+              DB=$(grep -E '^DB_FILE=' .env | cut -d= -f2 | tr -d '"\r '); DB=${DB:-data/movexgo.db}
+              sudo -u "$U" node --disable-warning=ExperimentalWarning -e "
+                const {DatabaseSync}=require('node:sqlite'); const d=new DatabaseSync(process.argv[1]);
+                d.prepare(\"DELETE FROM settings WHERE key IN ('mailProvider','smtp.host','smtp.port','smtp.user','smtp.pass')\").run();" "$DB"
+              step "Gmail sozlandi (.env)"
+            fi
             systemctl restart hemu
             trap - ERR
             set +e
@@ -81,4 +100,14 @@ jobs:
               const l=d.prepare('SELECT created_at,provider,ok,error FROM sms_log ORDER BY id DESC LIMIT 3').all().map(r=>[r.created_at,r.provider,r.ok,r.error||''].join(' ')).join(' | ');
               console.log('Sozlamalar: '+(s||'(yo\'q)')+' || Oxirgi yuborishlar: '+(l||'(yo\'q)'));" "$DB" 2>&1 | tail -1)
             step "$INFO"
+            # Gmail sinov xati (o'zingizga): HEMU.UZ tasdiqlash kodi ko'rinishida
+            if [ -n "$SMTP_USER" ] && [ -n "$SMTP_PASS" ]; then
+              M=$(sudo -u "$U" node --disable-warning=ExperimentalWarning -e "
+                require('./src/lib/settings'); const m=require('./src/lib/mail'); const to=process.argv[1];
+                m.sendMail({to, ...m.codeEmail('uz', String(Math.floor(100000+Math.random()*900000)))})
+                 .then(r=>console.log('OK '+r.provider)).catch(e=>console.log('XATO '+e.message));" "$SMTP_USER" 2>&1 | tail -1)
+              case "$M" in "OK smtp"*) step "Gmail sinov xati yuborildi ✅ ($M)";; *) echo "::error::Gmail xat yubormadi: $M";; esac
+            else
+              echo "::warning::Gmail sozlanmagan: GitHub Secrets'ga SMTP_USER va SMTP_PASS qo'shing"
+            fi
             step "Tayyor ✅"

@@ -145,6 +145,9 @@ function renderIndex(req) {
     `<meta property="og:url" content="${esc(config.siteUrl + canonical)}">`,
     `<meta property="og:image" content="${esc(m.image || `${config.siteUrl}/img/demo/hero.jpg`)}">`,
     `<meta name="twitter:card" content="summary_large_image">`,
+    // Search Console / Yandex Vebmaster tasdiqlash kodlari (admin → Integratsiyalar → SEO)
+    config.googleVerification ? `<meta name="google-site-verification" content="${esc(config.googleVerification)}">` : '',
+    config.yandexVerification ? `<meta name="yandex-verification" content="${esc(config.yandexVerification)}">` : '',
     m.ld ? `<script type="application/ld+json">${JSON.stringify(m.ld).replace(/</g, '\\u003c')}</script>` : '',
   ].join('\n  ');
   let html = template()
@@ -185,4 +188,4 @@ function sitemap(lang = '') {
   return `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${body}</urlset>`;
 }
 
-module.exports = { renderIndex, robots, sitemap, sitemapIndex, metaFor };
+module.exports = { renderIndex, robots, sitemap, sitemapIndex, sitemapUrls, withLang, metaFor };

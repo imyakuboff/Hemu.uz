@@ -65,6 +65,8 @@ const DEFS = [
   ['payme.key', 'secret', 0, 300],
   ['payme.testMode', 'bool'],
   // Xarita: Yandex Maps (kalit — developer.tech.yandex.ru) yoki OpenStreetMap
+  ['googleVerification', 'string', 0, 120],
+  ['yandexVerification', 'string', 0, 120],
   ['mapProvider', 'enum', ['yandex', 'osm']],
   ['yandexMapsKey', 'string', 0, 100],
 ];
@@ -99,6 +101,9 @@ config.prices.tier ??= { vip: 15, gold: 10, premium: 5 };
 config.prices.promoCurrency ??= process.env.PROMO_CURRENCY || 'USD';
 config.prices.tierDays ??= { vip: 7, gold: 7, premium: 7 };
 config.supportTelegram ??= '';
+// Google Search Console va Yandex Vebmaster tasdiqlash kodlari (faqat "content" qiymati)
+config.googleVerification ??= process.env.GOOGLE_SITE_VERIFICATION || '';
+config.yandexVerification ??= process.env.YANDEX_VERIFICATION || '';
 
 const getPath = (key) => key.split('.').reduce((o, k) => o?.[k], config);
 function setPath(key, value) {

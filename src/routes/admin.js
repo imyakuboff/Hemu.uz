@@ -853,7 +853,7 @@ admin.patch('/support/:id', async (req, res) => {
 });
 
 // ---------- Integratsiyalar: SMS (Eskiz.uz), Click, Payme ----------
-const INTEGRATION_KEYS = /^(siteUrl|otpDevEcho|otpTestRegistration|adminTwoFactor|smsProvider|eskiz\.|mailProvider|smtp\.|paymentsDev|click\.|payme\.|mapProvider|yandexMapsKey)/;
+const INTEGRATION_KEYS = /^(siteUrl|otpDevEcho|otpTestRegistration|adminTwoFactor|smsProvider|eskiz\.|mailProvider|smtp\.|paymentsDev|click\.|payme\.|mapProvider|yandexMapsKey|googleVerification|yandexVerification)/;
 function integrationsView() {
   const base = `${config.siteUrl}/api/v1`;
   return {
@@ -873,6 +873,10 @@ function integrationsView() {
 admin.get('/integrations', (_req, res) => res.json(integrationsView()));
 admin.put('/integrations', (req, res) => {
   const body = Object.fromEntries(Object.entries(req.body || {}).filter(([k]) => INTEGRATION_KEYS.test(k)));
+  // Tasdiqlash kodi butun <meta ...> tegi bilan qo'yilsa ham — faqat content qiymati olinadi
+  for (const k of ['googleVerification', 'yandexVerification']) {
+    if (typeof body[k] === 'string') body[k] = (body[k].match(/content=["']([^"']+)["']/)?.[1] || body[k]).trim().replace(/[^A-Za-z0-9_\-]/g, '');
+  }
   if (body.siteUrl !== undefined) {
     body.siteUrl = String(body.siteUrl).trim().replace(/\/+$/, '');
     if (body.siteUrl && !/^https?:\/\/[^\s/]+/.test(body.siteUrl)) fail(422, 'err.validation', { siteUrl: 'invalid' });

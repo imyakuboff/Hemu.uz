@@ -40,6 +40,16 @@ function startJobs() {
   cleanup();
   timers.push(setInterval(cleanup, 3600000));
   require('./lib/telegram').start();
+  // Kuniga bir marta: barcha sahifalar ro'yxatini Yandex va Bing'ga yuborish (IndexNow)
+  const indexnow = require('./lib/indexnow');
+  if (indexnow.enabled()) {
+    const seo = require('./lib/seo');
+    const daily = () => {
+      const urls = seo.sitemapUrls().flatMap(([u]) => [u, seo.withLang(u, 'uz'), seo.withLang(u, 'ru')]).map((u) => `${config.siteUrl}${u}`);
+      indexnow.send(urls).catch(() => {});
+    };
+    timers.push(setTimeout(daily, 2 * 60000), setInterval(daily, 24 * 3600000));
+  }
   if (process.env.RATES_AUTO_SYNC === '1') {
     const sync = () => money.syncFromCbu().then(() => console.log('[jobs] valyuta kurslari yangilandi')).catch((e) => console.warn('[jobs] kurs xatosi:', e.message));
     sync();

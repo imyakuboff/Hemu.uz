@@ -378,3 +378,17 @@ test("tasdiq belgisi: guvohnoma YaTT/MChJ uchun majburiy, oylik obuna bilan galo
   assert.ok(me.body.badge_until);
   assert.equal(L.verifiedType(uid, null), 'paid');
 });
+
+test('SEO: IndexNow kalit fayli va Google/Yandex tasdiqlash tegi', async () => {
+  const k = require('../src/lib/indexnow').key();
+  assert.match(k, /^[a-f0-9]{32}$/);
+  const r = await fetch(`${base}/${k}.txt`);
+  assert.equal(r.status, 200);
+  assert.equal(await r.text(), k);
+  assert.equal((await fetch(`${base}/${'0'.repeat(32)}.txt`)).status, 404);
+  const config = require('../src/config');
+  config.googleVerification = 'GoogleCode_123-x';
+  const html = await (await fetch(`${base}/`)).text();
+  assert.match(html, /<meta name="google-site-verification" content="GoogleCode_123-x">/);
+  config.googleVerification = '';
+});

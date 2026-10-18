@@ -90,6 +90,12 @@ function createApp() {
   // ---------- SEO ----------
   const seo = require('./lib/seo');
   app.get('/robots.txt', (_req, res) => res.type('text/plain').send(seo.robots()));
+  // IndexNow kalit fayli (Yandex/Bing tekshiradi)
+  app.get(/^\/([a-f0-9]{32})\.txt$/, (req, res, next) => {
+    const k = require('./lib/indexnow').key();
+    if (req.params[0] !== k) return next();
+    res.type('text/plain').send(k);
+  });
   app.get('/sitemap.xml', (_req, res) => res.type('application/xml').send(seo.sitemapIndex()));
   // Har til uchun alohida xarita: /sitemap-main.xml (tilsiz), /sitemap-uz.xml, /sitemap-ru.xml ...
   app.get(/^\/sitemap-([a-z]{2,4})\.xml$/, (req, res, next) => {

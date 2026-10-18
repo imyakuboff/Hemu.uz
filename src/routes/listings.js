@@ -375,6 +375,8 @@ function activate(id) {
   );
   const l = loadListing(id);
   notify(l.user_id, 'listing_approved', { title: l.title, listing_id: l.id }, `/listings/${l.id}`);
+  // Yandex va Bing'ga darhol xabar (IndexNow)
+  require('../lib/indexnow').listing(l.id);
   // Kompaniya obunachilariga
   const notified = new Set([l.user_id]);
   if (l.company_id) {

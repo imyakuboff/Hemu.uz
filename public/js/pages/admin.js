@@ -284,6 +284,10 @@ const D = {
   int_maps: ['Xarita — Yandex Maps', 'Карта — Яндекс Карты', 'Map — Yandex Maps'],
   int_maps_hint: ["Kalitni developer.tech.yandex.ru kabinetida oling (\"JavaScript API va HTTP Geokoder\") va sayt domenini kalitga qo'shing. Kalit bo'lmasa ham xarita ochiladi, lekin Yandex cheklashi mumkin.", 'Ключ получите в кабинете developer.tech.yandex.ru («JavaScript API и HTTP Геокодер») и добавьте домен сайта в настройки ключа. Без ключа карта откроется, но Яндекс может её ограничить.', 'Get a key at developer.tech.yandex.ru ("JavaScript API and HTTP Geocoder") and add your site domain to it. Without a key the map still opens, but Yandex may limit it.'],
   mapProvider: ['Xarita xizmati', 'Сервис карт', 'Map provider'],
+  int_seo: ['SEO — Google va Yandex', 'SEO — Google и Яндекс', 'SEO — Google and Yandex'],
+  int_seo_hint: ["Google Search Console va Yandex Vebmaster'da saytni qo'shing, \"HTML-teg\" usulini tanlang va berilgan kodni (yoki butun <meta> tegini) shu yerga qo'ying. Saqlagach, u yerda \"Tasdiqlash\" ni bosing va sitemap.xml ni yuboring. Yandex va Bing'ga yangi e'lonlar avtomatik yuboriladi (IndexNow).", 'Добавьте сайт в Google Search Console и Яндекс Вебмастер, выберите способ «HTML-тег» и вставьте сюда код (или весь тег <meta>). После сохранения нажмите там «Подтвердить» и отправьте sitemap.xml. Яндекс и Bing получают новые объявления автоматически (IndexNow).', 'Add the site in Google Search Console and Yandex Webmaster, choose the "HTML tag" method and paste the code (or the whole <meta> tag) here. After saving, click "Verify" there and submit sitemap.xml. Yandex and Bing get new listings automatically (IndexNow).'],
+  googleVerification: ['Google tasdiqlash kodi', 'Код подтверждения Google', 'Google verification code'],
+  yandexVerification: ['Yandex tasdiqlash kodi', 'Код подтверждения Яндекс', 'Yandex verification code'],
   yandexMapsKey: ['Yandex Maps API kaliti', 'API-ключ Яндекс Карт', 'Yandex Maps API key'],
   mp_yandex: ['Yandex Maps', 'Яндекс Карты', 'Yandex Maps'],
   mp_osm: ['OpenStreetMap', 'OpenStreetMap', 'OpenStreetMap'],
@@ -1574,6 +1578,14 @@ async function integrationsPage() {
           ${txt('smtp.pass')}
         </div>
         <div class="int-test"><input class="input" data-test-email type="email" placeholder="test@gmail.com"><button type="button" class="btn btn-soft" data-test-mail>${icon('send')} ${esc(a('test_mail'))}</button><span class="small" data-mail-out></span></div>
+      </div>
+
+      <div class="box"><h3>${esc(a('int_seo'))} ${st(Boolean(by.googleVerification?.value))}</h3><p class="tiny muted" style="margin:-4px 0 12px">${esc(a('int_seo_hint'))}</p>
+        <div class="form-grid">
+          ${txt('googleVerification', 'placeholder="abc123XYZ..." autocomplete="off"')}
+          ${txt('yandexVerification', 'placeholder="0123456789abcdef" autocomplete="off"')}
+        </div>
+        ${copyRow('Sitemap', `${by.siteUrl.value || location.origin}/sitemap.xml`)}
       </div>
 
       <div class="box"><h3>${esc(a('int_maps'))} ${st(r.status.maps)}</h3><p class="tiny muted" style="margin:-4px 0 12px">${esc(a('int_maps_hint'))}</p>

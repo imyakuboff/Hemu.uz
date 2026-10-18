@@ -110,4 +110,12 @@ jobs:
             else
               echo "::warning::Gmail sozlanmagan: GitHub Secrets'ga SMTP_USER va SMTP_PASS qo'shing"
             fi
+            # IndexNow: sayt sahifalarini Yandex va Bing'ga yuborish (natija — 200/202 bo'lsa qabul qilindi)
+            IN=$(sudo -u "$U" node --disable-warning=ExperimentalWarning -e "
+              const db=require('./src/db'); db.open(process.argv[1]); require('./src/lib/categories').syncCatalog();
+              require('./src/lib/settings').load(); const c=require('./src/config'); const seo=require('./src/lib/seo'); const ix=require('./src/lib/indexnow');
+              if(!ix.enabled()){console.log('o\'chiq: siteUrl='+c.siteUrl);process.exit(0)}
+              const urls=seo.sitemapUrls().flatMap(([u])=>[u,seo.withLang(u,'uz'),seo.withLang(u,'ru')]).map(u=>c.siteUrl+u);
+              ix.send(urls).then(r=>console.log(urls.length+' ta manzil: '+r.join(', ')));" "$DB" 2>&1 | tail -1)
+            step "IndexNow: $IN"
             step "Tayyor ✅"

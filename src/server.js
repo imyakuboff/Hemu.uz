@@ -19,6 +19,7 @@ function startJobs() {
     const n = db.run(`UPDATE listings SET status = 'archived' WHERE status = 'active' AND expires_at IS NOT NULL AND expires_at < datetime('now')`).changes;
     if (n) console.log(`[jobs] ${n} ta e'lon muddati tugab arxivlandi`);
     db.run(`UPDATE requests SET status = 'closed' WHERE status = 'open' AND expires_at IS NOT NULL AND expires_at < datetime('now')`);
+    require('./routes/urgent').expireJob();
     db.run(`DELETE FROM listing_view_log WHERE day < date('now', '-2 days')`);
     db.run(`DELETE FROM sessions WHERE expires_at < ?`, new Date().toISOString());
   };
@@ -40,6 +41,9 @@ function startJobs() {
   cleanup();
   timers.push(setInterval(cleanup, 3600000));
   require('./lib/telegram').start();
+  // Diler fidlari: soatda bir tekshiriladi, har biri kuniga bir marta sinxronlanadi
+  const feeds = () => require('./lib/feeds').runDue().catch((e) => console.warn('[feeds]', e.message));
+  timers.push(setTimeout(feeds, 5 * 60000), setInterval(feeds, 3600000));
   // Kuniga bir marta: barcha sahifalar ro'yxatini Yandex va Bing'ga yuborish (IndexNow)
   const indexnow = require('./lib/indexnow');
   if (indexnow.enabled()) {

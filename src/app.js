@@ -75,6 +75,7 @@ function createApp() {
   api.use(require('./routes/payments').router);
   api.use(require('./routes/trust').router);
   api.use(require('./routes/rental').router);
+  api.use(require('./routes/urgent').router);
   api.use(require('./routes/tools').router);
   api.use(require('./routes/people').router);
   api.use(require('./routes/business').router);

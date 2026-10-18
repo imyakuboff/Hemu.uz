@@ -19,6 +19,7 @@ export default async function home() {
         ${often.map((q) => `<a href="/catalog?q=${encodeURIComponent(q)}">${esc(q)}</a><span class="sep">·</span>`).join('')}
         <a href="/transportrental">${esc(t('crane_rent'))}</a>
       </div>
+      <a class="urgent-cta" href="/urgent">${icon('bolt')}<span><b>${esc(t('urgent_title'))}</b><small>${esc(t('urgent_cta_sub'))}</small></span></a>
     </div>
     <div class="right" style="background-image:url('/img/demo/hero.jpg')">
       <div class="hero-ad">

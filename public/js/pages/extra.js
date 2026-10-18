@@ -193,6 +193,12 @@ export async function compare() {
 // ---------- Ommaviy yuklash ----------
 export async function importPage() {
   if (!state.user) return needLogin();
+  const feed = await api('/my/feed', { silent: true }).catch(() => null);
+  const feedStatus = (f) => (!f ? '' : `<div class="small" style="margin-top:10px">${f.last_run_at
+    ? `${f.last_status === 'ok' ? `<span class="tag green">OK</span>` : `<span class="tag red">${esc(t('error'))}</span>`} ${esc(t('feed_last', { d: fmtDate(f.last_run_at, true) }))}
+       ${f.stats ? ` · ${esc(t('feed_stats', { c: f.stats.created, u: f.stats.updated, a: f.stats.archived }))}` : ''}${f.last_error ? `<div class="tiny" style="color:var(--red)">${esc(f.last_error)}</div>` : ''}
+       ${f.stats?.errors?.length ? `<details class="tiny" style="margin-top:6px"><summary>${esc(t('feed_errors', { n: f.stats.errors.length }))}</summary>${f.stats.errors.map((x) => `<div>${esc(t('row_n', { n: x.row }))}: ${esc(x.error || x.warning || '')}${x.details ? ` (${esc(Object.keys(x.details).join(', '))})` : ''}</div>`).join('')}</details>` : ''}`
+    : esc(t('feed_pending'))} · ${esc(t('feed_active_n', { n: f.listings }))}</div>`);
   const html = accountLayout('/my/listings', `
     ${crumbs([[t('home'), '/'], [t('my_listings'), '/my/listings'], [t('import')]])}
     <div class="page-head"><h1 class="page-title">${esc(t('import'))}</h1><p class="page-sub">${esc(t('import_sub'))}</p></div>
@@ -203,7 +209,18 @@ export async function importPage() {
       <label class="check" style="margin-top:12px"><input type="checkbox" name="publish"> ${esc(t('publish_after'))}</label>
       <button class="btn btn-primary" style="margin-top:14px">${icon('upload')} ${esc(t('upload'))}</button>
     </form>
-    <div data-res></div>`);
+    <div data-res></div>
+    <form class="box" data-feed style="margin-top:16px">
+      <h3>${icon('refresh')} ${esc(t('dfeed_title'))}</h3>
+      <p class="small muted" style="margin:-4px 0 12px">${esc(t('dfeed_sub'))}</p>
+      <ul class="small" style="margin:0 0 12px;padding-left:18px">${['feed_hint1', 'feed_hint2', 'feed_hint3'].map((k) => `<li>${esc(t(k))}</li>`).join('')}</ul>
+      <input class="input" name="url" type="url" required placeholder="https://docs.google.com/spreadsheets/d/…" value="${esc(feed?.url || '')}">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+        <button class="btn btn-primary">${esc(t('feed_save'))}</button>
+        ${feed ? `<button type="button" class="btn btn-soft" data-feed-run>${esc(t('feed_run'))}</button><button type="button" class="btn btn-ghost" data-feed-del>${esc(t('delete'))}</button>` : ''}
+      </div>
+      <div data-feed-st>${feedStatus(feed)}</div>
+    </form>`);
   return {
     title: t('import'),
     html,
@@ -216,6 +233,20 @@ export async function importPage() {
         a.download = `hemu-import.${fmt}`;
         a.click();
       }; });
+      const ff = $('[data-feed]', main);
+      ff.onsubmit = async (e) => {
+        e.preventDefault();
+        const f = await api('/my/feed', { method: 'PUT', body: { url: ff.url.value.trim() } });
+        toast(t('saved'), 'ok');
+        if (!feed) { render({ keepScroll: true }); return; }
+        $('[data-feed-st]', main).innerHTML = feedStatus(f);
+      };
+      $('[data-feed-run]', main)?.addEventListener('click', async (e) => {
+        e.target.disabled = true;
+        $('[data-feed-st]', main).innerHTML = `<div class="small muted" style="margin-top:10px">${esc(t('loading'))}</div>`;
+        try { $('[data-feed-st]', main).innerHTML = feedStatus(await api('/my/feed/run', { method: 'POST' })); } finally { e.target.disabled = false; }
+      });
+      $('[data-feed-del]', main)?.addEventListener('click', async () => { await api('/my/feed', { method: 'DELETE' }); render({ keepScroll: true }); });
       $('[data-imp]', main).onsubmit = async (e) => {
         e.preventDefault();
         const f = e.target;

@@ -603,6 +603,48 @@ CREATE TABLE IF NOT EXISTS search_log (
 );
 
 -- Ko'rishlar manbasi (kengaytirilgan statistika)
+-- "Hozir texnika kerak": tezkor ijara chaqiruvi va xabar yuborilgan texnika egalari
+CREATE TABLE IF NOT EXISTS urgent_calls (
+  id INTEGER PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  category_id INTEGER NOT NULL REFERENCES categories(id),
+  subcategory_id INTEGER REFERENCES categories(id),
+  country TEXT NOT NULL,
+  region TEXT,
+  lat REAL,
+  lng REAL,
+  address TEXT,
+  hours INTEGER NOT NULL,
+  start_text TEXT,
+  note TEXT,
+  status TEXT NOT NULL DEFAULT 'open', -- open | taken | cancelled | expired
+  taken_by INTEGER REFERENCES users(id),
+  listing_id INTEGER,
+  taken_at TEXT,
+  expires_at TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS ix_urgent_user ON urgent_calls(user_id, status);
+CREATE TABLE IF NOT EXISTS urgent_targets (
+  call_id INTEGER NOT NULL REFERENCES urgent_calls(id) ON DELETE CASCADE,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  listing_id INTEGER,
+  distance_km INTEGER,
+  PRIMARY KEY (call_id, user_id)
+);
+CREATE INDEX IF NOT EXISTS ix_urgent_targets_user ON urgent_targets(user_id);
+-- Diler fidi: Excel/CSV havolasi, kuniga bir marta sinxronlanadi
+CREATE TABLE IF NOT EXISTS listing_feeds (
+  id INTEGER PRIMARY KEY,
+  user_id INTEGER NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+  url TEXT NOT NULL,
+  active INTEGER NOT NULL DEFAULT 1,
+  last_run_at TEXT,
+  last_status TEXT,
+  last_error TEXT,
+  stats TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 -- Ulashish orqali kelganlar: har bir tashrifchi bitta e'lon uchun bir marta hisoblanadi
 CREATE TABLE IF NOT EXISTS listing_share_visits (
   listing_id INTEGER NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
@@ -816,6 +858,9 @@ const COLUMNS = [
   ['listings', 'tier_until', 'TEXT'],
   ['listings', 'share_count', 'INTEGER NOT NULL DEFAULT 0'], // ulashish orqali kelgan noyob tashrifchilar (jami)
   ['listings', 'share_until', 'TEXT'], // ulashish evaziga bepul TOP muddati
+  ['listings', 'external_id', 'TEXT'], // diler fididagi qator ID'si
+  ['listings', 'feed_id', 'INTEGER'],
+  ['listings', 'feed_archived', 'INTEGER NOT NULL DEFAULT 0'], // fidda yo'qolgani uchun arxivlangan
   ['listings', 'highlighted_until', 'TEXT'],
   ['listings', 'serial_number', 'TEXT'],
   ['orders', 'escrow', 'INTEGER NOT NULL DEFAULT 0'],
@@ -867,6 +912,7 @@ const COLUMNS = [
     if (!has) db.exec(`ALTER TABLE ${table} ADD COLUMN ${col} ${def}`);
   }
   db.exec('CREATE UNIQUE INDEX IF NOT EXISTS ux_users_username ON users(username COLLATE NOCASE) WHERE username IS NOT NULL');
+  db.exec('CREATE INDEX IF NOT EXISTS ix_listings_external ON listings(user_id, external_id) WHERE external_id IS NOT NULL');
   // Qishloq xo'jaligi bo'limi olib tashlandi — uning platforma aksiyasi ham
   db.exec(`DELETE FROM promo_listings WHERE promo_id IN (SELECT id FROM promos WHERE slug = 'bahor' AND owner_user_id IS NULL);
     DELETE FROM promos WHERE slug = 'bahor' AND owner_user_id IS NULL;`);

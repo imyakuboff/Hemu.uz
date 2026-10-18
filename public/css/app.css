@@ -1670,3 +1670,22 @@ h1 .vtick, h2 .vtick { width: 22px; height: 22px; vertical-align: -4px; }
 .badge-buy { display: grid; gap: 10px; }
 .badge-buy .bb-head { display: flex; align-items: center; gap: 10px; }
 .badge-buy .bb-head .vtick { width: 34px; height: 34px; }
+
+/* "Hozir texnika kerak" */
+.urgent-cta { display: flex; align-items: center; gap: 12px; margin-top: 14px; padding: 12px 16px; border-radius: 12px; background: linear-gradient(90deg, #ff7a18, #f2b01e); color: #2b1300; text-decoration: none; box-shadow: 0 6px 18px rgba(255, 122, 24, .25); }
+.urgent-cta .i { width: 26px; height: 26px; flex: none; }
+.urgent-cta b { display: block; font-size: 15px; }
+.urgent-cta small { display: block; font-size: 12px; opacity: .85; }
+.urgent-hero { display: flex; gap: 14px; align-items: center; margin: 8px 0 16px; }
+.urgent-ico { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; background: linear-gradient(135deg, #ff7a18, #f2b01e); color: #fff; flex: none; }
+.urgent-ico .i { width: 26px; height: 26px; }
+.urgent-loc { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.urgent-go { background: linear-gradient(90deg, #ff7a18, #f2b01e); border-color: transparent; color: #2b1300; font-weight: 700; }
+.urgent-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 10px; }
+.urgent-facts div { display: grid; gap: 2px; }
+.urgent-facts .full { grid-column: 1 / -1; }
+.urgent-facts span { font-size: 12px; color: var(--ink-2); }
+.urgent-action { display: grid; gap: 12px; justify-items: start; }
+.urgent-wait { display: flex; gap: 12px; align-items: center; }
+.urgent-wait .pulse { width: 14px; height: 14px; border-radius: 50%; background: #ff7a18; box-shadow: 0 0 0 0 rgba(255, 122, 24, .6); animation: urgentPulse 1.4s infinite; flex: none; }
+@keyframes urgentPulse { 70% { box-shadow: 0 0 0 14px rgba(255, 122, 24, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 122, 24, 0); } }

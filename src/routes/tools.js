@@ -2,7 +2,7 @@ const { Router } = require('express');
 const multer = require('multer');
 const db = require('../db');
 const tg = require('../lib/telegram');
-const { requireAuth } = require('../lib/auth');
+const { requireAuth, rateLimit } = require('../lib/auth');
 const { fail, validate } = require('../lib/http');
 const catLib = require('../lib/categories');
 const { REGIONS, CURRENCY_CODES } = require('../geo');
@@ -132,6 +132,38 @@ function findCat(v, parent) {
   return hit ? hit.slug : v;
 }
 
+
+// Jadval qatorini e'lon maydonlariga aylantirish (Excel/CSV import va diler fidi uchun umumiy)
+function rowToBody(head, row) {
+  const o = Object.fromEntries(head.map((h, j) => [h, String(row[j] ?? '').trim()]));
+  delete o[''];
+  const body = { ...o, publish: false };
+  if (o.compatibility) body.compatibility = o.compatibility.split(/[;|]/).map((s) => s.trim()).filter(Boolean);
+  if (o.deal_type) body.deal_type = DEAL[low(o.deal_type)] || low(o.deal_type);
+  if (o.condition) body.condition = COND[low(o.condition)] || low(o.condition);
+  if (o.currency) body.currency = o.currency.trim().toUpperCase().replace(/^(SO'?M|СУМ|SUM)$/, 'UZS');
+  if (o.country) body.country = o.country.trim().toUpperCase();
+  if (o.region) body.region = low(o.region);
+  if (o.category) body.category = findCat(o.category);
+  if (o.subcategory) body.subcategory = findCat(o.subcategory, body.category);
+  if (o.price) body.price = o.price.replace(/[\s\u00a0]/g, '').replace(',', '.');
+  for (const k of ['negotiable', 'leasing', 'with_operator']) {
+    if (!o[k]) continue;
+    if (YES.has(low(o[k]))) body[k] = true; else if (NO.has(low(o[k]))) body[k] = false; else delete body[k];
+  }
+  for (const k of Object.keys(body)) if (body[k] === '') delete body[k];
+  return body;
+}
+// Fayl (CSV yoki Excel) -> { head, rows }
+function readTable(buf) {
+  let rows;
+  if (isXlsx(buf)) rows = readXlsx(buf).map((r) => r.map((c) => String(c ?? '')));
+  else rows = parseCsv(buf.toString('utf8'));
+  const head = (rows[0] || []).map((h) => String(h).split('|')[0].trim().toLowerCase().replace(/\s+/g, '_'));
+  const data = rows.slice(1).map((cells, i) => ({ n: i + 2, cells })).filter((x) => !SAMPLE_MARK.test(String(x.cells[head.indexOf('title')] ?? '').trim()));
+  return { head, data };
+}
+
 const csvUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 r.post('/my/listings/import', requireAuth, csvUpload.single('file'), async (req, res) => {
   if (!req.file) fail(422, 'err.file_type');
@@ -151,23 +183,7 @@ r.post('/my/listings/import', requireAuth, csvUpload.single('file'), async (req,
   const headers = { Authorization: req.get('authorization'), 'Content-Type': 'application/json', 'X-Lang': req.lang };
   const results = [];
   for (const { n: rowNo, cells: row } of data.slice(0, 200)) {
-    const o = Object.fromEntries(head.map((h, j) => [h, (row[j] ?? '').trim()]));
-    delete o[''];
-    const body = { ...o, publish: false };
-    if (o.compatibility) body.compatibility = o.compatibility.split(/[;|]/).map((s) => s.trim()).filter(Boolean);
-    if (o.deal_type) body.deal_type = DEAL[low(o.deal_type)] || low(o.deal_type);
-    if (o.condition) body.condition = COND[low(o.condition)] || low(o.condition);
-    if (o.currency) body.currency = o.currency.trim().toUpperCase().replace(/^(SO'?M|СУМ|SUM)$/, 'UZS');
-    if (o.country) body.country = o.country.trim().toUpperCase();
-    if (o.region) body.region = low(o.region);
-    if (o.category) body.category = findCat(o.category);
-    if (o.subcategory) body.subcategory = findCat(o.subcategory, body.category);
-    if (o.price) body.price = o.price.replace(/[\s ]/g, '').replace(',', '.');
-    for (const k of ['negotiable', 'leasing', 'with_operator']) {
-      if (!o[k]) continue;
-      if (YES.has(low(o[k]))) body[k] = true; else if (NO.has(low(o[k]))) body[k] = false; else delete body[k];
-    }
-    for (const k of Object.keys(body)) if (body[k] === '') delete body[k];
+    const body = rowToBody(head, row);
     try {
       const cr = await fetch(`${base}/listings`, { method: 'POST', headers, body: JSON.stringify(body) });
       const cj = await cr.json();
@@ -186,6 +202,40 @@ r.post('/my/listings/import', requireAuth, csvUpload.single('file'), async (req,
     }
   }
   res.json({ total: results.length, created: results.filter((x) => x.ok).length, results });
+});
+
+// ---------- Diler fidi: havola orqali avtomatik sinxronlash ----------
+const feedView = (f) => (f ? {
+  url: f.url, active: Boolean(f.active), last_run_at: f.last_run_at, last_status: f.last_status, last_error: f.last_error,
+  stats: f.stats ? JSON.parse(f.stats) : null,
+  listings: db.get(`SELECT COUNT(*) AS n FROM listings WHERE feed_id = ? AND status = 'active'`, f.id).n,
+} : null);
+r.get('/my/feed', requireAuth, (req, res) => res.json(feedView(db.get('SELECT * FROM listing_feeds WHERE user_id = ?', req.user.id))));
+r.put('/my/feed', requireAuth, async (req, res) => {
+  const v = validate(req.body, { url: { type: 'string', min: 10, max: 1000, required: true }, active: { type: 'bool' } });
+  const feeds = require('../lib/feeds');
+  try { await feeds.assertPublic(feeds.normalizeUrl(v.url)); } catch (e) { fail(422, 'err.validation', { url: e.message }); }
+  db.run(
+    `INSERT INTO listing_feeds (user_id, url, active) VALUES (?, ?, ?)
+     ON CONFLICT(user_id) DO UPDATE SET url = excluded.url, active = excluded.active, last_run_at = CASE WHEN listing_feeds.url = excluded.url THEN listing_feeds.last_run_at END`,
+    req.user.id, v.url.trim(), v.active === false ? 0 : 1,
+  );
+  res.json(feedView(db.get('SELECT * FROM listing_feeds WHERE user_id = ?', req.user.id)));
+});
+// Hozir sinxronlash (10 daqiqada bir marta)
+r.post('/my/feed/run', requireAuth, rateLimit({ name: 'feed', windowMs: 10 * 60000, max: 1, key: (req) => req.user.id }), async (req, res) => {
+  const f = db.get('SELECT * FROM listing_feeds WHERE user_id = ?', req.user.id);
+  if (!f) fail(404, 'err.not_found');
+  const out = await require('../lib/feeds').syncFeed(f.id, { port: req.socket.localPort });
+  res.json(feedView(out));
+});
+r.delete('/my/feed', requireAuth, (req, res) => {
+  const f = db.get('SELECT id FROM listing_feeds WHERE user_id = ?', req.user.id);
+  if (f) {
+    db.run('UPDATE listings SET feed_id = NULL WHERE feed_id = ?', f.id);
+    db.run('DELETE FROM listing_feeds WHERE id = ?', f.id);
+  }
+  res.json({ ok: true });
 });
 
 // ---------- Kengaytirilgan statistika ----------
@@ -228,4 +278,4 @@ r.get('/seller/analytics', requireAuth, (req, res) => {
   res.json({ days, funnel, sources, top, daily });
 });
 
-module.exports = { router: r, parseCsv };
+module.exports = { router: r, parseCsv, rowToBody, readTable };

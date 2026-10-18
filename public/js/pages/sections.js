@@ -51,6 +51,7 @@ async function listingSection(s, query) {
   const path = `/${s}`;
   const html = `
   ${head(s, `<a href="/create" class="btn btn-primary">${icon('plus')} ${esc(t('post_listing'))}</a>`)}
+  ${s === 'transportrental' ? `<a class="urgent-cta" href="/urgent" style="margin-bottom:14px">${icon('bolt')}<span><b>${esc(t('urgent_title'))}</b><small>${esc(t('urgent_cta_sub'))}</small></span></a>` : ''}
   <form class="search" data-sq style="margin-bottom:14px">${icon('search')}<input name="q" value="${esc(q.q || '')}" placeholder="${esc(t('search_ph'))}"><button class="btn btn-primary">${esc(t('find'))}</button></form>
   ${chips.length ? `<div class="lbl" style="margin-bottom:6px">${esc(t(p.rubric ? 'by_rubric' : 'category'))}</div><div class="chips"><a class="chip ${!q.cat ? 'on' : ''}" href="${path}${qs({ ...q, cat: undefined, page: undefined })}">${esc(t('all'))}</a>${chips.map(([v, l]) => `<a class="chip ${q.cat === v ? 'on' : ''}" href="${path}${qs({ ...q, cat: v, page: undefined })}">${esc(l)}</a>`).join('')}</div>` : ''}
   ${res.facets.brands.length ? `<div class="lbl" style="margin:14px 0 6px">${esc(t('by_brand'))}</div><div class="chips small" style="gap:4px">${res.facets.brands.slice(0, 14).map((b) => `<a class="chip ${q.brand === b.value ? 'on' : ''}" href="${path}${qs({ ...q, brand: q.brand === b.value ? undefined : b.value, page: undefined })}">${esc(b.value)} <span class="muted">${b.count}</span></a>`).join('')}</div>` : ''}

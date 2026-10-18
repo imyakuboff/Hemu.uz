@@ -1,6 +1,6 @@
 // "Hozir texnika kerak" — tezkor ijara chaqiruvi va uning holati
-import { state, t, esc, api, icon, num, fmtRel, toast, $, $$ } from '../core.js';
-import { crumbs, regionsOf, requireLogin } from '../ui.js';
+import { state, t, esc, api, icon, num, fmtRel, toast, qs, $, $$ } from '../core.js';
+import { crumbs, regionsOf, requireLogin, imgOf, priceText } from '../ui.js';
 import { go, onAuthChanged } from '../app.js';
 
 const HOURS = [2, 4, 8, 16, 24];
@@ -8,15 +8,27 @@ const STATUS = { open: 'orange', taken: 'green', cancelled: 'grey', expired: 'gr
 const tel = (p) => `<a class="btn btn-primary" href="tel:${esc(p)}">${icon('phone')} ${esc(p)}</a>`;
 
 // ---------- Yangi chaqiruv ----------
-export async function urgentNew() {
-  const [opts, regs] = await Promise.all([api('/urgent-options'), regionsOf(state.user?.country || 'UZ')]);
+// Ijara e'loni qatori (tanlash uchun)
+const pickRow = (l, on) => `<div class="upick ${on ? 'on' : ''}" data-pick="${l.id}">
+    <img src="${esc(imgOf(l))}" alt="" loading="lazy">
+    <div><a href="/listing/${l.id}" target="_blank" rel="noopener"><b>${esc(l.title)}</b></a>
+      <span>${esc(priceText(l.price))}${l.distance_km !== undefined ? ` · ${num(l.distance_km)} km` : l.location?.city ? ` · ${esc(l.location.city)}` : ''}</span></div>
+    <button type="button" class="btn btn-sm ${on ? 'btn-primary' : 'btn-soft'}">${on ? `${icon('check')} ${esc(t('urgent_picked'))}` : `+ ${esc(t('urgent_pick'))}`}</button>
+  </div>`;
+
+export async function urgentNew({ query = {} } = {}) {
+  const [opts, regs, pre] = await Promise.all([
+    api('/urgent-options'), regionsOf(state.user?.country || 'UZ'),
+    /^\d+$/.test(query.listing || '') ? api(`/listings/${query.listing}`, { silent: true }).catch(() => null) : null,
+  ]);
   const html = `
     ${crumbs([[t('home'), '/'], [t('urgent_title')]])}
     <div class="urgent-hero"><span class="urgent-ico">${icon('bolt')}</span><div><h1 class="page-title">${esc(t('urgent_title'))}</h1><p class="page-sub">${esc(t('urgent_sub'))}</p></div></div>
     <form class="box urgent-form" data-uf novalidate>
-      <label class="lbl">${esc(t('urgent_what'))} *</label>
-      ${opts.length ? `<select class="input" name="category" required><option value="">${esc(t('choose'))}</option>${opts.map((g) => `<optgroup label="${esc(g.name)}">${g.items.map((s) => `<option value="${esc(s.slug)}">${esc(s.name)} (${num(s.count)})</option>`).join('')}</optgroup>`).join('')}</select>`
-    : `<div class="empty small">${esc(t('urgent_none'))}</div>`}
+      <label class="lbl">${esc(t('urgent_what_text'))} *</label>
+      <textarea class="input" name="what" maxlength="300" rows="2" placeholder="${esc(t('urgent_what_ph'))}" style="min-height:64px"></textarea>
+      <label class="lbl" style="margin-top:12px">${esc(t('urgent_what'))} <span class="muted">(${esc(t('optional_mark'))})</span></label>
+      <select class="input" name="category"><option value="">${esc(t('urgent_any_type'))}</option>${opts.map((g) => `<optgroup label="${esc(g.name)}">${g.items.map((s) => `<option value="${esc(s.slug)}">${esc(s.name)}${s.count ? ` (${num(s.count)})` : ''}</option>`).join('')}</optgroup>`).join('')}</select>
       <label class="lbl" style="margin-top:14px">${esc(t('urgent_hours'))} *</label>
       <div class="seg" data-hours>${HOURS.map((h, i) => `<button type="button" data-v="${h}" class="${i === 1 ? 'on' : ''}">${esc(t('hours_n', { n: h }))}</button>`).join('')}</div>
       <label class="lbl" style="margin-top:6px">${esc(t('urgent_where'))} *</label>
@@ -30,7 +42,12 @@ export async function urgentNew() {
         <div><label class="lbl">${esc(t('urgent_when'))}</label><input class="input" name="start" maxlength="60" placeholder="${esc(t('urgent_when_ph'))}"></div>
         <div><label class="lbl">${esc(t('description'))}</label><input class="input" name="note" maxlength="500" placeholder="${esc(t('urgent_note_ph'))}"></div>
       </div>
-      <button class="btn btn-primary btn-block urgent-go" style="margin-top:16px" ${opts.length ? '' : 'disabled'}>${icon('bolt')} ${esc(t('urgent_send'))}</button>
+      <div class="upick-box">
+        <div class="upick-head"><b>${esc(t('urgent_pick_title'))}</b><span class="tiny muted">${esc(t('urgent_pick_sub'))}</span></div>
+        <div data-picked-list></div>
+        <div data-pick-list><div class="small muted">${esc(t('loading'))}</div></div>
+      </div>
+      <button class="btn btn-primary btn-block urgent-go" style="margin-top:16px">${icon('bolt')} ${esc(t('urgent_send'))}</button>
       <p class="tiny muted" style="margin:8px 0 0;text-align:center">${esc(t('urgent_how'))}</p>
     </form>
     <div data-my></div>`;
@@ -41,13 +58,49 @@ export async function urgentNew() {
       const f = $('[data-uf]', main);
       let geo = null;
       let hours = 4;
+      // Tanlangan ijara e'lonlari (id -> kartochka) va ro'yxatda ko'rsatilganlari
+      const picked = new Map();
+      const shown = new Map();
+      if (pre && pre.deal_type === 'rent' && !pre.is_owner) picked.set(pre.id, pre);
+      const drawPicked = () => { $('[data-picked-list]', main).innerHTML = [...picked.values()].map((l) => pickRow(l, true)).join(''); };
+      let seq = 0;
+      const loadPick = async () => {
+        const my = ++seq;
+        const words = f.what.value.trim();
+        const p = { deal_type: 'rent', per_page: 12, category: f.category.value || undefined, q: !f.category.value && words ? words : undefined, region: !geo ? f.region.value || undefined : undefined };
+        if (geo) Object.assign(p, { near: `${geo.lat},${geo.lng}`, radius_km: 100, sort: 'distance' });
+        let r = await api(`/listings${qs(p)}`, { silent: true }).catch(() => ({ items: [] }));
+        // Matn bo'yicha topilmasa — barcha ijara e'lonlari
+        if (!r.items.length && p.q) r = await api(`/listings${qs({ ...p, q: undefined })}`, { silent: true }).catch(() => ({ items: [] }));
+        if (my !== seq) return;
+        const rows = r.items.filter((l) => !picked.has(l.id) && l.seller?.user_id !== state.user?.id);
+        rows.forEach((l) => shown.set(l.id, l));
+        $('[data-pick-list]', main).innerHTML = rows.length ? rows.map((l) => pickRow(l, false)).join('') : `<div class="small muted">${esc(t('urgent_none'))}</div>`;
+      };
+      let deb = null;
+      const reload = () => { clearTimeout(deb); deb = setTimeout(loadPick, 400); };
+      f.what.addEventListener('input', reload);
+      f.category.addEventListener('change', reload);
+      f.region.addEventListener('change', reload);
+      main.addEventListener('click', (e) => {
+        const btn = e.target.closest('.upick button');
+        if (!btn) return;
+        const id = Number(btn.closest('[data-pick]').dataset.pick);
+        if (picked.has(id)) picked.delete(id);
+        else if (picked.size >= 10) { toast(t('urgent_pick_max'), 'err'); return; }
+        else if (shown.has(id)) picked.set(id, shown.get(id));
+        drawPicked();
+        loadPick();
+      });
+      drawPicked();
+      loadPick();
       $$('[data-hours] button', main).forEach((b) => { b.onclick = () => { $$('[data-hours] button', main).forEach((x) => x.classList.toggle('on', x === b)); hours = Number(b.dataset.v); }; });
       $('[data-geo]', main).onclick = () => {
         const st = $('[data-geo-st]', main);
         if (!navigator.geolocation) { st.textContent = t('urgent_geo_fail'); return; }
         st.textContent = t('loading');
         navigator.geolocation.getCurrentPosition(
-          (p) => { geo = { lat: p.coords.latitude, lng: p.coords.longitude }; st.innerHTML = `<span class="green">✓ ${esc(t('urgent_geo_ok'))}</span>`; },
+          (p) => { geo = { lat: p.coords.latitude, lng: p.coords.longitude }; st.innerHTML = `<span class="green">✓ ${esc(t('urgent_geo_ok'))}</span>`; loadPick(); },
           () => { st.textContent = t('urgent_geo_fail'); },
           { enableHighAccuracy: true, timeout: 10000 },
         );
@@ -55,9 +108,9 @@ export async function urgentNew() {
       f.onsubmit = async (e) => {
         e.preventDefault();
         if (!requireLogin(onAuthChanged)) return;
-        if (!f.category?.value) { f.category?.classList.add('err'); return; }
-        if (!geo && !f.region.value) { f.region.classList.add('err'); toast(t('urgent_need_loc'), 'err'); return; }
-        const body = { category: f.category.value, hours, region: f.region.value || undefined, address: f.address.value.trim() || undefined, start: f.start.value.trim() || undefined, note: f.note.value.trim() || undefined, ...(geo || {}) };
+        if (!f.what.value.trim() && !f.category.value && !picked.size) { f.what.classList.add('err'); f.what.focus(); return; }
+        if (!geo && !f.region.value && !f.address.value.trim()) { f.region.classList.add('err'); toast(t('urgent_need_loc'), 'err'); return; }
+        const body = { what: f.what.value.trim() || undefined, category: f.category.value || undefined, listings: [...picked.keys()], hours, region: f.region.value || undefined, address: f.address.value.trim() || undefined, start: f.start.value.trim() || undefined, note: f.note.value.trim() || undefined, ...(geo || {}) };
         const r = await api('/urgent', { method: 'POST', body });
         go(`/urgent/${r.id}`);
       };
@@ -67,7 +120,7 @@ export async function urgentNew() {
         const my = await api('/my/urgent', { silent: true }).catch(() => null);
         const rows = [...(my?.mine || []), ...(my?.incoming || [])];
         if (rows.length) {
-          $('[data-my]', main).innerHTML = `<div class="box" style="margin-top:16px"><h3>${esc(t('urgent_history'))}</h3>${rows.map((x) => `<a class="lead" style="grid-template-columns:1fr auto" href="/urgent/${x.id}"><div><b>${esc(x.category?.name || '')} · ${esc(t('hours_n', { n: x.hours }))}</b><span>${esc(x.is_owner ? t('urgent_mine') : t('urgent_incoming'))} · ${esc(fmtRel(x.created_at))}</span></div><span class="tag ${STATUS[x.status]}">${esc(t(`urgent_st_${x.status}`))}</span></a>`).join('')}</div>`;
+          $('[data-my]', main).innerHTML = `<div class="box" style="margin-top:16px"><h3>${esc(t('urgent_history'))}</h3>${rows.map((x) => `<a class="lead" style="grid-template-columns:1fr auto" href="/urgent/${x.id}"><div><b>${esc(x.what || x.category?.name || '')} · ${esc(t('hours_n', { n: x.hours }))}</b><span>${esc(x.is_owner ? t('urgent_mine') : t('urgent_incoming'))} · ${esc(fmtRel(x.created_at))}</span></div><span class="tag ${STATUS[x.status]}">${esc(t(`urgent_st_${x.status}`))}</span></a>`).join('')}</div>`;
         }
       }
     },
@@ -81,13 +134,15 @@ export async function urgentView({ params }) {
   const where = [x.address, x.region_name].filter(Boolean).join(', ');
   const map = x.geo ? `<a class="link-blue small" target="_blank" rel="noopener" href="https://yandex.uz/maps/?pt=${x.geo.lng},${x.geo.lat}&z=15&l=map">${icon('map')} ${esc(t('urgent_open_map'))}</a>` : '';
   const facts = `<div class="urgent-facts">
-      <div><span>${esc(t('urgent_what'))}</span><b>${esc(x.category?.name || '')}</b></div>
+      ${x.what ? `<div class="full"><span>${esc(t('urgent_what_text'))}</span><b>${esc(x.what)}</b></div>` : ''}
+      ${x.category ? `<div><span>${esc(t('urgent_what'))}</span><b>${esc(x.category.name)}</b></div>` : ''}
       <div><span>${esc(t('urgent_hours'))}</span><b>${esc(t('hours_n', { n: x.hours }))}</b></div>
       ${x.start ? `<div><span>${esc(t('urgent_when'))}</span><b>${esc(x.start)}</b></div>` : ''}
       ${where ? `<div><span>${esc(t('urgent_where'))}</span><b>${esc(where)}</b></div>` : ''}
       ${x.target?.distance_km !== null && x.target?.distance_km !== undefined ? `<div><span>${esc(t('urgent_distance'))}</span><b>${num(x.target.distance_km)} km</b></div>` : ''}
       ${x.note ? `<div class="full"><span>${esc(t('description'))}</span><b>${esc(x.note)}</b></div>` : ''}
-    </div>${map}`;
+    </div>${map}
+    ${x.picked?.length ? `<div class="upick-box" style="margin-top:12px"><div class="upick-head"><b>${esc(t('urgent_picked_list'))}</b></div>${x.picked.map((l) => `<a class="upick on" href="/listing/${l.id}"><img src="${esc(imgOf(l))}" alt=""><div><b>${esc(l.title)}</b><span>${esc(priceText(l.price))}</span></div></a>`).join('')}</div>` : ''}`;
   let body;
   if (x.is_owner) {
     body = x.status === 'open'
@@ -105,7 +160,7 @@ export async function urgentView({ params }) {
   }
   const html = `
     ${crumbs([[t('home'), '/'], [t('urgent_title'), '/urgent'], [`№ ${x.id}`]])}
-    <div class="urgent-hero"><span class="urgent-ico">${icon('bolt')}</span><div><h1 class="page-title">${esc(x.category?.name || t('urgent_title'))}</h1><p class="page-sub"><span class="tag ${STATUS[x.status]}">${esc(t(`urgent_st_${x.status}`))}</span> · ${esc(fmtRel(x.created_at))}</p></div></div>
+    <div class="urgent-hero"><span class="urgent-ico">${icon('bolt')}</span><div><h1 class="page-title">${esc(x.what || x.category?.name || t('urgent_title'))}</h1><p class="page-sub"><span class="tag ${STATUS[x.status]}">${esc(t(`urgent_st_${x.status}`))}</span> · ${esc(fmtRel(x.created_at))}</p></div></div>
     <div class="box">${facts}</div>
     <div class="box urgent-action">${body}</div>`;
   return {

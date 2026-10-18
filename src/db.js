@@ -607,8 +607,9 @@ CREATE TABLE IF NOT EXISTS search_log (
 CREATE TABLE IF NOT EXISTS urgent_calls (
   id INTEGER PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  category_id INTEGER NOT NULL REFERENCES categories(id),
+  category_id INTEGER REFERENCES categories(id),
   subcategory_id INTEGER REFERENCES categories(id),
+  what TEXT, -- mijoz o'z so'zi bilan: "JCB 3CX gidromolot bilan"
   country TEXT NOT NULL,
   region TEXT,
   lat REAL,
@@ -630,6 +631,7 @@ CREATE TABLE IF NOT EXISTS urgent_targets (
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   listing_id INTEGER,
   distance_km INTEGER,
+  picked INTEGER NOT NULL DEFAULT 0, -- mijoz o'zi tanlagan e'lon
   PRIMARY KEY (call_id, user_id)
 );
 CREATE INDEX IF NOT EXISTS ix_urgent_targets_user ON urgent_targets(user_id);
@@ -859,6 +861,8 @@ const COLUMNS = [
   ['listings', 'share_count', 'INTEGER NOT NULL DEFAULT 0'], // ulashish orqali kelgan noyob tashrifchilar (jami)
   ['listings', 'share_until', 'TEXT'], // ulashish evaziga bepul TOP muddati
   ['listings', 'external_id', 'TEXT'], // diler fididagi qator ID'si
+  ['urgent_calls', 'what', 'TEXT'],
+  ['urgent_targets', 'picked', 'INTEGER NOT NULL DEFAULT 0'],
   ['listings', 'feed_id', 'INTEGER'],
   ['listings', 'feed_archived', 'INTEGER NOT NULL DEFAULT 0'], // fidda yo'qolgani uchun arxivlangan
   ['listings', 'highlighted_until', 'TEXT'],
@@ -913,6 +917,17 @@ const COLUMNS = [
   }
   db.exec('CREATE UNIQUE INDEX IF NOT EXISTS ux_users_username ON users(username COLLATE NOCASE) WHERE username IS NOT NULL');
   db.exec('CREATE INDEX IF NOT EXISTS ix_listings_external ON listings(user_id, external_id) WHERE external_id IS NOT NULL');
+  // urgent_calls.category_id endi ixtiyoriy (mijoz o'z so'zi bilan yozishi mumkin) — eski jadvalni qayta qurish
+  if (db.prepare('PRAGMA table_info(urgent_calls)').all().some((c) => c.name === 'category_id' && c.notnull)) {
+    const cols = db.prepare('PRAGMA table_info(urgent_calls)').all().map((c) => c.name).join(', ');
+    db.exec(`PRAGMA foreign_keys = OFF; BEGIN;
+      ALTER TABLE urgent_calls RENAME TO urgent_calls_old;
+      ${SCHEMA.match(/CREATE TABLE IF NOT EXISTS urgent_calls \([\s\S]*?\n\);/)[0]}
+      INSERT INTO urgent_calls (${cols}) SELECT ${cols} FROM urgent_calls_old;
+      DROP TABLE urgent_calls_old;
+      CREATE INDEX IF NOT EXISTS ix_urgent_user ON urgent_calls(user_id, status);
+      COMMIT; PRAGMA foreign_keys = ON;`);
+  }
   // Qishloq xo'jaligi bo'limi olib tashlandi — uning platforma aksiyasi ham
   db.exec(`DELETE FROM promo_listings WHERE promo_id IN (SELECT id FROM promos WHERE slug = 'bahor' AND owner_user_id IS NULL);
     DELETE FROM promos WHERE slug = 'bahor' AND owner_user_id IS NULL;`);

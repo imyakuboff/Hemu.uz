@@ -158,3 +158,32 @@ test('tezkor chaqiruv: yaqindagi egalarga xabar, birinchi qabul qilgan oladi', a
   const opts = await api('GET', '/api/v1/urgent-options');
   assert.ok(JSON.stringify(opts.body).includes('excavators'));
 });
+
+test("tezkor chaqiruv: o'z so'zi bilan yozish va ijara e'lonlaridan tanlash", async () => {
+  const sub = db.get(`SELECT id, parent_id FROM categories WHERE slug = 'excavators'`);
+  const uid = (p) => db.get('SELECT id FROM users WHERE phone = ?', p).id;
+  // Uzoqdagi (Samarqand) ijara e'loni — mijoz uni o'zi tanlaydi
+  const far = db.insert('listings', {
+    user_id: uid('+998935551122'), title: 'Аренда JCB 3CX с гидромолотом', brand: 'JCB', model: '3CX', kind: 'equipment', deal_type: 'rent',
+    category_id: sub.parent_id, subcategory_id: sub.id, country: 'UZ', region: 'samarkand', currency: 'UZS', price: 250000, price_unit: 'hour', status: 'active', lat: 39.65, lng: 66.96,
+  });
+  db.run('UPDATE listings SET search_text = ? WHERE id = ?', require('../src/lib/listings').buildSearchText(db.get('SELECT * FROM listings WHERE id = ?', far)), far);
+  const token = (await login('+998901112244')).token;
+  // Hech narsa ko'rsatilmasa — rad etiladi
+  assert.equal((await api('POST', '/api/v1/urgent', { token, body: { hours: 3, lat: 41.32, lng: 69.24 } })).status, 422);
+  // Faqat matn ("gidromolot bilan JCB") + tanlangan uzoqdagi e'lon
+  const c = await api('POST', '/api/v1/urgent', { token, body: { what: 'JCB 3CX gidromolot bilan', listings: [far, 999999], hours: 3, lat: 41.32, lng: 69.24 } });
+  assert.equal(c.status, 201, JSON.stringify(c.body));
+  assert.equal(c.body.what, 'JCB 3CX gidromolot bilan');
+  assert.equal(c.body.picked.length, 1);
+  assert.equal(c.body.picked[0].id, far);
+  // Tanlangan e'lon egasi 250 km uzoqda bo'lsa ham xabar oldi
+  const seen = await api('GET', `/api/v1/urgent/${c.body.id}`, { token: S.other.token });
+  assert.equal(seen.status, 200);
+  assert.ok(seen.body.target.distance_km > 200);
+  const n = await api('GET', '/api/v1/notifications', { token: S.other.token });
+  assert.ok(JSON.stringify(n.body).includes('JCB 3CX gidromolot bilan'));
+  // Barcha bo'limlar (e'loni yo'qlari ham) formada bor
+  const opts = await api('GET', '/api/v1/urgent-options');
+  assert.ok(opts.body.some((g) => g.items.some((s) => s.count === 0)));
+});

@@ -12,7 +12,8 @@ const { fail, notFound, forbidden, validate } = require('../lib/http');
 const { notify } = require('../lib/notify');
 const { distanceKm } = require('../lib/listings');
 const { COUNTRY, isValidRegion, regionName } = require('../geo');
-const { pick } = require('../i18n');
+const { pick, normalizeSearch } = require('../i18n');
+const L = require('../lib/listings');
 
 const r = Router();
 const RADIUS_KM = 50;
@@ -20,23 +21,31 @@ const MAX_TARGETS = 40;
 const TTL_HOURS = 2;
 
 // Mos texnika egalari: ijara e'loni (faol) — avval aniq bo'lim, so'ng yo'nalish; eng yaqini birinchi
+// Mijoz yozgan matndan kalit so'zlar ("JCB 3CX gidromolot bilan" -> jcb, 3cx, gidromolot)
+const words = (s) => [...new Set(normalizeSearch(s || '').split(' ').filter((w) => w.length >= 3 || /\d/.test(w)))].slice(0, 8);
+
 function findOwners(x) {
+  // Turi tanlangan bo'lsa — shu bo'lim/yo'nalish; tanlanmagan bo'lsa — yozilgan matn bo'yicha
+  const ws = words(x.what);
+  const byCat = Boolean(x.category_id);
+  if (!byCat && !ws.length) return [];
   const rows = db.all(
-    `SELECT l.id, l.user_id, l.lat, l.lng, l.region, l.title, l.subcategory_id, l.price, l.currency, l.price_unit
+    `SELECT l.id, l.user_id, l.lat, l.lng, l.region, l.title, l.subcategory_id, l.search_text
      FROM listings l
      WHERE l.status = 'active' AND l.deal_type = 'rent' AND l.country = ? AND l.user_id != ?
-       AND (l.subcategory_id = ? OR l.category_id = ?)`,
-    x.country, x.user_id, x.subcategory_id ?? -1, x.category_id,
-  );
+       AND ${byCat ? '(l.subcategory_id = ? OR l.category_id = ?)' : `(${ws.map(() => 'l.search_text LIKE ?').join(' OR ')})`}
+     LIMIT 5000`,
+    x.country, x.user_id, ...(byCat ? [x.subcategory_id ?? -1, x.category_id] : ws.map((w) => `%${w}%`)),
+  ).map((l) => ({ ...l, hits: ws.filter((w) => (l.search_text || '').includes(w)).length }));
   const geo = x.lat !== null && x.lat !== undefined;
   const scored = rows.map((l) => ({
     ...l,
     dist: geo && l.lat !== null ? distanceKm({ lat: x.lat, lng: x.lng }, { lat: l.lat, lng: l.lng }) : null,
-    exact: l.subcategory_id === x.subcategory_id,
+    exact: byCat ? l.subcategory_id === x.subcategory_id : l.hits,
   })).filter((l) => (l.dist !== null ? l.dist <= RADIUS_KM : !geo || (x.region && l.region === x.region)));
   // Joylashuvi yo'q e'lonlar: o'sha viloyatdagilar (koordinatasiz e'lonlarni ham yo'qotmaslik uchun)
   if (geo && x.region) {
-    for (const l of rows) if (l.lat === null && l.region === x.region) scored.push({ ...l, dist: null, exact: l.subcategory_id === x.subcategory_id });
+    for (const l of rows) if (l.lat === null && l.region === x.region) scored.push({ ...l, dist: null, exact: byCat ? l.subcategory_id === x.subcategory_id : l.hits });
   }
   scored.sort((a, b) => (b.exact - a.exact) || ((a.dist ?? 999) - (b.dist ?? 999)));
   const byUser = new Map();
@@ -59,6 +68,11 @@ function view(x, req) {
     id: x.id,
     status: expired ? 'expired' : x.status,
     category: cat ? { slug: cat.slug, name: pick(cat.names, req.lang) } : null,
+    what: x.what,
+    // Mijoz o'zi tanlagan ijara e'lonlari
+    picked: db.all(
+      `SELECT l.* FROM urgent_targets t JOIN listings l ON l.id = t.listing_id WHERE t.call_id = ? AND t.picked = 1`, x.id,
+    ).map((l) => L.card(l, { lang: req.lang, currency: req.currency })),
     hours: x.hours,
     start: x.start_text,
     note: x.note,
@@ -82,27 +96,37 @@ const load = (id) => db.get('SELECT * FROM urgent_calls WHERE id = ?', Number(id
 // Chaqiruv yaratish
 r.post('/urgent', requireAuth, rateLimit({ name: 'urgent', windowMs: 3600000, max: 10, key: (req) => req.user.id }), (req, res) => {
   const v = validate(req.body, {
-    category: { type: 'string', max: 60, required: true },
+    category: { type: 'string', max: 60 },
+    what: { type: 'string', max: 300 },
     hours: { type: 'int', min: 1, max: 240, required: true },
     start: { type: 'string', max: 60 },
     note: { type: 'string', max: 500 },
     address: { type: 'string', max: 200 },
     region: { type: 'string', max: 40 },
   });
-  const c = cats.find(v.category);
-  if (!c) fail(422, 'err.validation', { category: 'invalid' });
+  const c = v.category ? cats.find(v.category) : null;
+  if (v.category && !c) fail(422, 'err.validation', { category: 'invalid' });
+  // Mijoz tanlagan ijara e'lonlari (10 tagacha): faol, ijara, o'ziniki emas
+  const pickedIds = [...new Set((Array.isArray(req.body?.listings) ? req.body.listings : []).map(Number).filter(Number.isInteger))].slice(0, 10);
+  const picked = pickedIds.length
+    ? db.all(`SELECT * FROM listings WHERE id IN (${pickedIds.map(() => '?').join(',')}) AND status = 'active' AND deal_type = 'rent' AND user_id != ?`, ...pickedIds, req.user.id)
+    : [];
+  if (!c && !words(v.what).length && !picked.length) fail(422, 'err.validation', { what: 'required' });
   const country = COUNTRY[req.user.country] ? req.user.country : 'UZ';
   if (v.region && !isValidRegion(country, v.region)) fail(422, 'err.validation', { region: 'invalid' });
   const lat = Number(req.body?.lat);
   const lng = Number(req.body?.lng);
   const hasGeo = Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180 && !(lat === 0 && lng === 0);
-  if (!hasGeo && !v.region) fail(422, 'err.validation', { location: 'required' });
+  if (!hasGeo && !v.region && !v.address) fail(422, 'err.validation', { location: 'required' });
   // Bir vaqtning o'zida bitta ochiq chaqiruv
   if (db.get(`SELECT 1 FROM urgent_calls WHERE user_id = ? AND status = 'open' AND expires_at > datetime('now')`, req.user.id)) fail(409, 'err.urgent_open');
+  // Turi tanlanmagan, lekin e'lon tanlangan bo'lsa — birinchi e'lonning bo'limi (ko'rinish uchun)
+  const cc = c || (picked[0] ? (cats.byId(picked[0].subcategory_id) || cats.byId(picked[0].category_id)) : null);
   const id = db.insert('urgent_calls', {
     user_id: req.user.id,
-    category_id: c.parent_id || c.id,
-    subcategory_id: c.parent_id ? c.id : null,
+    category_id: cc ? (cc.parent_id || cc.id) : null,
+    subcategory_id: cc && cc.parent_id ? cc.id : null,
+    what: v.what || null,
     country,
     region: v.region || null,
     lat: hasGeo ? lat : null,
@@ -114,11 +138,22 @@ r.post('/urgent', requireAuth, rateLimit({ name: 'urgent', windowMs: 3600000, ma
   });
   db.run(`UPDATE urgent_calls SET expires_at = datetime('now', '+${TTL_HOURS} hours') WHERE id = ?`, id);
   const x = load(id);
-  const owners = findOwners(x);
-  const catName = pick(c.names, 'ru');
-  for (const o of owners) {
-    db.insert('urgent_targets', { call_id: id, user_id: o.user_id, listing_id: o.id, distance_km: o.dist });
-    notify(o.user_id, 'urgent_call', { category_slug: c.slug, category: catName, hours: v.hours, km_txt: o.dist !== null && o.dist !== undefined ? ` · ${o.dist} km` : '', call_id: id }, `/urgent/${id}`);
+  // Xabar oluvchilar: mijoz tanlagan e'lonlar egalari (masofadan qat'i nazar) + yaqin atrofdagilar
+  const targets = new Map();
+  for (const l of picked) {
+    if (targets.has(l.user_id)) continue;
+    const dist = hasGeo && l.lat !== null ? distanceKm({ lat, lng }, { lat: l.lat, lng: l.lng }) : null;
+    targets.set(l.user_id, { listing_id: l.id, dist, picked: 1 });
+  }
+  // Turi tanlanmagan bo'lsa — matn bo'yicha qidiriladi (mijoz faqat e'lon tanlagan bo'lsa ham)
+  for (const o of findOwners(x)) if (!targets.has(o.user_id)) targets.set(o.user_id, { listing_id: o.id, dist: o.dist, picked: 0 });
+  const label = v.what || (cc ? pick(cc.names, 'ru') : '');
+  for (const [uid, o] of [...targets].slice(0, MAX_TARGETS + picked.length)) {
+    db.insert('urgent_targets', { call_id: id, user_id: uid, listing_id: o.listing_id, distance_km: o.dist, picked: o.picked });
+    notify(uid, 'urgent_call', {
+      ...(v.what || !cc ? { category: label } : { category_slug: cc.slug, category: label }),
+      hours: v.hours, km_txt: o.dist !== null && o.dist !== undefined ? ` · ${o.dist} km` : '', call_id: id,
+    }, `/urgent/${id}`);
   }
   res.status(201).json(view(load(id), req));
 });
@@ -167,9 +202,11 @@ r.get('/my/urgent', requireAuth, (req, res) => {
 // Formada tanlash uchun: ijaraga beriladigan bo'limlar va hozir mavjud texnika soni
 r.get('/urgent-options', (req, res) => {
   const counts = new Map(db.all(`SELECT subcategory_id AS id, COUNT(*) AS n FROM listings WHERE status = 'active' AND deal_type = 'rent' GROUP BY subcategory_id`).map((x) => [x.id, x.n]));
+  // Barcha bo'limlar (e'loni yo'qlari ham — mijoz baribir so'rashi mumkin), ijaradagi soni bilan
   const out = [];
   for (const root of cats.load().roots) {
-    const subs = root.children.filter((s) => counts.get(s.id)).map((s) => ({ slug: s.slug, name: pick(s.names, req.lang), count: counts.get(s.id) }));
+    if (['parts', 'materials'].includes(root.slug)) continue;
+    const subs = root.children.map((s) => ({ slug: s.slug, name: pick(s.names, req.lang), count: counts.get(s.id) || 0 }));
     if (subs.length) out.push({ slug: root.slug, name: pick(root.names, req.lang), items: subs });
   }
   res.json(out);

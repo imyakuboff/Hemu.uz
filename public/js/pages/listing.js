@@ -161,6 +161,7 @@ export default async function listing({ params, query }) {
     </div>
     <aside>
       ${priceCard}
+      ${l.deal_type === 'rent' && !l.is_owner && l.status === 'active' ? `<a class="urgent-cta" href="/urgent?listing=${l.id}" style="margin:0 0 12px">${icon('bolt')}<span><b>${esc(t('urgent_call_this'))}</b><small>${esc(t('urgent_call_this_sub'))}</small></span></a>` : ''}
       ${sellerCard(l, part)}
       <div class="side-card" style="padding:14px 16px">
         <div class="tool-row" style="margin:0">

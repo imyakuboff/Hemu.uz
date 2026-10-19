@@ -120,7 +120,25 @@ function metaFor(req) {
     const body = `<h1>${esc(base.title)}</h1><p>${esc(base.description)}</p>
       <ul class="seo-list">${cats.load().roots.map((c) => `<li><a href="${esc(withLang(`/catalog?category=${c.slug}`, lang))}">${esc(catName(c, lang))}</a> · <a href="${esc(withLang(`/prices?category=${c.slug}`, lang))}">${esc(t(lang, 'seo.see_prices'))}</a></li>`).join('')}</ul>
       ${listRows(rows, lang)}`;
-    return { lang, qLang, ...base, url: '/', body };
+    // Google uchun: tashkilot (logo, aloqa) va sayt ichida qidiruv (sitelinks search box)
+    const tg = String(config.supportTelegram || '').replace(/^@/, '');
+    const ld = {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'Organization', '@id': `${config.siteUrl}/#org`, name: 'HEMU.UZ', url: `${config.siteUrl}/`,
+          logo: `${config.siteUrl}/img/icon-512.png`,
+          ...(tg ? { sameAs: [`https://t.me/${tg}`] } : {}),
+          ...(config.supportPhone ? { contactPoint: { '@type': 'ContactPoint', telephone: config.supportPhone, contactType: 'customer service', areaServed: ['UZ', 'KZ', 'KG', 'TJ', 'TM', 'AZ', 'AF', 'RU'], availableLanguage: ['uz', 'ru', 'en'] } } : {}),
+        },
+        {
+          '@type': 'WebSite', '@id': `${config.siteUrl}/#website`, name: 'HEMU.UZ', alternateName: ['HEMU', 'hemu.uz'], url: `${config.siteUrl}/`, inLanguage: HREFLANG[lang] || lang,
+          publisher: { '@id': `${config.siteUrl}/#org` },
+          potentialAction: { '@type': 'SearchAction', target: { '@type': 'EntryPoint', urlTemplate: `${config.siteUrl}/catalog?q={search_term_string}` }, 'query-input': 'required name=search_term_string' },
+        },
+      ],
+    };
+    return { lang, qLang, ...base, url: '/', body, ld };
   }
   return { lang, qLang, ...base, url: req.path, noAlt: true };
 }

@@ -64,6 +64,16 @@ jobs:
               .catch(e=>console.log('XATO '+e.message));" 2>&1 | tail -1)
             rm -f /tmp/hemu-imgtest*
             case "$IMG" in dvigatel=*) step "Rasm siqish: $IMG";; *) echo "::warning::Rasm siqish ishlamayapti: $IMG";; esac
+            # Asosiy domen (canonical, sitemap, to'lov qaytish manzillari, IndexNow)
+            SITE=https://hemu.uz
+            touch .env
+            [ -s .env ] && [ -n "$(tail -c1 .env)" ] && echo >> .env
+            sed -i '/^SITE_URL=/d' .env && echo "SITE_URL=$SITE" >> .env && chown "$U": .env
+            DBF=$(grep -E '^DB_FILE=' .env | cut -d= -f2 | tr -d '"\r '); DBF=${DBF:-data/movexgo.db}
+            sudo -u "$U" node --disable-warning=ExperimentalWarning -e "
+              const {DatabaseSync}=require('node:sqlite'); const d=new DatabaseSync(process.argv[1]);
+              d.prepare(\"INSERT INTO settings (key, value, updated_at) VALUES ('siteUrl', ?, datetime('now')) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at\").run(JSON.stringify(process.argv[2]));" "$DBF" "$SITE"
+            step "Asosiy domen: $SITE"
             # Gmail (SMTP) sozlamasi .env ga yoziladi (secret'lar berilgan bo'lsa)
             if [ -n "$SMTP_USER" ] && [ -n "$SMTP_PASS" ]; then
               touch .env
@@ -91,6 +101,8 @@ jobs:
               echo "::error::hemu xizmati ishlamayapti: $(journalctl -u hemu -n 5 --no-pager | tail -5 | tr '\n' ' ' | cut -c1-600)"
               exit 1
             fi
+            PUB=$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' --max-time 10 https://hemu.uz/ ; echo " | www: $(curl -s -o /dev/null -w '%{http_code} -> %{redirect_url}' --max-time 10 https://www.hemu.uz/catalog)")
+            step "hemu.uz: $PUB"
             if [ -n "$OK" ]; then step "Sayt javob beryapti (port $PORT): $H"; else echo "::warning::health javob bermadi (port $PORT), lekin xizmat ishlayapti: $(journalctl -u hemu -n 3 --no-pager | tr '\n' ' ' | cut -c1-400)"; fi
             # Email sozlamasi va oxirgi yuborishlar (diagnostika)
             DB=$(grep -E '^DB_FILE=' .env 2>/dev/null | cut -d= -f2 | tr -d '"\r '); DB=${DB:-data/movexgo.db}

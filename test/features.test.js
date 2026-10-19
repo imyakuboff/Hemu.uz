@@ -392,3 +392,30 @@ test('SEO: IndexNow kalit fayli va Google/Yandex tasdiqlash tegi', async () => {
   assert.match(html, /<meta name="google-site-verification" content="GoogleCode_123-x">/);
   config.googleVerification = '';
 });
+
+test("SEO: asosiy domenga 301 (www, nip.io, IP), API yo'naltirilmaydi; tashkilot va qidiruv JSON-LD", async () => {
+  const config = require('../src/config');
+  const http = require('node:http');
+  const prev = config.siteUrl;
+  const get = (path, host) => new Promise((resolve, reject) => {
+    const u = new URL(base);
+    http.get({ host: u.hostname, port: u.port, path, headers: { Host: host } }, (res) => { res.resume(); resolve({ status: res.statusCode, location: res.headers.location }); }).on('error', reject);
+  });
+  config.siteUrl = 'https://hemu.uz';
+  try {
+    assert.deepEqual(await get('/catalog?q=jcb', 'www.hemu.uz'), { status: 301, location: 'https://hemu.uz/catalog?q=jcb' });
+    assert.equal((await get('/listing/1', '189-74-98-45.nip.io')).location, 'https://hemu.uz/listing/1');
+    assert.equal((await get('/', '189.74.98.45')).status, 301);
+    assert.equal((await get('/api/v1/meta', 'www.hemu.uz')).status, 200);
+    assert.equal((await get('/health', '127.0.0.1')).status, 200);
+    assert.equal((await get('/', 'hemu.uz')).status, 200);
+    const html = await (await fetch(`${base}/?lang=uz`)).text();
+    assert.match(html, /<link rel="canonical" href="https:\/\/hemu\.uz\/\?lang=uz">/);
+    assert.match(html, /"@type":"WebSite"/);
+    assert.match(html, /"urlTemplate":"https:\/\/hemu\.uz\/catalog\?q=\{search_term_string\}"/);
+  } finally {
+    config.siteUrl = prev;
+  }
+  // Texnik manzil asosiy bo'lsa — hech qayerga yo'naltirilmaydi
+  assert.equal((await get('/', 'www.example.com')).status, 200);
+});

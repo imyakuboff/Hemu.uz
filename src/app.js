@@ -12,6 +12,21 @@ function createApp() {
   app.set('trust proxy', 1);
   app.set('query parser', 'simple');
 
+  // Asosiy domen: www.hemu.uz, eski texnik manzil (*.nip.io) va IP orqali kirilsa — 301 bilan hemu.uz ga.
+  // Qidiruv tizimlari bitta manzilni indekslaydi (takror sahifa bo'lmaydi). API va fayllar yo'naltirilmaydi
+  // (eski manzildagi o'rnatilgan PWA ishlashda davom etadi), faqat sahifalar.
+  app.use((req, res, next) => {
+    let main;
+    try { main = new URL(config.siteUrl).hostname; } catch { return next(); }
+    // siteUrl hali texnik manzil bo'lsa — hech narsa qilinmaydi
+    if (!main || /nip\.io$|^\d+\.\d+\.\d+\.\d+$|localhost/.test(main)) return next();
+    const host = req.hostname;
+    // 127.x — server ichidagi so'rovlar (health, fid) — yo'naltirilmaydi
+    const alias = host === `www.${main}` || /\.nip\.io$/.test(host) || (/^\d+\.\d+\.\d+\.\d+$/.test(host) && !host.startsWith('127.'));
+    if (!alias || !['GET', 'HEAD'].includes(req.method) || /^\/(api|uploads)\//.test(req.path)) return next();
+    res.redirect(301, `${config.siteUrl}${req.originalUrl}`);
+  });
+
   // Xavfsizlik sarlavhalari va CORS
   app.use((req, res, next) => {
     res.set({

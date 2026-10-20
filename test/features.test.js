@@ -359,23 +359,57 @@ test("tasdiq belgisi: guvohnoma YaTT/MChJ uchun majburiy, oylik obuna bilan galo
   assert.equal(req.mchj, true);
   assert.equal(req.xk, false);
   assert.equal(req.aj, false);
-  // Narx: oyiga 10$
+  // Narx: oyiga 15$, to'lov admin orqali
   const b = await api('GET', '/api/v1/badge', { token: S.buyer.token, currency: 'USD' });
-  assert.equal(b.body.price.amount, 10);
+  assert.equal(b.body.price.amount, 15);
   assert.equal(b.body.status.active, false);
+  assert.deepEqual(b.body.providers.map((x) => x.id), ['admin']);
   // Xaridor (kompaniyasiz) e'lon joylaydi — avval belgisiz
   const uid = db.get(`SELECT id FROM users WHERE phone = '+998907654321'`).id;
   const L = require('../src/lib/listings');
   assert.equal(L.hasPaidBadge(uid), false);
-  const p = await api('POST', '/api/v1/badge/subscribe', { token: S.buyer.token, body: { provider: 'dev', months: 2 }, currency: 'USD' });
+  const config = require('../src/config');
+  config.manualPay.card = '8600 1234 5678 9012';
+  config.manualPay.holder = 'HEMU ADMIN';
+  // Rad etiladigan so'rov
+  const p0 = await api('POST', '/api/v1/badge/subscribe', { token: S.buyer.token, body: { months: 1 }, currency: 'USD' });
+  assert.equal(p0.status, 201);
+  assert.equal(p0.body.status, 'pending');
+  assert.equal(p0.body.provider, 'admin');
+  const v0 = await api('GET', `/api/v1/payments/${p0.body.id}`, { token: S.buyer.token });
+  assert.equal(v0.body.manual.card, '8600 1234 5678 9012');
+  assert.equal(v0.body.manual.claimed_at, null);
+  // Sinov "To'lash" tugmasi admin to'lovida ishlamaydi
+  assert.equal((await api('POST', `/api/v1/payments/${p0.body.id}/dev-confirm`, { token: S.buyer.token })).status, 403);
+  // Boshqa foydalanuvchi "To'ladim" bosa olmaydi
+  assert.equal((await api('POST', `/api/v1/payments/${p0.body.id}/claim`, { token: S.seller.token, body: {} })).status, 403);
+  assert.equal((await api('POST', `/api/v1/payments/${p0.body.id}/claim`, { token: S.buyer.token, body: { note: 'chek 111' } })).status, 200);
+  const adminId = db.get(`SELECT id FROM users WHERE phone = '+998900000001'`).id;
+  assert.ok(db.get(`SELECT 1 FROM notifications WHERE user_id = ? AND type = 'badge_request'`, adminId), 'admin xabar oladi');
+  assert.equal((await api('POST', `/api/v1/admin/payments/${p0.body.id}/reject`, { token: S.buyer.token, body: {} })).status, 403);
+  assert.equal((await api('POST', `/api/v1/admin/payments/${p0.body.id}/reject`, { token: S.admin.token, body: { reason: "Pul tushmadi" } })).status, 200);
+  assert.equal(L.hasPaidBadge(uid), false);
+  const rj = await api('GET', `/api/v1/payments/${p0.body.id}`, { token: S.buyer.token });
+  assert.equal(rj.body.status, 'cancelled');
+  assert.equal(rj.body.manual.reject_reason, 'Pul tushmadi');
+  // Tasdiqlanadigan so'rov: 2 oy
+  const p = await api('POST', '/api/v1/badge/subscribe', { token: S.buyer.token, body: { months: 2 }, currency: 'USD' });
   assert.equal(p.status, 201);
-  assert.equal(p.body.amount, 20);
-  assert.equal((await api('POST', `/api/v1/payments/${p.body.id}/dev-confirm`, { token: S.buyer.token })).status, 200);
+  assert.equal(p.body.amount, 30);
+  assert.equal((await api('POST', `/api/v1/payments/${p.body.id}/claim`, { token: S.buyer.token, body: { note: 'chek 222' } })).status, 200);
+  const queue = await api('GET', '/api/v1/admin/payments?manual=1', { token: S.admin.token });
+  const row = queue.body.find((x) => x.id === p.body.id);
+  assert.equal(row.manual.note, 'chek 222');
+  assert.equal(row.user_phone, '+998907654321');
+  assert.ok(!queue.body.some((x) => x.id === p0.body.id), "rad etilgani ro'yxatda yo'q");
+  assert.equal(L.hasPaidBadge(uid), false, 'admin tasdiqlamaguncha galochka yo\'q');
+  assert.equal((await api('POST', `/api/v1/admin/payments/${p.body.id}/mark-paid`, { token: S.admin.token })).status, 200);
   assert.equal(L.hasPaidBadge(uid), true);
   const after = await api('GET', '/api/v1/badge', { token: S.buyer.token });
   assert.equal(after.body.status.active, true);
   const me = await api('GET', '/api/v1/me', { token: S.buyer.token });
   assert.ok(me.body.badge_until);
+  assert.ok(Date.parse(`${me.body.badge_until.replace(' ', 'T')}Z`) > Date.now() + 55 * 86400000, '2 oy');
   assert.equal(L.verifiedType(uid, null), 'paid');
 });
 

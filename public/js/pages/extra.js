@@ -7,10 +7,36 @@ const needLogin = () => ({ title: t('login'), html: `<div class="box empty"><h3>
 const pstTag = (s) => `<span class="tag ${{ paid: 'green', pending: 'orange', cancelled: 'grey', refunded: 'grey' }[s]}">${esc(t(`pst_${s}`))}</span>`;
 
 // ---------- To'lov sahifasi (provayderdan qaytish / sinov) ----------
+// Admin orqali to'lov (galochka): karta rekvizitlari, "To'ladim" va holat
+function manualBox(p) {
+  const m = p.manual;
+  if (p.status === 'cancelled' && m.reject_reason !== null) return `<div class="note" style="text-align:left;margin:0 0 12px"><div><b>${esc(t('mp_rejected', { r: m.reject_reason || '—' }))}</b></div></div><a class="btn btn-primary btn-block" href="/badge">${esc(t('tick_get'))}</a>`;
+  if (p.status !== 'pending') return '';
+  if (m.claimed_at) return `<div class="note" style="text-align:left;margin:0 0 12px">${icon('refresh')}<div><b>${esc(t('mp_waiting'))}</b>${m.note ? `<p>${esc(m.note)}</p>` : ''}</div></div>`;
+  const tg = m.telegram ? `https://t.me/${m.telegram.replace(/^@|^https?:\/\/t\.me\//, '')}` : '';
+  return `<div style="text-align:left">
+    <h3 style="margin:4px 0 10px;font-size:17px">${esc(t('mp_title'))}</h3>
+    <p class="small" style="margin:0 0 10px">${esc(t('mp_step1', { amount: p.formatted }))}${m.usd ? ` <span class="muted">(${esc(`$${m.usd}`)})</span>` : ''}</p>
+    ${m.card ? `<div class="box" style="padding:14px 16px;margin:0 0 10px;background:var(--bg)">
+      <div class="tiny muted">${esc(t('mp_card'))}</div>
+      <div style="display:flex;align-items:center;gap:10px;justify-content:space-between"><b style="font-size:21px;letter-spacing:1px">${esc(m.card)}</b><button type="button" class="btn btn-soft btn-sm" data-copy="${esc(m.card)}">${icon('clipboard')}</button></div>
+      ${m.holder ? `<div class="tiny muted" style="margin-top:6px">${esc(t('mp_holder'))}: <b>${esc(m.holder)}</b></div>` : ''}
+    </div>` : `<p class="small muted" style="margin:0 0 10px">${esc(t('mp_no_card'))}</p>`}
+    ${m.info ? `<p class="small muted" style="margin:0 0 10px">${esc(m.info)}</p>` : ''}
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px">
+      ${m.phone ? `<a class="btn btn-soft btn-sm" href="tel:${esc(m.phone.replace(/[^\d+]/g, ''))}">${icon('phone')} ${esc(m.phone)}</a>` : ''}
+      ${tg ? `<a class="btn btn-soft btn-sm" href="${esc(tg)}" target="_blank" rel="noopener">${icon('telegram')} Telegram</a>` : ''}
+    </div>
+    <p class="small" style="margin:0 0 8px">${esc(t('mp_step2'))}</p>
+    <form data-claim><textarea class="input" name="note" rows="2" maxlength="300" placeholder="${esc(t('mp_note'))}"></textarea>
+      <button class="btn btn-primary btn-block" style="margin-top:10px">${icon('check')} ${esc(t('mp_claim'))}</button></form>
+  </div>`;
+}
+
 export async function payment({ params }) {
   if (!state.user) return needLogin();
   const p = await api(`/payments/${params[0]}`);
-  const back = p.ref?.type === 'listing' ? `/listing/${p.ref.id}` : p.ref?.type === 'order' ? '/my/orders' : p.purpose === 'plan' ? '/plans' : '/payments';
+  const back = p.ref?.type === 'listing' ? `/listing/${p.ref.id}` : p.ref?.type === 'order' ? '/my/orders' : p.purpose === 'plan' ? '/plans' : p.purpose === 'badge' ? '/badge' : '/payments';
   const html = `
     ${crumbs([[t('home'), '/'], [t('payments_history'), '/payments'], [`№ ${p.id}`]])}
     <div style="max-width:560px;margin:0 auto">
@@ -21,7 +47,8 @@ export async function payment({ params }) {
         <div style="font-size:30px;font-weight:700">${esc(p.formatted)}</div>
         <div style="margin:10px 0 18px">${pstTag(p.status)}</div>
         ${p.status === 'pending' && p.dev ? `<button class="btn btn-primary btn-block" data-devpay>${icon('card')} ${esc(t('pay'))}</button><p class="tiny muted" style="margin:8px 0 0">${esc(t('pay_test_note'))}</p>` : ''}
-        ${p.status === 'pending' && !p.dev ? `<p class="small muted">${esc(t('pst_pending'))}…</p><button class="btn btn-soft" data-recheck>${esc(t('apply'))}</button>` : ''}
+        ${p.manual ? manualBox(p) : ''}
+        ${p.status === 'pending' && !p.dev && !p.manual ? `<p class="small muted">${esc(t('pst_pending'))}…</p><button class="btn btn-soft" data-recheck>${esc(t('apply'))}</button>` : ''}
         <a class="btn btn-soft btn-block" style="margin-top:12px" href="${back}">${esc(t('go_back'))}</a>
       </div>
     </div>`;
@@ -36,6 +63,20 @@ export async function payment({ params }) {
         render({ keepScroll: true });
       });
       $('[data-recheck]', main)?.addEventListener('click', () => render({ keepScroll: true }));
+      $('[data-copy]', main)?.addEventListener('click', (e) => {
+        navigator.clipboard?.writeText(e.currentTarget.dataset.copy.replace(/\s+/g, '')).then(() => toast(t('mp_copied'), 'ok')).catch(() => {});
+      });
+      $('[data-claim]', main)?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await api(`/payments/${p.id}/claim`, { method: 'POST', body: { note: e.target.note.value.trim() } });
+        render({ keepScroll: true });
+      });
+      // Admin orqali to'lov: tasdiqni kutish (forma yuborilgandan keyin — kiritilgan matn yo'qolmasin)
+      if (p.manual) {
+        if (p.status !== 'pending' || !p.manual.claimed_at) return null;
+        const h = setInterval(() => render({ keepScroll: true }), 20000);
+        return () => clearInterval(h);
+      }
       // Click/Payme callback kelguncha sahifani yangilab turish
       if (p.status === 'pending' && !p.dev) {
         const h = setInterval(() => render({ keepScroll: true }), 5000);
@@ -98,52 +139,18 @@ export async function plans() {
       <div class="plan pro"><h3>${esc(biz.name)}</h3><div class="pp">${esc(t('per_month_price', { p: biz.price.formatted }))}</div>
         <ul>${li(t('unlimited_listings'))}${li(t('top_credits', { n: biz.top_credits }))}${li(t('priority_mod'))}${li(t('analytics'))}${li(t('import'))}</ul>
         ${state.user ? `<label class="lbl">${esc(t('term_months'))}</label><div class="seg" data-months>${[1, 3, 6, 12].map((n, i) => `<button type="button" data-v="${n}" class="${i === 0 ? 'on' : ''}">${esc(t('months_n', { n }))}</button>`).join('')}</div>
-        <label class="lbl">${esc(t('pay_with'))}</label>${providerOptions(d.providers)}
-        <button class="btn btn-primary btn-block" data-sub>${esc(t('choose_plan'))}</button>` : `<button class="btn btn-primary btn-block" data-login>${esc(t('login'))}</button>`}</div>
-    </div>`;
-  return {
-    title: t('plans_link'),
-    html,
-    mount(main) {
-      const months = bindSeg(main, '[data-months]');
-      const prov = bindSeg(main, '[data-provider]');
-      $('[data-sub]', main)?.addEventListener('click', async () => {
-        const r = await api('/plans/subscribe', { method: 'POST', body: { plan: 'business', months: Number(months() || 1), provider: prov() || d.providers[0]?.id } });
-        goPay(r);
-      });
-    },
-  };
-}
-
-// ---------- Tasdiq belgisi (galochka): guvohnoma bilan bepul yoki oylik obuna ----------
-export async function badgePage() {
-  const d = await api('/badge');
-  const st = d.status;
-  const li = (txt) => `<li>${icon('check')} ${esc(txt)}</li>`;
-  const html = `
-    ${crumbs([[t('home'), '/'], [t('tick_title')]])}
-    <div class="page-head"><h1 class="page-title">${verifiedTick()} ${esc(t('tick_title'))}</h1><p class="page-sub">${esc(t('tick_sub'))}</p></div>
-    ${st.by_docs ? `<div class="note" style="margin:0 0 18px">${verifiedTick()}<div><b>${esc(t('tick_docs'))}</b><p>${esc(t('tick_docs_free'))}</p></div></div>` : ''}
-    ${st.active ? `<div class="note" style="margin:0 0 18px">${verifiedTick('paid')}<div><b>${esc(t('tick_active', { d: fmtDate(st.until) }))}</b></div></div>` : ''}
-    <div class="plans">
-      <div class="plan"><h3>${verifiedTick()} ${esc(t('tick_free_title'))}</h3><div class="pp">0</div>
-        <ul>${li(t('tick_free_1'))}${li(t('tick_free_2'))}</ul>
-        ${st.by_docs ? `<span class="tag green">${esc(t('tick_have'))}</span>` : st.docs_pending ? `<span class="tag orange">${esc(t('ver_pending'))}</span>` : `<a class="btn btn-soft btn-block" href="/profile#p-company">${icon('upload')} ${esc(t('tick_upload_cert'))}</a>`}</div>
-      <div class="plan pro badge-buy"><h3>${verifiedTick('paid')} ${esc(t('tick_paid_title'))}</h3><div class="pp">${esc(t('per_month_price', { p: d.price.formatted }))}</div>
-        <ul>${li(t('tick_paid_1'))}${li(t('tick_paid_2'))}${li(t('tick_paid_3'))}</ul>
-        ${state.user ? `<label class="lbl">${esc(t('term_months'))}</label><div class="seg" data-months>${[1, 3, 6, 12].map((n, i) => `<button type="button" data-v="${n}" class="${i === 0 ? 'on' : ''}">${esc(t('months_n', { n }))}</button>`).join('')}</div>
-        <label class="lbl">${esc(t('pay_with'))}</label>${providerOptions(d.providers)}
-        <button class="btn btn-primary btn-block" data-buy>${esc(t(st.active ? 'tick_extend' : 'tick_buy'))}</button>` : `<button class="btn btn-primary btn-block" data-login>${esc(t('login'))}</button>`}</div>
+        <p class="tiny muted" style="margin:10px 0">${esc(t('tick_admin_note'))}</p>
+        ${st.pending_payment ? `<a class="note" style="margin:0 0 10px;display:flex" href="/payments/${st.pending_payment}">${icon('refresh')}<div><b>${esc(t('tick_pending_pay'))}</b></div></a>` : ''}
+        <button class="btn btn-primary btn-block" data-buy>${esc(t(st.active ? 'tick_extend' : 'tick_pay_admin'))}</button>` : `<button class="btn btn-primary btn-block" data-login>${esc(t('login'))}</button>`}</div>
     </div>`;
   return {
     title: t('tick_title'),
     html,
     mount(main) {
       const months = bindSeg(main, '[data-months]');
-      const prov = bindSeg(main, '[data-provider]');
       $('[data-buy]', main)?.addEventListener('click', async () => {
-        const r = await api('/badge/subscribe', { method: 'POST', body: { months: Number(months() || 1), provider: prov() || d.providers[0]?.id } });
-        goPay(r);
+        const r = await api('/badge/subscribe', { method: 'POST', body: { months: Number(months() || 1), provider: 'admin' } });
+        window.mxGo(`/payments/${r.id}`);
       });
     },
   };

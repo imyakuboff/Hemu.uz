@@ -86,6 +86,7 @@ export async function listing({ params }) {
   <div class="page-head"><h1 class="page-title">${esc(id ? t('edit_title') : t('create_title'))}</h1><p class="page-sub">${esc(t('create_sub'))}</p></div>
   <p class="small" style="margin:-8px 0 16px"><span class="saved-badge" data-saved ${id ? '' : 'hidden'}>${esc(t('draft_saved', { t: fmtTime(e.updated_at) }))}</span><span class="muted tiny">${esc(t('autosave_note'))}</span>${e.status && e.status !== 'draft' ? ` <span class="tag ${e.status === 'active' ? 'green' : e.status === 'rejected' ? 'red' : 'orange'}">${esc(state.meta.listing_statuses.find((s) => s.value === e.status)?.label)}</span>` : ''}</p>
   ${e.reject_reason ? `<div class="note" style="margin:0 0 16px"><div><b>${esc(t('reject_reason', { r: e.reject_reason }))}</b></div></div>` : ''}
+  ${!id && !company ? `<div class="note" style="margin:0 0 16px">${icon('user')}<div><b>${esc(t('seller_private'))}</b><p>${esc(t('private_sell_hint'))}</p></div></div>` : ''}
   <form data-lf novalidate>
     <div class="box"><h3>${esc(t('basic_info'))}</h3>
       <div class="seg" data-deal>${state.meta.deal_types.map((d) => `<button type="button" data-v="${d.value}" class="${e.deal_type === d.value ? 'on' : ''}">${esc(d.label)}</button>`).join('')}</div>
@@ -116,7 +117,7 @@ export async function listing({ params }) {
     </div>
     <div class="box"><h3>${esc(t('seller_contacts'))}</h3>
       <div class="form-grid">
-        ${field(t('company'), `<input class="input" value="${esc(company?.name || '—')}" disabled>`)}
+        ${field(company ? t('company') : t('seller_private'), `<input class="input" value="${esc(company?.name || state.user.name || t('seller_private'))}" disabled>`)}
         ${field(t('contact_person'), input('contact_name', e.contact_name), { req: true })}
         ${field(t('phone'), input('contact_phone', e.contact_phone, 'type="tel"'), { req: true })}
         ${field(t('email'), input('contact_email', e.contact_email, 'type="email"'))}

@@ -600,6 +600,20 @@ admin.post('/payments/:id/mark-paid', (req, res) => {
   res.json({ ok: true });
 });
 
+// Admin orqali to'lov (galochka): to'lov kelmagan bo'lsa — rad etish, foydalanuvchiga sabab bilan xabar
+admin.post('/payments/:id/reject', (req, res) => {
+  const p = db.get('SELECT * FROM payments WHERE id = ?', id(req));
+  if (!p) notFound();
+  if (p.status !== 'pending') fail(409, 'err.invalid_status');
+  const v = validate(req.body, { reason: { type: 'string', max: 300 } });
+  const meta = parseJson(p.meta, {});
+  meta.reject_reason = v.reason || '';
+  db.run(`UPDATE payments SET status = 'cancelled', meta = ? WHERE id = ?`, JSON.stringify(meta), p.id);
+  notify(p.user_id, 'payment_rejected', { purpose_key: `pp.${p.purpose}`, reason: v.reason || '—', payment_id: p.id }, `/payments/${p.id}`);
+  log(req, 'payment.reject', 'payment', p.id, { reason: v.reason });
+  res.json({ ok: true });
+});
+
 // Qaytarish: hamyonga (standart) yoki faqat holatni o'zgartirish
 // Qaytarilgan ko'tarish to'lovi: shu to'lov qo'shgan kunlar olib tashlanadi
 function revertPromotion(p) {

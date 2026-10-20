@@ -13,6 +13,10 @@ const DEFS = [
   ['prices.plan.business', 'number', 0, 100000],
   ['prices.inspection', 'number', 0, 100000],
   ['prices.badge', 'number', 0, 100000],
+  // Galochka uchun to'lov admin orqali: karta rekvizitlari va izoh
+  ['manualPay.card', 'string', 0, 40],
+  ['manualPay.holder', 'string', 0, 80],
+  ['manualPay.info', 'string', 0, 300],
   ['freeListingLimit', 'int', 0, 100000],
   ['businessTopCredits', 'int', 0, 1000],
   ['escrowFeePct', 'number', 0, 20],
@@ -101,6 +105,7 @@ config.prices.tier ??= { vip: 15, gold: 10, premium: 5 };
 config.prices.promoCurrency ??= process.env.PROMO_CURRENCY || 'USD';
 config.prices.tierDays ??= { vip: 7, gold: 7, premium: 7 };
 config.supportTelegram ??= '';
+config.manualPay ??= { card: process.env.MANUAL_PAY_CARD || '', holder: process.env.MANUAL_PAY_HOLDER || '', info: '' };
 // Google Search Console va Yandex Vebmaster tasdiqlash kodlari (faqat "content" qiymati)
 config.googleVerification ??= process.env.GOOGLE_SITE_VERIFICATION || '';
 config.yandexVerification ??= process.env.YANDEX_VERIFICATION || '';
@@ -132,6 +137,11 @@ function coerce(def, raw) {
 const coerceStored = (key, raw) => { const def = DEFS.find((d) => d[0] === key); return def[1] === 'secret' && raw === null ? '' : coerce(def, raw); };
 
 function load() {
+  // Bir martalik: galochka narxi 10$ dan 15$ ga (admin o'zi 10 qo'ygan bo'lsa ham — yangi narx)
+  if (!getRaw('_mig.badge15')) {
+    db.run(`UPDATE settings SET value = '15' WHERE key = 'prices.badge' AND value IN ('10', '10.0')`);
+    setRaw('_mig.badge15', 1);
+  }
   for (const row of db.all('SELECT key, value FROM settings')) {
     const def = DEFS.find((d) => d[0] === row.key);
     if (!def) continue;

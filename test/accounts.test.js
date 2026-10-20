@@ -107,6 +107,24 @@ test("ro'yxatdan o'tish: mexanik, haydovchi, mijoz (qiziqishlar)", async () => {
   assert.ok(mech.body.total >= 1);
 });
 
+test("oddiy foydalanuvchi (mijoz) texnika va ehtiyot qism sotuvga e'lon joylaydi", async () => {
+  const tok = S.client.token;
+  const form = () => { const f = new FormData(); f.append('files', new Blob([PNG], { type: 'image/png' }), 'a.png'); return f; };
+  const cases = [
+    { deal_type: 'sale', category: 'special', subcategory: 'backhoe-loaders', title: 'JCB 3CX 2016, egasidan', brand: 'JCB', model: '3CX', year: 2016, condition: 'used' },
+    { deal_type: 'sale', category: 'parts', subcategory: 'filters', title: 'CAT moy filtri 1R-0750', brand: 'CAT', part_number: '1R-0750', condition: 'new' },
+  ];
+  for (const body of cases) {
+    const c = await api('POST', '/api/v1/listings', { token: tok, body: { ...body, price: 1500, currency: 'USD', country: 'UZ', region: 'tashkent-city', city: 'Toshkent' } });
+    assert.equal(c.status, 201, JSON.stringify(c.body));
+    assert.equal((await api('POST', `/api/v1/listings/${c.body.id}/photos`, { token: tok, form: form() })).status, 201);
+    const pub = await api('POST', `/api/v1/listings/${c.body.id}/publish`, { token: tok });
+    assert.equal(pub.status, 200, JSON.stringify(pub.body));
+    assert.ok(['moderation', 'active'].includes(pub.body.status));
+    assert.equal(db.get('SELECT company_id FROM listings WHERE id = ?', c.body.id).company_id, null);
+  }
+});
+
 test("parolni tiklash SMS orqali", async () => {
   assert.equal((await api('POST', '/api/v1/auth/password/forgot', { body: { phone: '+998999999999' } })).body.error.code, 'no_account');
   const f = await api('POST', '/api/v1/auth/password/forgot', { body: { phone: '+998944445566' } });

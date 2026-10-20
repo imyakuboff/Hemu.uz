@@ -197,7 +197,14 @@ admin.post('/inspections/:id', upload.photos.array('files', 15), async (req, res
 
 admin.get('/payments', (req, res) => {
   const { paymentView } = require('./payments');
-  res.json(db.all('SELECT * FROM payments ORDER BY id DESC LIMIT 200').map((p) => ({ ...paymentView(p, req), user_id: p.user_id })));
+  // ?manual=1 — admin orqali to'lov so'rovlari (galochka): avval "To'ladim" bosilganlari
+  const rows = req.query.manual
+    ? db.all(`SELECT * FROM payments WHERE provider = 'admin' AND status = 'pending' ORDER BY (json_extract(meta, '$.claimed_at') IS NULL), id DESC LIMIT 200`)
+    : db.all('SELECT * FROM payments ORDER BY id DESC LIMIT 200');
+  res.json(rows.map((p) => {
+    const u = db.get('SELECT name, phone FROM users WHERE id = ?', p.user_id);
+    return { ...paymentView(p, req), user_id: p.user_id, user_name: u?.name || '', user_phone: u?.phone || '' };
+  }));
 });
 
 admin.get('/blacklist', (_req, res) => res.json(db.all('SELECT * FROM serial_blacklist ORDER BY created_at DESC')));

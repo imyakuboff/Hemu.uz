@@ -6,6 +6,7 @@ const pay = require('../lib/payments');
 const { requireAuth } = require('../lib/auth');
 const { fail, notFound, forbidden, validate, parseJson } = require('../lib/http');
 const { t } = require('../i18n');
+const { notify } = require('../lib/notify');
 
 const r = Router();
 // Biznes darajalari (bosh sahifa karusellari) — faqat kompaniyalar (MChJ, YaTT va h.k.)
@@ -99,10 +100,13 @@ r.post('/plans/subscribe', requireAuth, (req, res) => {
 });
 
 // ---------- Tasdiq belgisi (galochka) — oylik obuna ----------
-// Hujjati (guvohnomasi) tekshirilgan kompaniyalarda belgi bepul; qolganlar sotib oladi
+// Hujjati (guvohnomasi) tekshirilgan kompaniyalarda belgi bepul; qolganlar sotib oladi.
+// To'lov admin orqali: foydalanuvchi kartaga o'tkazadi, "To'ladim" bosadi, admin tasdiqlagach belgi yoqiladi.
+const ADMIN_PROVIDER = { id: 'admin', name: 'Admin', currencies: ['*'] };
 r.get('/badge', (req, res) => {
   const u = req.user ? db.get(`SELECT badge_until, (COALESCE(badge_until, '') > datetime('now')) AS active FROM users WHERE id = ?`, req.user.id) : null;
   const company = req.user ? db.get('SELECT * FROM companies WHERE owner_id = ?', req.user.id) : null;
+  const pending = req.user ? db.get(`SELECT id FROM payments WHERE user_id = ? AND purpose = 'badge' AND provider = 'admin' AND status = 'pending' ORDER BY id DESC LIMIT 1`, req.user.id) : null;
   res.json({
     price: priceView(config.prices.badge, req),
     status: {
@@ -110,16 +114,41 @@ r.get('/badge', (req, res) => {
       until: u?.active ? u.badge_until : null,
       by_docs: company?.verification === 'verified',
       docs_pending: company?.verification === 'pending',
+      pending_payment: pending?.id || null,
     },
-    providers: pay.providers(),
+    providers: [ADMIN_PROVIDER],
   });
 });
 
 r.post('/badge/subscribe', requireAuth, (req, res) => {
-  const v = validate(req.body, { months: { type: 'int', min: 1, max: 12 }, provider: { type: 'enum', values: pay.PROVIDER_IDS, required: true } });
+  const v = validate(req.body, { months: { type: 'int', min: 1, max: 12 }, provider: { type: 'enum', values: [...pay.PROVIDER_IDS, 'admin'] } });
   const months = v.months || 1;
-  const p = pay.create(req.user, { purpose: 'badge', meta: { months }, usd: config.prices.badge * months, provider: v.provider, currency: req.currency });
-  res.status(201).json(p);
+  const cur = req.currency || 'USD';
+  const amount = pay.priceIn(config.prices.badge * months, cur);
+  // Oldingi tasdiqlanmagan so'rov (chek yuborilmagan) bekor qilinadi — bittasi qoladi
+  db.run(`UPDATE payments SET status = 'cancelled' WHERE user_id = ? AND purpose = 'badge' AND provider = 'admin' AND status = 'pending' AND json_extract(meta, '$.claimed_at') IS NULL`, req.user.id);
+  const id = db.insert('payments', { user_id: req.user.id, purpose: 'badge', meta: { months, usd: config.prices.badge * months }, amount, currency: cur, provider: 'admin' });
+  res.status(201).json({ id, amount, currency: cur, provider: 'admin', status: 'pending', pay_url: `${config.siteUrl}/payments/${id}` });
+});
+
+// Foydalanuvchi: "To'ladim" — izoh (chek raqami, karta oxiri, vaqt) adminga yuboriladi
+r.post('/payments/:id/claim', requireAuth, (req, res) => {
+  const p = db.get('SELECT * FROM payments WHERE id = ?', Number(req.params.id));
+  if (!p) notFound();
+  if (p.user_id !== req.user.id) forbidden();
+  if (p.provider !== 'admin' || p.status !== 'pending') fail(409, 'err.invalid_status');
+  const v = validate(req.body, { note: { type: 'string', max: 300 } });
+  const meta = parseJson(p.meta, {});
+  const again = meta.claimed_at && Date.now() - Date.parse(`${meta.claimed_at}Z`) < 10 * 60000;
+  meta.note = v.note || meta.note || '';
+  meta.claimed_at = new Date().toISOString().replace('T', ' ').slice(0, 19);
+  db.run('UPDATE payments SET meta = ? WHERE id = ?', JSON.stringify(meta), p.id);
+  if (!again) {
+    for (const a of db.all(`SELECT id FROM users WHERE role = 'admin'`)) {
+      notify(a.id, 'badge_request', { name: req.user.name || req.user.phone, price_amount: p.amount, price_currency: p.currency, payment_id: p.id }, '/admin/finance?tab=manual');
+    }
+  }
+  res.json(paymentView(db.get('SELECT * FROM payments WHERE id = ?', p.id), req));
 });
 
 // ---------- To'lovlar ----------
@@ -143,6 +172,13 @@ function paymentView(p, req) {
     id: p.id, purpose: p.purpose, title, ref, amount: p.amount, currency: p.currency,
     formatted: money.formatAmount(p.amount, p.currency, req.lang), provider: p.provider, status: p.status,
     created_at: p.created_at, paid_at: p.paid_at, dev: p.provider === 'dev' && config.paymentsDev,
+    ...(p.provider === 'admin' ? {
+      manual: {
+        note: meta.note || '', claimed_at: meta.claimed_at || null, reject_reason: meta.reject_reason ?? null,
+        usd: meta.usd || null, card: config.manualPay?.card || '', holder: config.manualPay?.holder || '', info: config.manualPay?.info || '',
+        phone: config.supportPhone || '', telegram: config.supportTelegram || '',
+      },
+    } : {}),
   };
 }
 

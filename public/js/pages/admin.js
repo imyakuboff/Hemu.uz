@@ -129,6 +129,14 @@ const D = {
   mark_paid: ["To'landi deb belgilash", 'Отметить оплаченным', 'Mark as paid'],
   refund_wallet: ['Hamyonga qaytarish', 'Вернуть на баланс', 'Refund to wallet'],
   wallet_tx: ['Balans operatsiyalari', 'Операции по балансу', 'Wallet transactions'],
+  manual_tab: ["Galochka so'rovlari", 'Заявки на галочку', 'Badge requests'],
+  manual_hint: ["Foydalanuvchi kartaga pul o'tkazib, «To'ladim» bosgan. Kartangizga pul tushganini tekshiring, so'ng tasdiqlang — galochka darhol yoqiladi", 'Пользователь перевёл деньги на карту и нажал «Я оплатил». Проверьте поступление и подтвердите — галочка включится сразу', 'The user transferred money and pressed “I have paid”. Check your card, then confirm — the badge turns on immediately'],
+  manual_claimed: ["To'ladim deb bosgan", 'Отметил «Оплатил»', 'Marked as paid'],
+  manual_not_claimed: ["Hali to'lamagan", 'Ещё не оплатил', 'Not paid yet'],
+  approve_tick: ['Tasdiqlash — galochka berish', 'Подтвердить — выдать галочку', 'Confirm — grant badge'],
+  'manualPay.card': ["Galochka to'lovi: karta raqami", 'Оплата галочки: номер карты', 'Badge payment: card number'],
+  'manualPay.holder': ['Karta egasi (ism familiya)', 'Владелец карты (имя фамилия)', 'Card holder name'],
+  'manualPay.info': ["To'lov bo'yicha qo'shimcha izoh", 'Дополнительная инструкция по оплате', 'Extra payment instructions'],
   by_admin: ['admin', 'админ', 'admin'],
   b_title: ['Sarlavha', 'Заголовок', 'Title'],
   b_body: ['Matn', 'Текст', 'Message'],
@@ -1018,6 +1026,14 @@ async function finance({ query }) {
         <td><a class="link-blue" href="/admin/users/${p.user_id}">#${p.user_id}</a></td><td><b>${esc(p.formatted)}</b></td>
         <td><span class="tag ${p.status === 'paid' ? 'green' : p.status === 'pending' ? 'orange' : 'grey'}">${esc(t(`pst_${p.status}`))}</span></td>
         <td style="white-space:nowrap">${p.status === 'pending' || p.status === 'cancelled' ? `<button class="btn btn-soft btn-sm" data-mp="${p.id}">${esc(a('mark_paid'))}</button>` : ''}${p.status === 'paid' && p.purpose !== 'topup' ? `<button class="btn btn-ghost btn-sm" data-rf="${p.id}">${esc(a('refund_wallet'))}</button>` : ''}</td></tr>`).join('') || `<tr><td colspan="6" class="empty">${esc(a('empty'))}</td></tr>`}</tbody></table></div>`;
+  } else if (tab === 'manual') {
+    const ps = await api('/admin/payments?manual=1');
+    body = `<p class="small muted" style="margin:0 0 12px">${esc(a('manual_hint'))}</p><div class="box adm-table-box"><table class="adm-table"><thead><tr><th>№</th><th>${esc(a('r_user'))}</th><th>${esc(a('amount'))}</th><th>${esc(a('status'))}</th><th></th></tr></thead><tbody>
+      ${ps.map((p) => `<tr><td class="muted">№${p.id}<br>${esc(fmtDate(p.created_at, true))}</td>
+        <td><a class="link-blue" href="/admin/users/${p.user_id}">${esc(p.user_name || `#${p.user_id}`)}</a><br><span class="tiny muted">${esc(p.user_phone)}</span></td>
+        <td><b>${esc(p.formatted)}</b><br><span class="tiny muted">${esc(p.title)}</span></td>
+        <td>${p.manual?.claimed_at ? `<span class="tag green">${esc(a('manual_claimed'))}</span><br><span class="tiny muted">${esc(fmtDate(p.manual.claimed_at, true))}</span>${p.manual.note ? `<br><span class="small">«${esc(p.manual.note)}»</span>` : ''}` : `<span class="tag grey">${esc(a('manual_not_claimed'))}</span>`}</td>
+        <td style="white-space:nowrap"><button class="btn btn-primary btn-sm" data-mp="${p.id}">${esc(a('approve_tick'))}</button> <button class="btn btn-ghost btn-sm" data-rj="${p.id}">${esc(a('reject'))}</button></td></tr>`).join('') || `<tr><td colspan="5" class="empty">${esc(a('empty'))}</td></tr>`}</tbody></table></div>`;
   } else {
     const w = await api(`/admin/wallet${qs({ page: query.page })}`);
     body = `<div class="box adm-table-box"><table class="adm-table"><thead><tr><th>${esc(a('when'))}</th><th>${esc(a('r_user'))}</th><th>${esc(a('kind'))}</th><th>${esc(a('amount'))}</th><th>${esc(a('balance'))}</th></tr></thead><tbody>
@@ -1025,14 +1041,20 @@ async function finance({ query }) {
         <td>${esc(x.kind_label)}${x.note ? `<br><span class="tiny muted">${esc(x.note)}</span>` : ''}${x.admin ? `<br><span class="tiny muted">${esc(a('by_admin'))}: ${esc(x.admin)}</span>` : ''}</td>
         <td class="${x.sign === '+' ? 'green' : 'red'}"><b>${x.sign}${esc(x.formatted)}</b>${x.original ? `<br><span class="tiny muted">${esc(x.original)}</span>` : ''}</td><td class="muted">${esc(x.balance_after)}</td></tr>`).join('') || `<tr><td colspan="5" class="empty">${esc(a('empty'))}</td></tr>`}</tbody></table></div>${pager(w, '/admin/finance', query)}`;
   }
-  const html = shell('finance', a('nav_finance'), '', `<div class="tabs"><a class="tab ${tab === 'payments' ? 'on' : ''}" href="/admin/finance">${esc(a('payments'))}</a><a class="tab ${tab === 'wallet' ? 'on' : ''}" href="/admin/finance?tab=wallet">${esc(a('wallet_tx'))}</a></div>${body}`);
+  const html = shell('finance', a('nav_finance'), '', `<div class="tabs"><a class="tab ${tab === 'payments' ? 'on' : ''}" href="/admin/finance">${esc(a('payments'))}</a><a class="tab ${tab === 'manual' ? 'on' : ''}" href="/admin/finance?tab=manual">${esc(a('manual_tab'))}</a><a class="tab ${tab === 'wallet' ? 'on' : ''}" href="/admin/finance?tab=wallet">${esc(a('wallet_tx'))}</a></div>${body}`);
   return {
     title: a('nav_finance'),
     html,
     mount(main) {
       main.addEventListener('click', async (e) => {
         const mp = e.target.closest('[data-mp]');
-        if (mp && await confirmBox(a('mark_paid'))) { await api(`/admin/payments/${mp.dataset.mp}/mark-paid`, { method: 'POST' }); return refresh(); }
+        if (mp && await confirmBox(tab === 'manual' ? a('approve_tick') : a('mark_paid'))) { await api(`/admin/payments/${mp.dataset.mp}/mark-paid`, { method: 'POST' }); return refresh(); }
+        const rj = e.target.closest('[data-rj]');
+        if (rj) {
+          const m = openModal(`<h3>${esc(a('reject'))}</h3><form style="margin-top:10px"><label class="lbl">${esc(a('reject_reason'))}</label><textarea class="input" name="reason" rows="3" maxlength="300"></textarea><button class="btn btn-danger btn-block" style="margin-top:12px">${esc(a('reject'))}</button></form>`);
+          m.querySelector('form').onsubmit = async (ev) => { ev.preventDefault(); await api(`/admin/payments/${rj.dataset.rj}/reject`, { method: 'POST', body: { reason: ev.target.reason.value.trim() || undefined } }); closeModal(); refresh(); };
+          return;
+        }
         const rf = e.target.closest('[data-rf]');
         if (rf && await confirmBox(a('refund_wallet'))) { await api(`/admin/payments/${rf.dataset.rf}/refund`, { method: 'POST', body: { to_wallet: true } }); refresh(); }
       });
@@ -1271,7 +1293,7 @@ async function settings() {
   const by = Object.fromEntries(items.map((x) => [x.key, x]));
   const GROUPS = [
     // VIP / GOLD / PREMIUM narxlari — alohida bo'limda (/admin/tiers)
-    ['g_prices', ['prices.plan.business', 'prices.inspection', 'prices.badge']],
+    ['g_prices', ['prices.plan.business', 'prices.inspection', 'prices.badge', 'manualPay.card', 'manualPay.holder', 'manualPay.info']],
     ['g_limits', ['freeListingLimit', 'businessTopCredits', 'escrowFeePct']],
     ['g_platform', ['registrationOpen', 'autoApproveVerified', 'requireCompanyDocs', 'supportPhone', 'supportTelegram', 'announcementType', 'announcement']],
     ['g_bonus', ['welcomeBonus.enabled', 'welcomeBonus.amount', 'welcomeBonus.currency']],

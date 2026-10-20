@@ -1,6 +1,6 @@
 import { state, t, esc, api, qs, num, debounce, applyDir, setLang, setCurrency, setToken, icon, toast, $, closeModal, toggleTheme, applyTheme } from './core.js';
 import { header, footer, bottomNav, loginModal, locationModal, mobileMenu, requireLogin } from './ui.js';
-import { toggleCompare, startVoice } from './features.js';
+import { toggleCompare, startVoice, showDonate } from './features.js';
 
 const routes = [
   [/^\/$/, () => import('./pages/home.js')],
@@ -335,6 +335,7 @@ window.addEventListener('mx:refresh', () => render({ keepScroll: true }));
   applyTheme();
   render();
   setupPwa();
+  showDonate();
 }());
 
 // ---------- PWA: o'rnatish va oflayn ----------

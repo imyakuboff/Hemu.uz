@@ -390,3 +390,52 @@ export async function shareLink(url, title, text = '', { track = false } = {}) {
   };
   inp.onclick = () => inp.select();
 }
+
+// ---------- Donat oynasi: saytga kirganda bir marta (sessiya davomida), × bilan yopiladi ----------
+export function showDonate() {
+  const d = state.platform?.donate;
+  if (!d?.card) return;
+  if (/^\/(admin|payments|login|register)/.test(location.pathname)) return;
+  try { if (sessionStorage.getItem('mx_donate_x')) return; sessionStorage.setItem('mx_donate_x', '1'); } catch { return; }
+  setTimeout(() => {
+    if (document.querySelector('.modal-bg')) return; // boshqa oyna ochiq bo'lsa — xalaqit bermaymiz
+    const bg = document.createElement('div');
+    bg.className = 'modal-bg donate-bg';
+    const tile = (ic, cls) => `<span class="dn-tile ${cls}">${icon(ic)}</span>`;
+    bg.innerHTML = `<div class="donate-sheet" role="dialog" aria-modal="true" aria-labelledby="dn-title">
+      <div class="dn-hero">
+        <button class="dn-x" data-dn-x aria-label="${esc(t('close'))}">${icon('x')}</button>
+        ${tile('excavator', 't1')}${tile('crane', 't2')}${tile('truck', 't3')}${tile('gear', 't4')}${tile('wrench', 't5')}
+        <svg class="dn-coin" viewBox="0 0 120 120" aria-hidden="true">
+          <defs><linearGradient id="dng" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3b8"/><stop offset=".45" stop-color="#ffc61a"/><stop offset="1" stop-color="#d48a00"/></linearGradient>
+          <linearGradient id="dng2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe27a"/><stop offset="1" stop-color="#e09a00"/></linearGradient></defs>
+          <path d="M60 4 108 32v56L60 116 12 88V32Z" fill="url(#dng)" stroke="#b87400" stroke-width="2"/>
+          <path d="M60 18 96 39v42L60 102 24 81V39Z" fill="url(#dng2)" stroke="#fff3b8" stroke-opacity=".7" stroke-width="2"/>
+          <path d="M60 86S34 70 34 52c0-9 7-15 14-15 6 0 10 3 12 7 2-4 6-7 12-7 7 0 14 6 14 15 0 18-26 34-26 34Z" fill="#fff8dc" stroke="#b87400" stroke-width="2.5" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="dn-body">
+        <h2 id="dn-title">${esc(t('don_title'))}</h2>
+        <div class="dn-row">${esc(t('don_1'))}</div>
+        <div class="dn-row"><span class="dn-lbl">${esc(t('don_card'))}</span><b class="dn-card">${esc(d.card)}</b></div>
+        ${d.holder ? `<div class="dn-row"><span class="dn-lbl">${esc(t('don_holder'))}</span><b>${esc(d.holder)}</b></div>` : ''}
+        <p class="dn-note">${esc(t('don_note'))}</p>
+        <button class="dn-btn" data-dn-copy>${icon('clipboard')} ${esc(t('don_copy'))}</button>
+      </div>
+    </div>`;
+    const close = () => { bg.remove(); document.removeEventListener('keydown', onKey); };
+    const onKey = (e) => { if (e.key === 'Escape') close(); };
+    bg.addEventListener('mousedown', (e) => { if (e.target === bg) close(); });
+    bg.querySelector('[data-dn-x]').addEventListener('click', close);
+    bg.querySelector('[data-dn-copy]').addEventListener('click', async () => {
+      const cardNum = d.card.replace(/\s+/g, '');
+      try { await navigator.clipboard.writeText(cardNum); } catch {
+        const ta = document.createElement('textarea'); ta.value = cardNum; document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); } catch { /* */ } ta.remove();
+      }
+      toast(t('don_thanks'), 'ok');
+    });
+    document.addEventListener('keydown', onKey);
+    document.body.appendChild(bg);
+  }, 1500);
+}

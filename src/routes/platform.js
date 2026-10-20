@@ -72,6 +72,7 @@ r.get('/platform', (_req, res) => {
     registration_open: config.registrationOpen,
     map_provider: config.mapProvider || 'yandex',
     yandex_maps_key: config.yandexMapsKey || null,
+    donate: config.donate?.enabled && config.donate.card ? { card: config.donate.card, holder: config.donate.holder || '' } : null,
   });
 });
 

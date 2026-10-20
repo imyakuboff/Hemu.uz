@@ -17,6 +17,10 @@ const DEFS = [
   ['manualPay.card', 'string', 0, 40],
   ['manualPay.holder', 'string', 0, 80],
   ['manualPay.info', 'string', 0, 300],
+  // Saytga kirganda chiqadigan donat oynasi
+  ['donate.enabled', 'bool'],
+  ['donate.card', 'string', 0, 40],
+  ['donate.holder', 'string', 0, 80],
   ['freeListingLimit', 'int', 0, 100000],
   ['businessTopCredits', 'int', 0, 1000],
   ['escrowFeePct', 'number', 0, 20],
@@ -105,6 +109,7 @@ config.prices.tier ??= { vip: 15, gold: 10, premium: 5 };
 config.prices.promoCurrency ??= process.env.PROMO_CURRENCY || 'USD';
 config.prices.tierDays ??= { vip: 7, gold: 7, premium: 7 };
 config.supportTelegram ??= '';
+config.donate ??= { enabled: process.env.DONATE !== '0', card: '4466 1369 5190 3724', holder: 'Шерзодбек Якубов' };
 config.manualPay ??= { card: process.env.MANUAL_PAY_CARD || '', holder: process.env.MANUAL_PAY_HOLDER || '', info: '' };
 // Google Search Console va Yandex Vebmaster tasdiqlash kodlari (faqat "content" qiymati)
 config.googleVerification ??= process.env.GOOGLE_SITE_VERIFICATION || '';

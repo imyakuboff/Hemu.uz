@@ -453,3 +453,14 @@ test("SEO: asosiy domenga 301 (www, nip.io, IP), API yo'naltirilmaydi; tashkilot
   // Texnik manzil asosiy bo'lsa — hech qayerga yo'naltirilmaydi
   assert.equal((await get('/', 'www.example.com')).status, 200);
 });
+
+test('donat oynasi: /platform karta raqamini beradi, admin o\'chira oladi', async () => {
+  const p = await api('GET', '/api/v1/platform');
+  assert.equal(p.body.donate.card, '4466 1369 5190 3724');
+  assert.ok(p.body.donate.holder);
+  const off = await api('PUT', '/api/v1/admin/settings', { token: S.admin.token, body: { 'donate.enabled': false } });
+  assert.equal(off.status, 200, JSON.stringify(off.body));
+  assert.equal((await api('GET', '/api/v1/platform')).body.donate, null);
+  await api('PUT', '/api/v1/admin/settings', { token: S.admin.token, body: { 'donate.enabled': true } });
+  assert.ok((await api('GET', '/api/v1/platform')).body.donate);
+});

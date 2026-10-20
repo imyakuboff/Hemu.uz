@@ -391,14 +391,17 @@ export async function shareLink(url, title, text = '', { track = false } = {}) {
   inp.onclick = () => inp.select();
 }
 
-// ---------- Donat oynasi: saytga kirganda bir marta (sessiya davomida), × bilan yopiladi ----------
-export function showDonate() {
+// ---------- Donat oynasi: saytga har kirganda (sahifa ochilganda/yangilanganda), × bilan yopiladi ----------
+// Sayt ichida sahifadan sahifaga o'tganda qayta chiqmaydi (boot faqat bir marta ishlaydi)
+export function showDonate(tries = 0) {
   const d = state.platform?.donate;
   if (!d?.card) return;
   if (/^\/(admin|payments|login|register)/.test(location.pathname)) return;
-  try { if (sessionStorage.getItem('mx_donate_x')) return; sessionStorage.setItem('mx_donate_x', '1'); } catch { return; }
   setTimeout(() => {
-    if (document.querySelector('.modal-bg')) return; // boshqa oyna ochiq bo'lsa — xalaqit bermaymiz
+    if (document.querySelector('.donate-bg')) return;
+    // Boshqa oyna (kirish, joylashuv) ochiq bo'lsa — yopilishini kutamiz
+    if (document.querySelector('.modal-bg')) { if (tries < 40) showDonate(tries + 1); return; }
+    if (/^\/(admin|payments|login|register)/.test(location.pathname)) return;
     const bg = document.createElement('div');
     bg.className = 'modal-bg donate-bg';
     const tile = (ic, cls) => `<span class="dn-tile ${cls}">${icon(ic)}</span>`;
@@ -437,5 +440,5 @@ export function showDonate() {
     });
     document.addEventListener('keydown', onKey);
     document.body.appendChild(bg);
-  }, 1500);
+  }, tries ? 3000 : 1500);
 }

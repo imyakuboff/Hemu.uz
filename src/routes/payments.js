@@ -120,15 +120,47 @@ r.get('/badge', (req, res) => {
   });
 });
 
+// Admin orqali to'lov yaratish: oldingi "To'ladim" bosilmagan so'rov bekor qilinadi — bittasi qoladi
+function createManual(req, purpose, usd, months) {
+  const cur = req.currency || 'USD';
+  const amount = pay.priceIn(usd, cur);
+  db.run(`UPDATE payments SET status = 'cancelled' WHERE user_id = ? AND purpose = ? AND provider = 'admin' AND status = 'pending' AND json_extract(meta, '$.claimed_at') IS NULL`, req.user.id, purpose);
+  const id = db.insert('payments', { user_id: req.user.id, purpose, meta: { months, usd }, amount, currency: cur, provider: 'admin' });
+  return { id, amount, currency: cur, provider: 'admin', status: 'pending', pay_url: `${config.siteUrl}/payments/${id}` };
+}
+const pendingManual = (uid, purpose) => (uid ? db.get(`SELECT id FROM payments WHERE user_id = ? AND purpose = ? AND provider = 'admin' AND status = 'pending' ORDER BY id DESC LIMIT 1`, uid, purpose)?.id || null : null);
+
 r.post('/badge/subscribe', requireAuth, (req, res) => {
   const v = validate(req.body, { months: { type: 'int', min: 1, max: 12 }, provider: { type: 'enum', values: [...pay.PROVIDER_IDS, 'admin'] } });
   const months = v.months || 1;
-  const cur = req.currency || 'USD';
-  const amount = pay.priceIn(config.prices.badge * months, cur);
-  // Oldingi tasdiqlanmagan so'rov (chek yuborilmagan) bekor qilinadi — bittasi qoladi
-  db.run(`UPDATE payments SET status = 'cancelled' WHERE user_id = ? AND purpose = 'badge' AND provider = 'admin' AND status = 'pending' AND json_extract(meta, '$.claimed_at') IS NULL`, req.user.id);
-  const id = db.insert('payments', { user_id: req.user.id, purpose: 'badge', meta: { months, usd: config.prices.badge * months }, amount, currency: cur, provider: 'admin' });
-  res.status(201).json({ id, amount, currency: cur, provider: 'admin', status: 'pending', pay_url: `${config.siteUrl}/payments/${id}` });
+  res.status(201).json(createManual(req, 'badge', config.prices.badge * months, months));
+});
+
+// ---------- Diler "Do'kon" tarifi — oylik, admin orqali to'lov ----------
+const STORE = require('../lib/store');
+r.get('/store-plan', (req, res) => {
+  const c = req.user ? db.get('SELECT * FROM companies WHERE owner_id = ?', req.user.id) : null;
+  res.json({
+    price: priceView(config.prices.store, req),
+    has_company: Boolean(c),
+    status: {
+      active: STORE.isActive(c),
+      until: STORE.isActive(c) ? c.store_until : null,
+      pending_payment: pendingManual(req.user?.id, 'store'),
+    },
+    settings: c ? {
+      slug: c.store_slug || '', tagline: c.store_tagline || '', color: c.store_color || '', cover: require('../lib/listings').fileUrl(c.cover),
+      pinned: STORE.pinnedIds(c), url: c.store_slug ? `${config.siteUrl}/s/${c.store_slug}` : `${config.siteUrl}/company/${c.id}`,
+    } : null,
+    colors: STORE.COLORS,
+  });
+});
+
+r.post('/store-plan/subscribe', requireAuth, (req, res) => {
+  const v = validate(req.body, { months: { type: 'int', min: 1, max: 12 } });
+  if (!db.get('SELECT 1 FROM companies WHERE owner_id = ?', req.user.id)) fail(403, 'err.store_company');
+  const months = v.months || 1;
+  res.status(201).json(createManual(req, 'store', config.prices.store * months, months));
 });
 
 // Foydalanuvchi: "To'ladim" — izoh (chek raqami, karta oxiri, vaqt) adminga yuboriladi
@@ -145,7 +177,7 @@ r.post('/payments/:id/claim', requireAuth, (req, res) => {
   db.run('UPDATE payments SET meta = ? WHERE id = ?', JSON.stringify(meta), p.id);
   if (!again) {
     for (const a of db.all(`SELECT id FROM users WHERE role = 'admin'`)) {
-      notify(a.id, 'badge_request', { name: req.user.name || req.user.phone, price_amount: p.amount, price_currency: p.currency, payment_id: p.id }, '/admin/finance?tab=manual');
+      notify(a.id, 'badge_request', { name: req.user.name || req.user.phone, purpose_key: `pp.${p.purpose}`, price_amount: p.amount, price_currency: p.currency, payment_id: p.id }, '/admin/finance?tab=manual');
     }
   }
   res.json(paymentView(db.get('SELECT * FROM payments WHERE id = ?', p.id), req));
@@ -157,7 +189,7 @@ function paymentView(p, req) {
   let title = t(req.lang, `pp.${p.purpose}`);
   if (p.purpose === 'promo') title += ` · ${t(req.lang, `promo.${meta.package}`)}`;
   if (p.purpose === 'plan') title += ` · ${t(req.lang, `plan.${meta.plan}`)} × ${meta.months || 1}`;
-  if (p.purpose === 'badge') title += ` × ${meta.months || 1}`;
+  if (p.purpose === 'badge' || p.purpose === 'store') title += ` × ${meta.months || 1}`;
   let ref = null;
   if (p.purpose === 'promo' || p.purpose === 'inspection') {
     const lid = p.purpose === 'promo' ? p.ref_id : db.get('SELECT listing_id FROM inspections WHERE id = ?', p.ref_id)?.listing_id;

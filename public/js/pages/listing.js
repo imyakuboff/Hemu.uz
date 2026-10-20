@@ -57,6 +57,7 @@ function sellerCard(l, part) {
   const own = l.is_owner;
   return `<div class="side-card">
     <h3>${s.company_id ? `<a href="/company/${s.company_id}">${esc(s.name)}</a>` : esc(s.name)}${tickIf(s)}</h3>
+    ${l.store ? `<a class="tag st-tag" href="/company/${l.store.id}">${icon('shield')} ${esc(t('st_official'))}</a>` : ''}
     ${s.verified ? `<div class="tiny muted" style="margin:4px 0 6px">${esc(t(s.verified_type === 'paid' ? 'tick_paid' : 'tick_docs'))}</div>` : ''}
     ${s.reviews_count ? `<div class="rating" style="font-size:12px">${icon('star')} ${String(s.rating).replace('.', ',')} · ${esc(t('reviews', { n: s.reviews_count }))}</div>` : ''}
     <p class="tiny muted" style="margin:8px 0 0">${esc(since)}<br>${esc(place)}</p>

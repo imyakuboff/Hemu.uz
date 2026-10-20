@@ -10,7 +10,7 @@ const pstTag = (s) => `<span class="tag ${{ paid: 'green', pending: 'orange', ca
 // Admin orqali to'lov (galochka): karta rekvizitlari, "To'ladim" va holat
 function manualBox(p) {
   const m = p.manual;
-  if (p.status === 'cancelled' && m.reject_reason !== null) return `<div class="note" style="text-align:left;margin:0 0 12px"><div><b>${esc(t('mp_rejected', { r: m.reject_reason || '—' }))}</b></div></div><a class="btn btn-primary btn-block" href="/badge">${esc(t('tick_get'))}</a>`;
+  if (p.status === 'cancelled' && m.reject_reason !== null) return `<div class="note" style="text-align:left;margin:0 0 12px"><div><b>${esc(t('mp_rejected', { r: m.reject_reason || '—' }))}</b></div></div><a class="btn btn-primary btn-block" href="${p.purpose === 'store' ? '/business#store-plan' : '/badge'}">${esc(t(p.purpose === 'store' ? 'st_buy' : 'tick_get'))}</a>`;
   if (p.status !== 'pending') return '';
   if (m.claimed_at) return `<div class="note" style="text-align:left;margin:0 0 12px">${icon('refresh')}<div><b>${esc(t('mp_waiting'))}</b>${m.note ? `<p>${esc(m.note)}</p>` : ''}</div></div>`;
   const tg = m.telegram ? `https://t.me/${m.telegram.replace(/^@|^https?:\/\/t\.me\//, '')}` : '';
@@ -36,7 +36,7 @@ function manualBox(p) {
 export async function payment({ params }) {
   if (!state.user) return needLogin();
   const p = await api(`/payments/${params[0]}`);
-  const back = p.ref?.type === 'listing' ? `/listing/${p.ref.id}` : p.ref?.type === 'order' ? '/my/orders' : p.purpose === 'plan' ? '/plans' : p.purpose === 'badge' ? '/badge' : '/payments';
+  const back = p.ref?.type === 'listing' ? `/listing/${p.ref.id}` : p.ref?.type === 'order' ? '/my/orders' : p.purpose === 'plan' ? '/plans' : p.purpose === 'badge' ? '/badge' : p.purpose === 'store' ? '/business' : '/payments';
   const html = `
     ${crumbs([[t('home'), '/'], [t('payments_history'), '/payments'], [`№ ${p.id}`]])}
     <div style="max-width:560px;margin:0 auto">

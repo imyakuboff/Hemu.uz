@@ -910,11 +910,18 @@ const COLUMNS = [
   ['promos', 'starts_on', 'TEXT'], // sotuvchi aksiyasi: aniq sanalar (YYYY-MM-DD)
   ['promos', 'ends_on', 'TEXT'],
   ['promos', 'reject_reason', 'TEXT'],
+  // Diler "Do'kon" tarifi: muddat, qisqa manzil (hemu.uz/s/nom), shior, brend rangi, qadalgan e'lonlar
+  ['companies', 'store_until', 'TEXT'],
+  ['companies', 'store_slug', 'TEXT'],
+  ['companies', 'store_tagline', 'TEXT'],
+  ['companies', 'store_color', 'TEXT'],
+  ['companies', 'store_pinned', 'TEXT'],
 ];function migrate() {
   for (const [table, col, def] of COLUMNS) {
     const has = db.prepare(`PRAGMA table_info(${table})`).all().some((c) => c.name === col);
     if (!has) db.exec(`ALTER TABLE ${table} ADD COLUMN ${col} ${def}`);
   }
+  db.exec('CREATE UNIQUE INDEX IF NOT EXISTS ux_companies_store_slug ON companies(store_slug COLLATE NOCASE) WHERE store_slug IS NOT NULL');
   db.exec('CREATE UNIQUE INDEX IF NOT EXISTS ux_users_username ON users(username COLLATE NOCASE) WHERE username IS NOT NULL');
   db.exec('CREATE INDEX IF NOT EXISTS ix_listings_external ON listings(user_id, external_id) WHERE external_id IS NOT NULL');
   // urgent_calls.category_id endi ixtiyoriy (mijoz o'z so'zi bilan yozishi mumkin) — eski jadvalni qayta qurish

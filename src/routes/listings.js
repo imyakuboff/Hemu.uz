@@ -119,6 +119,9 @@ r.get('/listings/:id', (req, res, next) => {
   const c = ctx(req);
   const out = L.detail(db.get('SELECT * FROM listings WHERE id = ?', l.id), c);
   out.similar = similar(l, c, 4);
+  // Rasmiy do'kon belgisi (Do'kon tarifi faol)
+  const comp = require('../lib/store').companyOfListing(l);
+  out.store = require('../lib/store').isActive(comp) ? { id: comp.id, name: comp.name, slug: comp.store_slug || null } : null;
   out.is_owner = req.user?.id === l.user_id;
   out.share = out.is_owner ? growth.shareStatus(l) : { step: growth.SHARE_STEP, hours: growth.SHARE_HOURS };
   out.serial = require('./trust').serialCheck(l);
@@ -162,6 +165,18 @@ r.get('/listings/:id/similar', (req, res) => {
 });
 
 function similar(l, c, n) {
+  // "Do'kon" tarifidagi diler e'lonida — faqat shu do'konning boshqa e'lonlari (raqobatchilar emas)
+  const store = require('../lib/store');
+  const comp = store.companyOfListing(l);
+  if (store.isActive(comp)) {
+    const own = L.cardsByIds(
+      `SELECT l.* FROM listings l WHERE l.status = 'active' AND l.id != ? AND l.company_id = ?
+       ORDER BY (l.subcategory_id = ?) DESC, (l.category_id = ?) DESC, l.bumped_at DESC LIMIT ?`,
+      [l.id, comp.id, l.subcategory_id || 0, l.category_id, n],
+      c,
+    );
+    if (own.length) return own;
+  }
   return L.cardsByIds(
     `SELECT l.* FROM listings l WHERE l.status = 'active' AND l.id != ? AND (l.subcategory_id = ? OR (? IS NULL AND l.category_id = ?))
      ORDER BY (l.country = ?) DESC, ABS(COALESCE(l.price_usd, 0) - ?) ASC LIMIT ?`,

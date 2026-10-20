@@ -86,6 +86,7 @@ function fulfill(p) {
   if (p.purpose === 'promo') applyPromotion(p.ref_id, meta.package, p.id);
   if (p.purpose === 'plan') applyPlan(p.user_id, meta.plan, meta.months || 1);
   if (p.purpose === 'badge') applyBadge(p.user_id, meta.months || 1);
+  if (p.purpose === 'store') require('./store').apply(p.user_id, meta.months || 1);
   if (p.purpose === 'topup') require('./wallet').change(p.user_id, money.toUsd(p.amount, p.currency), 'topup', { paymentId: p.id, note: `#${p.id}`, amount: p.amount, currency: p.currency });
   if (p.purpose === 'escrow') {
     const o = db.get('SELECT * FROM orders WHERE id = ?', p.ref_id);

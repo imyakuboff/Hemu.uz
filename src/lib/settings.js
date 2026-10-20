@@ -13,6 +13,7 @@ const DEFS = [
   ['prices.plan.business', 'number', 0, 100000],
   ['prices.inspection', 'number', 0, 100000],
   ['prices.badge', 'number', 0, 100000],
+  ['prices.store', 'number', 0, 100000],
   // Galochka uchun to'lov admin orqali: karta rekvizitlari va izoh
   ['manualPay.card', 'string', 0, 40],
   ['manualPay.holder', 'string', 0, 80],

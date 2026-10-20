@@ -129,11 +129,11 @@ const D = {
   mark_paid: ["To'landi deb belgilash", 'Отметить оплаченным', 'Mark as paid'],
   refund_wallet: ['Hamyonga qaytarish', 'Вернуть на баланс', 'Refund to wallet'],
   wallet_tx: ['Balans operatsiyalari', 'Операции по балансу', 'Wallet transactions'],
-  manual_tab: ["Galochka so'rovlari", 'Заявки на галочку', 'Badge requests'],
-  manual_hint: ["Foydalanuvchi kartaga pul o'tkazib, «To'ladim» bosgan. Kartangizga pul tushganini tekshiring, so'ng tasdiqlang — galochka darhol yoqiladi", 'Пользователь перевёл деньги на карту и нажал «Я оплатил». Проверьте поступление и подтвердите — галочка включится сразу', 'The user transferred money and pressed “I have paid”. Check your card, then confirm — the badge turns on immediately'],
+  manual_tab: ["Admin orqali to'lovlar", 'Оплаты через админа', 'Manual payments'],
+  manual_hint: ["Galochka va Do'kon tarifi. Foydalanuvchi kartaga pul o'tkazib, «To'ladim» bosgan. Kartangizga pul tushganini tekshiring, so'ng tasdiqlang — xizmat darhol yoqiladi", 'Галочка и тариф «Магазин». Пользователь перевёл деньги и нажал «Я оплатил». Проверьте поступление и подтвердите — услуга включится сразу', 'Badge and Store plan. The user transferred money and pressed “I have paid”. Check your card, then confirm — the service turns on immediately'],
   manual_claimed: ["To'ladim deb bosgan", 'Отметил «Оплатил»', 'Marked as paid'],
   manual_not_claimed: ["Hali to'lamagan", 'Ещё не оплатил', 'Not paid yet'],
-  approve_tick: ['Tasdiqlash — galochka berish', 'Подтвердить — выдать галочку', 'Confirm — grant badge'],
+  approve_tick: ['Tasdiqlash va yoqish', 'Подтвердить и включить', 'Confirm and activate'],
   'donate.enabled': ["Saytga kirganda donat oynasini ko'rsatish", 'Показывать окно доната при входе на сайт', 'Show donation popup on site entry'],
   'donate.card': ['Donat: karta raqami', 'Донат: номер карты', 'Donation: card number'],
   'donate.holder': ['Donat: karta egasi', 'Донат: владелец карты', 'Donation: card holder'],
@@ -187,6 +187,7 @@ const D = {
   'prices.plan.business': ['Biznes tarif (oyiga)', 'Бизнес-тариф (в месяц)', 'Business plan (monthly)'],
   'prices.inspection': ["Texnik ko'rik narxi", 'Цена тех. проверки', 'Inspection price'],
   'prices.badge': ['Tasdiq belgisi (galochka), oyiga', 'Галочка подтверждения, в месяц', 'Verified badge, per month'],
+  'prices.store': ["Do'kon tarifi (dilerlar), oyiga", 'Тариф «Магазин» (дилеры), в месяц', 'Store plan (dealers), per month'],
   freeListingLimit: ["Bepul tarifda e'lonlar soni", 'Объявлений на бесплатном тарифе', 'Free plan listing limit'],
   businessTopCredits: ['Biznes tarifda TOP kreditlar', 'ТОП-кредитов в бизнес-тарифе', 'Business plan TOP credits'],
   escrowFeePct: ['Xavfsiz bitim komissiyasi, %', 'Комиссия безопасной сделки, %', 'Escrow fee, %'],
@@ -1297,7 +1298,7 @@ async function settings() {
   const by = Object.fromEntries(items.map((x) => [x.key, x]));
   const GROUPS = [
     // VIP / GOLD / PREMIUM narxlari — alohida bo'limda (/admin/tiers)
-    ['g_prices', ['prices.plan.business', 'prices.inspection', 'prices.badge', 'manualPay.card', 'manualPay.holder', 'manualPay.info']],
+    ['g_prices', ['prices.plan.business', 'prices.inspection', 'prices.badge', 'prices.store', 'manualPay.card', 'manualPay.holder', 'manualPay.info']],
     ['g_donate', ['donate.enabled', 'donate.card', 'donate.holder']],
     ['g_limits', ['freeListingLimit', 'businessTopCredits', 'escrowFeePct']],
     ['g_platform', ['registrationOpen', 'autoApproveVerified', 'requireCompanyDocs', 'supportPhone', 'supportTelegram', 'announcementType', 'announcement']],

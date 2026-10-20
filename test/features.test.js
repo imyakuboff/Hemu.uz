@@ -464,3 +464,57 @@ test('donat oynasi: /platform karta raqamini beradi, admin o\'chira oladi', asyn
   await api('PUT', '/api/v1/admin/settings', { token: S.admin.token, body: { 'donate.enabled': true } });
   assert.ok((await api('GET', '/api/v1/platform')).body.donate);
 });
+
+test("Do'kon tarifi: admin orqali to'lov, qisqa manzil, qadalgan e'lonlar, faqat o'z tavsiyalari", async () => {
+  const sellerId = db.get(`SELECT id FROM users WHERE phone = '+998901234567'`).id;
+  const comp = db.get('SELECT * FROM companies WHERE owner_id = ?', sellerId);
+  assert.ok(comp, 'seed: sotuvchining kompaniyasi bor');
+  const g = await api('GET', '/api/v1/store-plan', { token: S.seller.token, currency: 'USD' });
+  assert.equal(g.body.price.amount, 25);
+  assert.equal(g.body.has_company, true);
+  assert.equal(g.body.status.active, false);
+  // Tarif faol bo'lmaguncha sozlab bo'lmaydi
+  assert.equal((await api('PATCH', '/api/v1/my/store', { token: S.seller.token, body: { slug: 'jcb-diler' } })).status, 402);
+  // Kompaniyasiz foydalanuvchi ulay olmaydi
+  const buyerId = db.get(`SELECT id FROM users WHERE phone = '+998907654321'`).id;
+  if (!db.get('SELECT 1 FROM companies WHERE owner_id = ?', buyerId)) {
+    assert.equal((await api('POST', '/api/v1/store-plan/subscribe', { token: S.buyer.token, body: { months: 1 } })).status, 403);
+  }
+  const p = await api('POST', '/api/v1/store-plan/subscribe', { token: S.seller.token, body: { months: 1 }, currency: 'USD' });
+  assert.equal(p.status, 201);
+  assert.equal(p.body.amount, 25);
+  assert.equal((await api('POST', `/api/v1/payments/${p.body.id}/claim`, { token: S.seller.token, body: { note: 'store' } })).status, 200);
+  assert.equal((await api('POST', `/api/v1/admin/payments/${p.body.id}/mark-paid`, { token: S.admin.token })).status, 200);
+  const g2 = await api('GET', '/api/v1/store-plan', { token: S.seller.token });
+  assert.equal(g2.body.status.active, true);
+  // Sozlamalar
+  assert.equal((await api('PATCH', '/api/v1/my/store', { token: S.seller.token, body: { slug: 'admin' } })).status, 422);
+  assert.equal((await api('PATCH', '/api/v1/my/store', { token: S.seller.token, body: { slug: 'a b' } })).status, 422);
+  assert.equal((await api('PATCH', '/api/v1/my/store', { token: S.seller.token, body: { color: '#123456' } })).status, 422);
+  const own = db.all(`SELECT id FROM listings WHERE company_id = ? AND status = 'active' ORDER BY id LIMIT 2`, comp.id).map((x) => x.id);
+  const other = db.get(`SELECT id FROM listings WHERE (company_id IS NULL OR company_id != ?) AND status = 'active' LIMIT 1`, comp.id)?.id;
+  assert.ok(own.length >= 1);
+  const ok = await api('PATCH', '/api/v1/my/store', { token: S.seller.token, body: { slug: 'JCB-Diler', tagline: 'Rasmiy JCB diler', color: '#0b6fcf', pinned: [...own, other].filter(Boolean) } });
+  assert.equal(ok.status, 200, JSON.stringify(ok.body));
+  const c2 = db.get('SELECT * FROM companies WHERE id = ?', comp.id);
+  assert.equal(c2.store_slug, 'jcb-diler');
+  assert.deepEqual(JSON.parse(c2.store_pinned), own, "faqat o'z e'lonlari qadaladi");
+  // Qisqa manzil
+  const red = await fetch(`${base}/s/jcb-diler`, { redirect: 'manual' });
+  assert.equal(red.status, 302);
+  assert.equal(red.headers.get('location'), `/company/${comp.id}`);
+  // Do'kon sahifasi
+  const page = await api('GET', `/api/v1/companies/${comp.id}`);
+  assert.equal(page.body.store_plan.tagline, 'Rasmiy JCB diler');
+  assert.equal(page.body.store_plan.color, '#0b6fcf');
+  assert.deepEqual(page.body.store_plan.pinned.map((x) => x.id), own);
+  // E'lon sahifasi: "Rasmiy do'kon" va tavsiyalar faqat shu do'kondan
+  const l = await api('GET', `/api/v1/listings/${own[0]}`);
+  assert.equal(l.body.store.id, comp.id);
+  for (const x of l.body.similar) assert.equal(db.get('SELECT company_id FROM listings WHERE id = ?', x.id).company_id, comp.id);
+  // Muddat tugasa — oddiy holat
+  db.run(`UPDATE companies SET store_until = datetime('now', '-1 day') WHERE id = ?`, comp.id);
+  assert.equal((await api('GET', `/api/v1/companies/${comp.id}`)).body.store_plan, null);
+  assert.equal((await fetch(`${base}/s/jcb-diler`, { redirect: 'manual' })).status, 200);
+  assert.equal((await api('GET', `/api/v1/listings/${own[0]}`)).body.store, null);
+});

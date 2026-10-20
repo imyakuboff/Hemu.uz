@@ -59,6 +59,8 @@ module.exports = {
     inspection: Number(env.PRICE_INSPECTION_USD || 25),
     // Tasdiq belgisi (galochka) — oyiga, USD
     badge: Number(env.PRICE_BADGE_USD || 15),
+    // Diler "Do'kon" tarifi — oyiga, USD
+    store: Number(env.PRICE_STORE_USD || 25),
   },
   freeListingLimit: Number(env.FREE_LISTING_LIMIT || 10),
   businessTopCredits: Number(env.BUSINESS_TOP_CREDITS || 3),

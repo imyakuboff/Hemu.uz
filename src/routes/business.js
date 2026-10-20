@@ -128,14 +128,82 @@ r.get('/my/follows', requireAuth, (req, res) => {
 });
 
 // Do'kon uchun qo'shimcha: filiallar, obunachilar, bo'limlar
+// ---------- "Do'kon" tarifi sozlamalari (faqat egasi; tarif faol bo'lsa) ----------
+const STORE = require('../lib/store');
+const upload = require('../lib/upload');
+const L = require('../lib/listings');
+function ownStore(req) {
+  const c = db.get('SELECT * FROM companies WHERE owner_id = ?', req.user.id);
+  if (!c) notFound();
+  if (!STORE.isActive(c)) fail(402, 'err.store_inactive');
+  return c;
+}
+
+r.patch('/my/store', requireAuth, (req, res) => {
+  const c = ownStore(req);
+  const b = req.body || {};
+  const v = validate(b, { tagline: { type: 'string', max: 120 } }, { partial: true });
+  const upd = {};
+  if (b.slug !== undefined) {
+    const slug = String(b.slug || '').trim().toLowerCase();
+    if (slug) {
+      if (!STORE.SLUG_RE.test(slug) || STORE.RESERVED.has(slug)) fail(422, 'err.validation', { slug: 'invalid' });
+      if (db.get('SELECT 1 FROM companies WHERE store_slug = ? COLLATE NOCASE AND id != ?', slug, c.id)) fail(409, 'err.validation', { slug: 'taken' });
+    }
+    upd.store_slug = slug || null;
+  }
+  if (v.tagline !== undefined) upd.store_tagline = v.tagline || null;
+  if (b.color !== undefined) {
+    if (b.color && !STORE.COLORS.includes(String(b.color).toLowerCase())) fail(422, 'err.validation', { color: 'invalid' });
+    upd.store_color = b.color ? String(b.color).toLowerCase() : null;
+  }
+  if (b.pinned !== undefined) {
+    const ids = [...new Set((Array.isArray(b.pinned) ? b.pinned : []).map(Number).filter(Number.isInteger))].slice(0, 6);
+    // Faqat shu kompaniyaning faol e'lonlari
+    const ok = ids.filter((id) => db.get(`SELECT 1 FROM listings WHERE id = ? AND company_id = ? AND status = 'active'`, id, c.id));
+    upd.store_pinned = JSON.stringify(ok);
+  }
+  if (Object.keys(upd).length) db.update('companies', c.id, upd);
+  res.json({ ok: true });
+});
+
+r.post('/my/store/cover', requireAuth, upload.banners.single('file'), async (req, res) => {
+  let c;
+  try { c = ownStore(req); } catch (e) { if (req.file) upload.removeUpload(`banners/${req.file.filename}`); throw e; }
+  if (!req.file) fail(422, 'err.file_type');
+  await upload.optimize(upload.verifyFiles([req.file]), 'banners');
+  upload.removeUpload(c.cover);
+  db.update('companies', c.id, { cover: `banners/${req.file.filename}` });
+  res.json({ cover: L.fileUrl(`banners/${req.file.filename}`) });
+});
+
+r.delete('/my/store/cover', requireAuth, (req, res) => {
+  const c = ownStore(req);
+  upload.removeUpload(c.cover);
+  db.run('UPDATE companies SET cover = NULL WHERE id = ?', c.id);
+  res.json({ ok: true });
+});
+
+// Do'kon sahifasi uchun: tarif faol bo'lsa — muqova, rang, shior, qadalgan e'lonlar
+function storePlanView(c, req) {
+  if (!STORE.isActive(c)) return null;
+  const ctx = { lang: req.lang, currency: req.currency, favs: L.favoritesSet(req.user?.id) };
+  const ids = STORE.pinnedIds(c);
+  const pinned = ids.length
+    ? L.cardsByIds(`SELECT l.* FROM listings l WHERE l.id IN (${ids.map(() => '?').join(',')}) AND l.company_id = ? AND l.status = 'active'`, [...ids, c.id], ctx)
+      .sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id))
+    : [];
+  return { cover: L.fileUrl(c.cover), color: c.store_color || null, tagline: c.store_tagline || null, slug: c.store_slug || null, pinned };
+}
+
 function storeExtras(companyId, req) {
   const branches = db.all('SELECT * FROM company_branches WHERE company_id = ? ORDER BY id', companyId).map((b) => branchView(b, req.lang));
   const followers = db.get('SELECT COUNT(*) AS n FROM company_follows WHERE company_id = ?', companyId).n;
   const following = req.user ? Boolean(db.get('SELECT 1 FROM company_follows WHERE user_id = ? AND company_id = ?', req.user.id, companyId)) : false;
   const sections = db.all(`SELECT subcategory_id AS id, COUNT(*) AS n FROM listings WHERE company_id = ? AND status = 'active' AND subcategory_id IS NOT NULL GROUP BY subcategory_id ORDER BY n DESC`, companyId)
     .map((x) => { const c = cats.byId(x.id); return c ? { slug: c.slug, name: pick(c.names, req.lang), count: x.n } : null; }).filter(Boolean);
-  const c = db.get('SELECT activities, cover FROM companies WHERE id = ?', companyId);
-  return { branches, followers, following, sections, activities: JSON.parse(c?.activities || '[]'), members: db.get('SELECT COUNT(*) AS n FROM company_members WHERE company_id = ?', companyId).n + 1 };
+  const c = db.get('SELECT * FROM companies WHERE id = ?', companyId);
+  return { branches, followers, following, sections, activities: JSON.parse(c?.activities || '[]'), members: db.get('SELECT COUNT(*) AS n FROM company_members WHERE company_id = ?', companyId).n + 1, store_plan: c ? storePlanView(c, req) : null, phone: c && STORE.isActive(c) ? c.phone : undefined };
 }
 
 module.exports = { router: r, storeExtras };

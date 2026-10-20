@@ -1734,3 +1734,34 @@ h1 .vtick, h2 .vtick { width: 22px; height: 22px; vertical-align: -4px; }
 @keyframes dnSheet { from { transform: translateY(100%); } }
 @keyframes dnFloat { 50% { transform: translate(-50%, calc(-50% - 8px)) rotate(3deg); } }
 @media (prefers-reduced-motion: reduce) { .donate-bg, .donate-sheet, .dn-coin { animation: none; } }
+
+/* ---------- "Do'kon" tarifi ---------- */
+.st-box .st-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+.st-price { font-size: 22px; font-weight: 800; color: var(--ink); white-space: nowrap; }
+.st-feats { list-style: none; padding: 0; margin: 6px 0 14px; display: grid; gap: 8px; }
+.st-feats li { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; }
+.st-feats li svg { width: 18px; height: 18px; color: var(--green); flex: none; margin-top: 2px; }
+.st-slug { display: flex; align-items: stretch; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--card); }
+.st-slug span { display: flex; align-items: center; padding: 0 10px; background: var(--bg); color: var(--muted); font-size: 14px; white-space: nowrap; border-inline-end: 1px solid var(--line); }
+.st-slug .input { border: 0; border-radius: 0; min-width: 0; }
+.st-colors { display: flex; gap: 10px; flex-wrap: wrap; }
+.st-sw input { position: absolute; opacity: 0; pointer-events: none; }
+.st-sw span { display: block; width: 36px; height: 36px; border-radius: 50%; background: var(--c); border: 3px solid var(--card); box-shadow: 0 0 0 1px var(--line); cursor: pointer; }
+.st-sw input:checked + span { box-shadow: 0 0 0 3px var(--c); }
+.st-sw input:focus-visible + span { outline: 2px solid var(--blue); outline-offset: 3px; }
+.st-cover { height: 120px; border-radius: 12px; background: var(--bg) center / cover no-repeat; border: 1px dashed var(--line); display: grid; place-items: center; }
+.st-pins { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; max-height: 340px; overflow-y: auto; }
+.st-pin { position: relative; display: grid; grid-template-columns: 44px 1fr; gap: 8px; align-items: center; padding: 6px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; font-size: 12px; line-height: 1.3; }
+.st-pin input { position: absolute; top: 6px; inset-inline-end: 6px; }
+.st-pin img, .st-pin i { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; background: var(--bg); display: block; }
+.st-pin span { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; padding-inline-end: 18px; }
+.st-pin:has(input:checked) { border-color: var(--blue); background: var(--blue-soft); }
+.st-hero { position: relative; min-height: 210px; border-radius: 18px 18px 0 0; background: var(--brand) center / cover no-repeat; display: flex; flex-direction: column; justify-content: flex-end; padding: 22px 26px; color: #fff; overflow: hidden; }
+.st-hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(120% 140% at 100% 0%, rgba(255,255,255,.18), transparent 55%); pointer-events: none; }
+.st-badge { position: absolute; top: 16px; inset-inline-start: 18px; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: rgba(255,255,255,.95); color: #0e3352; font-size: 12px; font-weight: 700; }
+.st-badge svg { width: 14px; height: 14px; }
+.st-tagline { position: relative; margin: 0; font-size: clamp(20px, 3.4vw, 32px); font-weight: 800; line-height: 1.15; max-width: 760px; text-shadow: 0 2px 12px rgba(0,0,0,.35); }
+.banner-navy.st-bar { background: var(--brand); border-radius: 0 0 18px 18px; margin-top: 0; }
+.st-tag { display: inline-flex; align-items: center; gap: 5px; margin: 4px 0 6px; background: var(--navy, #0e3352); color: #fff; text-decoration: none; }
+.st-tag svg { width: 13px; height: 13px; }
+@media (max-width: 600px) { .st-hero { min-height: 160px; padding: 18px; border-radius: 14px 14px 0 0; } .banner-navy.st-bar { border-radius: 0 0 14px 14px; } }

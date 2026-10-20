@@ -134,6 +134,12 @@ function createApp() {
     dotfiles: 'deny',
     setHeaders: (res, file) => res.set('Cache-Control', /\.(jpg|png|svg)$/.test(file) ? 'public, max-age=604800' : 'no-cache'),
   }));
+  // Do'kon qisqa manzili: hemu.uz/s/nom -> do'kon sahifasi (tarif faol bo'lsa)
+  app.get(/^\/s\/([A-Za-z0-9-]{3,30})\/?$/, (req, res, next) => {
+    const c = require('./db').get('SELECT id, store_until FROM companies WHERE store_slug = ? COLLATE NOCASE AND blocked = 0', req.params[0].toLowerCase());
+    if (!c || !require('./lib/store').isActive(c)) return next();
+    res.redirect(302, `/company/${c.id}`);
+  });
   // Barcha sahifa manzillari index.html ga (mijoz tomonida marshrutlash)
   app.get(/^\/(?!api\/|uploads\/).*/, (req, res, next) => {
     if (path.extname(req.path)) return next();

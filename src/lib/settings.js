@@ -96,7 +96,7 @@ config.supportEmail ??= '';
 config.legalName ??= '';
 // Test: yangi raqam bilan ro'yxatdan o'tishda SMS-kod ekranga chiqadi (mavjud hisoblarga ta'sir qilmaydi)
 config.otpTestRegistration ??= process.env.OTP_TEST_REGISTRATION === '1';
-config.welcomeBonus ??= { enabled: process.env.WELCOME_BONUS !== '0', amount: Number(process.env.WELCOME_BONUS_AMOUNT || 200000), currency: process.env.WELCOME_BONUS_CURRENCY || 'UZS' };
+config.welcomeBonus ??= { enabled: process.env.WELCOME_BONUS !== '0', amount: Number(process.env.WELCOME_BONUS_AMOUNT || 50000), currency: process.env.WELCOME_BONUS_CURRENCY || 'UZS' };
 config.legalTin ??= '';
 config.legalAddress ??= '';
 config.adminTwoFactor ??= false;
@@ -146,6 +146,11 @@ function load() {
   if (!getRaw('_mig.badge15')) {
     db.run(`UPDATE settings SET value = '15' WHERE key = 'prices.badge' AND value IN ('10', '10.0')`);
     setRaw('_mig.badge15', 1);
+  }
+  // Bir martalik: yangi foydalanuvchi bonusi 200 000 dan 50 000 so'mga
+  if (!getRaw('_mig.bonus50k')) {
+    db.run(`UPDATE settings SET value = '50000' WHERE key = 'welcomeBonus.amount' AND value IN ('200000', '200000.0')`);
+    setRaw('_mig.bonus50k', 1);
   }
   for (const row of db.all('SELECT key, value FROM settings')) {
     const def = DEFS.find((d) => d[0] === row.key);

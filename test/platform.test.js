@@ -201,23 +201,23 @@ test("oddiy foydalanuvchi: faqat TOP (OLX kabi); VIP/GOLD/PREMIUM — faqat komp
   assert.equal(t2.promo_days, 10);
 });
 
-test("yangi foydalanuvchiga ro'yxatdan o'tganda 200 000 so'm bonus (bir marta)", async () => {
+test("yangi foydalanuvchiga ro'yxatdan o'tganda 50 000 so'm bonus (bir marta)", async () => {
   const phone = '+998935554433';
   const st = await api('POST', '/api/v1/auth/otp/request', { body: { phone } });
   const v = await api('POST', '/api/v1/auth/otp/verify', { body: { phone, code: st.body.dev_code } });
   assert.equal(v.body.is_new, true);
-  assert.deepEqual(v.body.welcome_bonus, { amount: 200000, currency: 'UZS' });
+  assert.deepEqual(v.body.welcome_bonus, { amount: 50000, currency: 'UZS' });
   const w = (await api('GET', '/api/v1/me/wallet', { token: v.body.token, currency: 'UZS' })).body;
-  assert.ok(Math.abs(w.amount - 200000) < 1000, `balans ${w.amount}`);
+  assert.ok(Math.abs(w.amount - 50000) < 1000, `balans ${w.amount}`);
   assert.equal(w.items[0].kind, 'welcome');
   // Admin summani o'zgartiradi yoki o'chiradi
-  assert.equal((await A('PUT', '/settings', { 'welcomeBonus.amount': 50000 })).status, 200);
+  assert.equal((await A('PUT', '/settings', { 'welcomeBonus.amount': 30000 })).status, 200);
   await A('PUT', '/settings', { 'welcomeBonus.enabled': false });
   const p2 = '+998935554434';
   const s2 = await api('POST', '/api/v1/auth/otp/request', { body: { phone: p2 } });
   const v2 = await api('POST', '/api/v1/auth/otp/verify', { body: { phone: p2, code: s2.body.dev_code } });
   assert.equal(v2.body.welcome_bonus, null);
-  await A('PUT', '/settings', { 'welcomeBonus.enabled': true, 'welcomeBonus.amount': 200000 });
+  await A('PUT', '/settings', { 'welcomeBonus.enabled': true, 'welcomeBonus.amount': 50000 });
 });
 
 test("test ro'yxatdan o'tish: kod faqat yangi raqamga ekranda, mavjud hisobga — yo'q", async () => {

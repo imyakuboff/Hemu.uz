@@ -39,9 +39,9 @@ function formatHemuTemplate(text) {
   const code = codeMatch[0];
   const isRu = /[а-яё]/i.test(text);
   if (isRu) {
-    return `Код подтверждения для входа в HEMU.UZ: ${code}. Никому не сообщайте.`;
+    return `Код подтверждения для входа в HEMU.UZ: ${code} Никому не сообщайте.`;
   }
-  return `HEMU.UZ saytiga kirish uchun tasdiqlash kodi: ${code}. Kodni hech kimga bermang!`;
+  return `HEMU.UZ saytiga kirish uchun tasdiqlash kodi: ${code} Kodni hech kimga bermang!`;
 }
 
 function formatFallbackTemplate(text) {

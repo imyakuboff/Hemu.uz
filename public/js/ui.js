@@ -303,8 +303,6 @@ export function loginModal(onDone) {
         try {
           ({ phone, country } = readPhone(f1));
           const r = await api('/auth/otp/request', { method: 'POST', body: { phone, country } });
-          // Yangi raqam — to'liq ro'yxatdan o'tish sahifasiga
-          if (!r.exists) { closeModal(); window.mxGo(`/register?phone=${encodeURIComponent(r.phone)}`); return; }
           phone = r.phone;
           f1.hidden = true; f2.hidden = false;
           f2.querySelector('[data-sent]').textContent = t('code_sent', { p: r.phone });

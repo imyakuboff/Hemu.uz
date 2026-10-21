@@ -73,7 +73,16 @@ export async function register({ query }) {
       const s = { 1: $('[data-s1]', main), 2: $('[data-s2]', main), 3: $('[data-s3]', main), 4: $('[data-s4]', main) };
       const show = (n) => { Object.entries(s).forEach(([k, el]) => { el.hidden = Number(k) !== n; }); $('[data-steps]', main).innerHTML = stepper(n); };
       let phone; let country; let ticket; let type; let email;
-      if (query.phone) s[1].phone.value = query.phone;
+      if (query.phone) {
+        const qp = String(query.phone || '').trim();
+        const digits = qp.replace(/\D/g, '');
+        if (digits.startsWith('998') && digits.length === 12) {
+          s[1].country.value = 'UZ';
+          s[1].phone.value = digits.slice(3);
+        } else {
+          s[1].phone.value = qp;
+        }
+      }
       const chan = () => (emailOtp ? (s[1].querySelector('[name="channel"]:checked')?.value || 'sms') : 'sms');
       if (emailOtp) {
         s[1].addEventListener('change', (e) => {
@@ -105,8 +114,15 @@ export async function register({ query }) {
           show(2);
           s[2].code.focus();
         } catch (err) {
-          if (err.code === 'already_registered') document.querySelector('[data-login]')?.click();
-          else if (err.details?.email && s[1].email) markErrors(s[1], { email: 1 });
+          if (err.code === 'already_registered') {
+            document.querySelector('[data-login]')?.click();
+          } else if (err.code === 'too_many') {
+            s[2].querySelector('[data-sent]').textContent = t('code_sent', { p: phone });
+            show(2);
+            s[2].code.focus();
+          } else if (err.details?.email && s[1].email) {
+            markErrors(s[1], { email: 1 });
+          }
         } finally {
           btn.disabled = false;
         }

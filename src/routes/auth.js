@@ -96,8 +96,13 @@ async function sendCode(req, phoneE164, smsKey = 'sms.otp', { isNew = false, ema
   const staff = process.env.NODE_ENV === 'production' && Boolean(db.get(`SELECT 1 FROM users WHERE phone = ? AND role IN ('admin', 'moderator')`, phoneE164));
   const echo = !staff && (config.otpDevEcho || (config.otpTestRegistration && isNew));
   const now = Date.now();
-  const prev = db.get('SELECT sent_at FROM otp_codes WHERE phone = ?', phoneE164);
-  if (prev && now - prev.sent_at < 60000) fail(429, 'err.too_many', { retry_after: Math.ceil((60000 - (now - prev.sent_at)) / 1000) });
+  const prev = db.get('SELECT sent_at, expires_at FROM otp_codes WHERE phone = ?', phoneE164);
+  if (prev && now - prev.sent_at < 60000) {
+    if (prev.expires_at > now) {
+      return echo ? { ok: true, already_sent: true } : { already_sent: true };
+    }
+    fail(429, 'err.too_many', { retry_after: Math.ceil((60000 - (now - prev.sent_at)) / 1000) });
+  }
   const code = String(crypto.randomInt(100000, 1000000));
   const boundEmail = via === 'email' ? email : null;
   db.run(

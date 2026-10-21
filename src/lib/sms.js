@@ -37,10 +37,7 @@ function formatHemuTemplate(text) {
   const codeMatch = String(text).match(/\b\d{4,6}\b/);
   if (!codeMatch) return text;
   const code = codeMatch[0];
-  const isRu = /[а-яё]/i.test(text);
-  if (isRu) {
-    return `Код подтверждения для входа в HEMU.UZ: ${code} Никому не сообщайте.`;
-  }
+  // Eskiz'da tasdiqlangan rasmiy HEMU shabloni (ID 96627)
   return `HEMU.UZ saytiga kirish uchun tasdiqlash kodi: ${code} Kodni hech kimga bermang!`;
 }
 

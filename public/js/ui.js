@@ -274,36 +274,57 @@ export function loginModal(onDone) {
       const done = (r) => { setToken(r.token); state.user = r.user; closeModal(); onDone?.(); };
       fpw.onsubmit = async (e) => {
         e.preventDefault();
-        const { phone, country } = readPhone(fpw);
-        const box = fpw.querySelector('[data-2fa]');
-        const code = box.hidden ? undefined : fpw.code2.value.trim();
-        const r = await api('/auth/login', { method: 'POST', body: { phone, country, password: fpw.password.value, code } });
-        if (r.two_factor) {
-          box.hidden = false;
-          fpw.querySelector('[data-2fa-sub]').textContent = t('two_factor_sub', { phone: r.phone });
-          if (r.dev_code) { fpw.querySelector('[data-2fa-dev]').textContent = t('dev_code', { c: r.dev_code }); fpw.code2.value = r.dev_code; }
-          fpw.code2.focus();
-          return;
+        const btn = fpw.querySelector('button');
+        if (btn?.disabled) return;
+        btn.disabled = true;
+        try {
+          const { phone, country } = readPhone(fpw);
+          const box = fpw.querySelector('[data-2fa]');
+          const code = box.hidden ? undefined : fpw.code2.value.trim();
+          const r = await api('/auth/login', { method: 'POST', body: { phone, country, password: fpw.password.value, code } });
+          if (r.two_factor) {
+            box.hidden = false;
+            fpw.querySelector('[data-2fa-sub]').textContent = t('two_factor_sub', { phone: r.phone });
+            if (r.dev_code) { fpw.querySelector('[data-2fa-dev]').textContent = t('dev_code', { c: r.dev_code }); fpw.code2.value = r.dev_code; }
+            fpw.code2.focus();
+            return;
+          }
+          done(r);
+        } finally {
+          btn.disabled = false;
         }
-        done(r);
       };
       let phone; let country;
       f1.onsubmit = async (e) => {
         e.preventDefault();
-        ({ phone, country } = readPhone(f1));
-        const r = await api('/auth/otp/request', { method: 'POST', body: { phone, country } });
-        // Yangi raqam — to'liq ro'yxatdan o'tish sahifasiga
-        if (!r.exists) { closeModal(); window.mxGo(`/register?phone=${encodeURIComponent(r.phone)}`); return; }
-        phone = r.phone;
-        f1.hidden = true; f2.hidden = false;
-        f2.querySelector('[data-sent]').textContent = t('code_sent', { p: r.phone });
-        if (r.dev_code) { f2.querySelector('[data-dev]').textContent = t('dev_code', { c: r.dev_code }); f2.code.value = r.dev_code; }
-        f2.code.focus();
+        const btn = f1.querySelector('button');
+        if (btn?.disabled) return;
+        btn.disabled = true;
+        try {
+          ({ phone, country } = readPhone(f1));
+          const r = await api('/auth/otp/request', { method: 'POST', body: { phone, country } });
+          // Yangi raqam — to'liq ro'yxatdan o'tish sahifasiga
+          if (!r.exists) { closeModal(); window.mxGo(`/register?phone=${encodeURIComponent(r.phone)}`); return; }
+          phone = r.phone;
+          f1.hidden = true; f2.hidden = false;
+          f2.querySelector('[data-sent]').textContent = t('code_sent', { p: r.phone });
+          if (r.dev_code) { f2.querySelector('[data-dev]').textContent = t('dev_code', { c: r.dev_code }); f2.code.value = r.dev_code; }
+          f2.code.focus();
+        } finally {
+          btn.disabled = false;
+        }
       };
       f2.querySelector('[data-back]').onclick = () => { f2.hidden = true; f1.hidden = false; };
       f2.onsubmit = async (e) => {
         e.preventDefault();
-        done(await api('/auth/otp/verify', { method: 'POST', body: { phone, country, code: f2.code.value.trim() } }));
+        const btn = f2.querySelector('button');
+        if (btn?.disabled) return;
+        btn.disabled = true;
+        try {
+          done(await api('/auth/otp/verify', { method: 'POST', body: { phone, country, code: f2.code.value.trim() } }));
+        } finally {
+          btn.disabled = false;
+        }
       };
     },
   });

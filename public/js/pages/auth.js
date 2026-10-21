@@ -87,14 +87,17 @@ export async function register({ query }) {
 
       s[1].onsubmit = async (e) => {
         e.preventDefault();
-        ({ phone, country } = readPhone(s[1]));
-        email = (emailOtp && chan() === 'email' && s[1].email) ? s[1].email.value.trim().toLowerCase() : undefined;
-        if (emailOtp && chan() === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email || '')) {
-          markErrors(s[1], { email: 1 });
-          s[1].email?.focus();
-          return;
-        }
+        const btn = s[1].querySelector('button');
+        if (btn?.disabled) return;
+        btn.disabled = true;
         try {
+          ({ phone, country } = readPhone(s[1]));
+          email = (emailOtp && chan() === 'email' && s[1].email) ? s[1].email.value.trim().toLowerCase() : undefined;
+          if (emailOtp && chan() === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email || '')) {
+            markErrors(s[1], { email: 1 });
+            s[1].email?.focus();
+            return;
+          }
           const r = await api('/auth/register/start', { method: 'POST', body: { phone, country, email } });
           phone = r.phone; country = r.country; email = r.email;
           s[2].querySelector('[data-sent]').textContent = r.channel === 'email' ? t('code_sent_email', { e: r.email }) : t('code_sent', { p: r.phone });
@@ -104,16 +107,25 @@ export async function register({ query }) {
         } catch (err) {
           if (err.code === 'already_registered') document.querySelector('[data-login]')?.click();
           else if (err.details?.email && s[1].email) markErrors(s[1], { email: 1 });
+        } finally {
+          btn.disabled = false;
         }
       };
       $('[data-back1]', main).onclick = () => show(1);
       s[2].onsubmit = async (e) => {
         e.preventDefault();
-        const r = await api('/auth/register/verify', { method: 'POST', body: { phone, country, email, code: s[2].code.value.trim() } });
-        ticket = r.ticket;
-        // Tasdiqlangan email oxirgi qadamda qayta so'ralmaydi
-        if (r.email && s[4].email) { s[4].email.value = r.email; s[4].email.readOnly = true; }
-        show(3);
+        const btn = s[2].querySelector('button');
+        if (btn?.disabled) return;
+        btn.disabled = true;
+        try {
+          const r = await api('/auth/register/verify', { method: 'POST', body: { phone, country, email, code: s[2].code.value.trim() } });
+          ticket = r.ticket;
+          // Tasdiqlangan email oxirgi qadamda qayta so'ralmaydi
+          if (r.email && s[4].email) { s[4].email.value = r.email; s[4].email.readOnly = true; }
+          show(3);
+        } finally {
+          btn.disabled = false;
+        }
       };
       $('[data-back3]', main).onclick = () => show(3);
 
@@ -260,21 +272,35 @@ export async function forgot() {
       let phone; let country;
       f1.onsubmit = async (e) => {
         e.preventDefault();
-        ({ phone, country } = readPhone(f1));
-        const r = await api('/auth/password/forgot', { method: 'POST', body: { phone, country } });
-        phone = r.phone;
-        f2.querySelector('[data-sent]').textContent = t('code_sent', { p: r.phone });
-        if (r.dev_code) { f2.querySelector('[data-dev]').textContent = t('dev_code', { c: r.dev_code }); f2.code.value = r.dev_code; }
-        f1.hidden = true; f2.hidden = false;
+        const btn = f1.querySelector('button');
+        if (btn?.disabled) return;
+        btn.disabled = true;
+        try {
+          ({ phone, country } = readPhone(f1));
+          const r = await api('/auth/password/forgot', { method: 'POST', body: { phone, country } });
+          phone = r.phone;
+          f2.querySelector('[data-sent]').textContent = t('code_sent', { p: r.phone });
+          if (r.dev_code) { f2.querySelector('[data-dev]').textContent = t('dev_code', { c: r.dev_code }); f2.code.value = r.dev_code; }
+          f1.hidden = true; f2.hidden = false;
+        } finally {
+          btn.disabled = false;
+        }
       };
       f2.onsubmit = async (e) => {
         e.preventDefault();
-        const r = await api('/auth/password/reset', { method: 'POST', body: { phone, country, code: f2.code.value.trim(), password: f2.password.value } }).catch((err) => { if (err.code === 'password_weak') f2.password.classList.add('err'); throw err; });
-        setToken(r.token);
-        state.user = r.user;
-        toast(t('password_changed'), 'ok');
-        window.dispatchEvent(new Event('mx:auth'));
-        go('/');
+        const btn = f2.querySelector('button');
+        if (btn?.disabled) return;
+        btn.disabled = true;
+        try {
+          const r = await api('/auth/password/reset', { method: 'POST', body: { phone, country, code: f2.code.value.trim(), password: f2.password.value } }).catch((err) => { if (err.code === 'password_weak') f2.password.classList.add('err'); throw err; });
+          setToken(r.token);
+          state.user = r.user;
+          toast(t('password_changed'), 'ok');
+          window.dispatchEvent(new Event('mx:auth'));
+          go('/');
+        } finally {
+          btn.disabled = false;
+        }
       };
     },
   };

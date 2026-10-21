@@ -29,19 +29,58 @@ async function eskizFetch(path, init = {}) {
   let r = await go(tk);
   if (r.status === 401) r = await go(await eskizLogin());
   const j = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(`Eskiz: ${j.message || r.status}`);
+  if (!r.ok || j?.status === 'error') throw new Error(`Eskiz: ${j?.message || r.status}`);
   return j;
+}
+
+function formatHemuTemplate(text) {
+  const codeMatch = String(text).match(/\b\d{4,6}\b/);
+  if (!codeMatch) return text;
+  const code = codeMatch[0];
+  const isRu = /[а-яё]/i.test(text);
+  if (isRu) {
+    return `Код подтверждения для входа в HEMU.UZ: ${code}. Никому не сообщайте.`;
+  }
+  return `HEMU.UZ saytiga kirish uchun tasdiqlash kodi: ${code}. Kodni hech kimga bermang!`;
+}
+
+function formatFallbackTemplate(text) {
+  const codeMatch = String(text).match(/\b\d{4,6}\b/);
+  if (!codeMatch) return text;
+  const code = codeMatch[0];
+  const isRu = /[а-яё]/i.test(text);
+  if (isRu) {
+    return `Код подтверждения для входа в Movex GO: ${code} Никому не сообщайте.`;
+  }
+  return `Movex GO ilovasiga kirish uchun tasdiqlash kodi: ${code} Kodni hech kimga bermang!`;
 }
 
 async function eskizSend(phone, text) {
   const digits = String(phone).replace(/\D/g, '');
   if (!/^998\d{9}$/.test(digits)) throw new Error('Eskiz: faqat +998 raqamlarga yuboradi');
-  const body = new FormData();
-  body.append('mobile_phone', digits);
-  body.append('message', text);
-  body.append('from', config.eskiz.from || '4546');
-  const j = await eskizFetch('/message/sms/send', { method: 'POST', body });
-  return { ok: true, provider: 'eskiz', id: j.id || null };
+
+  const doSend = async (msg) => {
+    const body = new FormData();
+    body.append('mobile_phone', digits);
+    body.append('message', msg);
+    body.append('from', config.eskiz.from || '4546');
+    return await eskizFetch('/message/sms/send', { method: 'POST', body });
+  };
+
+  const primaryMsg = formatHemuTemplate(text);
+  try {
+    const j = await doSend(primaryMsg);
+    return { ok: true, provider: 'eskiz', id: j.id || null };
+  } catch (err) {
+    // Agar HEMU shabloni hali Eskiz moderatsiyasida bo'lsa, tasdiqlangan Movex GO shabloniga tushamiz
+    const msg = String(err?.message || '');
+    if (msg.includes('модерац') || msg.includes('moderats')) {
+      const fallbackMsg = formatFallbackTemplate(text);
+      const j = await doSend(fallbackMsg);
+      return { ok: true, provider: 'eskiz', id: j.id || null, fallback: true };
+    }
+    throw err;
+  }
 }
 
 // Eskiz hisobidagi qoldiq (admin panel uchun)

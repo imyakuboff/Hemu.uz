@@ -34,6 +34,11 @@ module.exports = {
   // Valyuta kurslari manbai: O'zbekiston Markaziy banki (barcha mintaqa valyutalari bor)
   ratesUrl: env.RATES_URL || 'https://cbu.uz/uz/arkhiv-kursov-valyut/json/',
   smsProvider: env.SMS_PROVIDER || 'log',
+  eskiz: {
+    email: env.ESKIZ_EMAIL || '',
+    password: env.ESKIZ_PASSWORD || '',
+    from: env.ESKIZ_FROM || '4546',
+  },
   // Sayt manzili (to'lovdan qaytish, Telegram havolalari, sitemap)
   siteUrl: (env.SITE_URL || env.PUBLIC_URL || `http://localhost:${env.PORT || 4700}`).replace(/\/$/, ''),
 

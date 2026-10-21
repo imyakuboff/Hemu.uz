@@ -15,8 +15,8 @@ const legal = require('../lib/legal');
 const upload = require('../lib/upload');
 
 const r = Router();
-const authLimit = rateLimit({ name: 'auth', windowMs: 10 * 60000, max: 30 });
-const loginLimit = rateLimit({ name: 'login', windowMs: 15 * 60000, max: 10, key: (req) => `${req.ip}:${String(req.body?.login || req.body?.phone || '').toLowerCase().replace(/[^a-z0-9]/g, '')}` });
+const authLimit = rateLimit({ name: 'auth', windowMs: 10 * 60000, max: 60 });
+const loginLimit = rateLimit({ name: 'login', windowMs: 15 * 60000, max: 30, key: (req) => `${req.ip}:${String(req.body?.login || req.body?.phone || '').toLowerCase().replace(/[^a-z0-9]/g, '')}` });
 // Login (username): lotin harflari, raqam, nuqta, chiziqcha; kamida bitta harf — telefondan farqlash uchun
 const USERNAME = /^(?=.*[a-z])[a-z0-9._-]{3,32}$/i;
 const ACCOUNT_TYPES = ['client', 'company', 'mechanic', 'driver'];
@@ -157,15 +157,16 @@ function readTicket(tk) {
   if (d.exp < Date.now()) fail(422, 'err.otp_invalid');
   return { phone: d.phone, email: d.email || null, emailVerified: Boolean(d.ev) };
 }
-// Ro'yxatdan o'tish kodi qayerga yuboriladi: email (SMTP sozlangan bo'lsa yoki sinov rejimida), aks holda SMS —
-// Gmail hali sozlanmagan serverda ro'yxatdan o'tish to'xtab qolmasligi uchun
-const regChannel = () => (require('../lib/mail').enabled() || config.otpDevEcho || config.otpTestRegistration ? 'email' : 'sms');
+// Ro'yxatdan o'tish kodi qayerga yuboriladi: email (SMTP sozlangan bo'lsa), aks holda SMS
+const regChannel = () => (require('../lib/mail').enabled() ? 'email' : 'sms');
 const emailTaken = (email) => Boolean(email && db.get('SELECT 1 FROM users WHERE email = ? COLLATE NOCASE', email));
 
-// ---------- SMS orqali tezkor kirish (eski oqim, yangi foydalanuvchi — "mijoz") ----------
+// ---------- SMS orqali tezkor kirish (yangi foydalanuvchi — "mijoz") ----------
 r.post('/auth/otp/request', authLimit, async (req, res) => {
   const p = phoneOf(req);
-  res.json({ phone: p.e164, country: p.country, expires_in: config.otpTtlSec, ...(await (async () => { const exists = Boolean(db.get('SELECT 1 FROM users WHERE phone = ?', p.e164)); return { exists, ...(exists ? {} : { dev_code: String(crypto.randomInt(100000, 1000000)) }) }; })()) });
+  const exists = Boolean(db.get('SELECT 1 FROM users WHERE phone = ?', p.e164));
+  const sent = await sendCode(req, p.e164, 'sms.otp', { isNew: !exists });
+  res.json({ phone: p.e164, country: p.country, expires_in: config.otpTtlSec, exists, ...sent });
 });
 
 r.post('/auth/otp/verify', authLimit, (req, res) => {
@@ -187,22 +188,22 @@ r.post('/auth/register/start', authLimit, async (req, res) => {
   if (config.registrationOpen === false) fail(403, 'err.registration_closed');
   const p = phoneOf(req);
   if (db.get('SELECT 1 FROM users WHERE phone = ?', p.e164)) fail(409, 'err.already_registered');
-  // Email (Gmail) majburiy: tasdiqlash kodi shu manzilga yuboriladi
   const email = emailOf(req.body?.email);
-  if (!email) fail(422, 'err.validation', { email: 'required' });
-  if (emailTaken(email)) fail(409, 'err.email_taken', { email: 'taken' });
   const via = regChannel();
-  const sent = await sendCode(req, p.e164, 'sms.otp', { isNew: true, email, via });
-  res.json({ phone: p.e164, country: p.country, channel: via, email, expires_in: config.otpTtlSec, ...sent });
+  if (via === 'email' && !email) fail(422, 'err.validation', { email: 'required' });
+  if (email && emailTaken(email)) fail(409, 'err.email_taken', { email: 'taken' });
+  const sent = await sendCode(req, p.e164, 'sms.otp', { isNew: true, email: email || null, via });
+  res.json({ phone: p.e164, country: p.country, channel: via, email: email || null, expires_in: config.otpTtlSec, ...sent });
 });
 
 r.post('/auth/register/verify', authLimit, (req, res) => {
   const p = phoneOf(req);
   if (db.get('SELECT 1 FROM users WHERE phone = ?', p.e164)) fail(409, 'err.already_registered');
   const email = emailOf(req.body?.email);
-  if (!email) fail(422, 'err.validation', { email: 'required' });
-  consumeCode(p.e164, req.body?.code, email);
-  res.json({ ticket: ticketFor(p.e164, email, regChannel() === 'email'), phone: p.e164, country: p.country, email });
+  const via = regChannel();
+  if (via === 'email' && !email) fail(422, 'err.validation', { email: 'required' });
+  consumeCode(p.e164, req.body?.code, via === 'email' ? email : null);
+  res.json({ ticket: ticketFor(p.e164, email, via === 'email'), phone: p.e164, country: p.country, email: email || null });
 });
 
 r.post('/auth/register', authLimit, (req, res) => {

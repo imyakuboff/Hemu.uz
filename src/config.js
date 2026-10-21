@@ -44,7 +44,7 @@ module.exports = {
 
   // ---------- To'lovlar ----------
   // Sinov to'lovi: provayder kalitlarisiz to'lov oqimini tekshirish uchun (productionda o'chiq)
-  paymentsDev: env.PAYMENTS_DEV ? env.PAYMENTS_DEV === '1' : env.NODE_ENV !== 'production',
+  paymentsDev: env.NODE_ENV === 'test' ? true : (env.PAYMENTS_DEV ? env.PAYMENTS_DEV === '1' : isDev),
   click: {
     serviceId: env.CLICK_SERVICE_ID || '',
     merchantId: env.CLICK_MERCHANT_ID || '',

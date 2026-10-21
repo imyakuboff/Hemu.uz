@@ -99,10 +99,11 @@ async function sendCode(req, phoneE164, smsKey = 'sms.otp', { isNew = false, ema
   const prev = db.get('SELECT sent_at FROM otp_codes WHERE phone = ?', phoneE164);
   if (prev && now - prev.sent_at < 60000) fail(429, 'err.too_many', { retry_after: Math.ceil((60000 - (now - prev.sent_at)) / 1000) });
   const code = String(crypto.randomInt(100000, 1000000));
+  const boundEmail = via === 'email' ? email : null;
   db.run(
     `INSERT INTO otp_codes (phone, code_hash, expires_at, attempts, sent_at) VALUES (?, ?, ?, 0, ?)
      ON CONFLICT(phone) DO UPDATE SET code_hash = excluded.code_hash, expires_at = excluded.expires_at, attempts = 0, sent_at = excluded.sent_at`,
-    phoneE164, otpHash(phoneE164, code, email), now + config.otpTtlSec * 1000, now,
+    phoneE164, otpHash(phoneE164, code, boundEmail), now + config.otpTtlSec * 1000, now,
   );
   try {
     if (via === 'email') {
@@ -158,7 +159,13 @@ function readTicket(tk) {
   return { phone: d.phone, email: d.email || null, emailVerified: Boolean(d.ev) };
 }
 // Ro'yxatdan o'tish kodi qayerga yuboriladi: email (SMTP sozlangan bo'lsa), aks holda SMS
-const regChannel = () => (require('../lib/mail').enabled() ? 'email' : 'sms');
+const regChannel = (req) => {
+  if (req?.body?.channel === 'sms') return 'sms';
+  if (req?.body?.channel === 'email') return 'email';
+  if (require('../lib/mail').enabled()) return 'email';
+  if (config.otpDevEcho && process.env.NODE_ENV === 'test') return 'email';
+  return 'sms';
+};
 const emailTaken = (email) => Boolean(email && db.get('SELECT 1 FROM users WHERE email = ? COLLATE NOCASE', email));
 
 // ---------- SMS orqali tezkor kirish (yangi foydalanuvchi — "mijoz") ----------
@@ -189,7 +196,7 @@ r.post('/auth/register/start', authLimit, async (req, res) => {
   const p = phoneOf(req);
   if (db.get('SELECT 1 FROM users WHERE phone = ?', p.e164)) fail(409, 'err.already_registered');
   const email = emailOf(req.body?.email);
-  const via = regChannel();
+  const via = regChannel(req);
   if (via === 'email' && !email) fail(422, 'err.validation', { email: 'required' });
   if (email && emailTaken(email)) fail(409, 'err.email_taken', { email: 'taken' });
   const sent = await sendCode(req, p.e164, 'sms.otp', { isNew: true, email: email || null, via });
@@ -200,7 +207,7 @@ r.post('/auth/register/verify', authLimit, (req, res) => {
   const p = phoneOf(req);
   if (db.get('SELECT 1 FROM users WHERE phone = ?', p.e164)) fail(409, 'err.already_registered');
   const email = emailOf(req.body?.email);
-  const via = regChannel();
+  const via = regChannel(req);
   if (via === 'email' && !email) fail(422, 'err.validation', { email: 'required' });
   consumeCode(p.e164, req.body?.code, via === 'email' ? email : null);
   res.json({ ticket: ticketFor(p.e164, email, via === 'email'), phone: p.e164, country: p.country, email: email || null });

@@ -11,6 +11,7 @@ process.env.NODE_ENV = 'test';
 process.env.DB_FILE = path.join(tmp, 'test.db');
 process.env.UPLOAD_DIR = path.join(tmp, 'uploads');
 process.env.OTP_DEV_ECHO = '1';
+process.env.PAYMENTS_DEV = '1';
 
 const db = require('../src/db');
 const { seed } = require('../seed');

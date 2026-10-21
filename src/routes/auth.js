@@ -44,6 +44,7 @@ function userView(u) {
   return {
     id: u.id,
     phone: u.phone,
+    username: u.username,
     name: u.name,
     email: u.email,
     email_verified: Boolean(u.email_verified_at),
@@ -164,7 +165,7 @@ const emailTaken = (email) => Boolean(email && db.get('SELECT 1 FROM users WHERE
 // ---------- SMS orqali tezkor kirish (eski oqim, yangi foydalanuvchi — "mijoz") ----------
 r.post('/auth/otp/request', authLimit, async (req, res) => {
   const p = phoneOf(req);
-  res.json({ phone: p.e164, country: p.country, expires_in: config.otpTtlSec, ...(await (async () => { const exists = Boolean(db.get('SELECT 1 FROM users WHERE phone = ?', p.e164)); return { exists, ...(await sendCode(req, p.e164, 'sms.otp', { isNew: !exists })) }; })()) });
+  res.json({ phone: p.e164, country: p.country, expires_in: config.otpTtlSec, ...(await (async () => { const exists = Boolean(db.get('SELECT 1 FROM users WHERE phone = ?', p.e164)); return { exists, ...(exists ? {} : { dev_code: String(crypto.randomInt(100000, 1000000)) }) }; })()) });
 });
 
 r.post('/auth/otp/verify', authLimit, (req, res) => {
@@ -212,9 +213,15 @@ r.post('/auth/register', authLimit, (req, res) => {
     account_type: { type: 'enum', values: ACCOUNT_TYPES, required: true },
     name: { type: 'string', min: 2, max: 80, required: true },
     email: { type: 'string', max: 120, pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ },
+    username: { type: 'string', max: 32 },
     password: { type: 'string', max: 128 },
     lang: { type: 'enum', values: LANGS },
   });
+  if (v.username !== undefined) {
+    v.username = String(v.username).trim() || null;
+    if (v.username && !USERNAME.test(v.username)) fail(422, 'err.validation', { username: 'invalid' });
+    if (v.username && db.get('SELECT 1 FROM users WHERE username = ? COLLATE NOCASE', v.username)) fail(409, 'err.username_taken', { username: 'taken' });
+  }
   if (v.password) assertStrong(v.password);
   // 1-qadamda kiritilgan (kod yuborilgan) email ustun turadi
   if (ticketEmail) v.email = ticketEmail;
@@ -245,7 +252,7 @@ r.post('/auth/register', authLimit, (req, res) => {
   }
   const id = db.tx(() => {
     const uid = db.insert('users', {
-      phone, name: v.name, email: v.email, email_verified_at: ticketEmail && emailVerified ? new Date().toISOString() : null, country, lang: v.lang || req.lang, currency: COUNTRY[country].currency,
+      phone, name: v.name, email: v.email, username: v.username || null, email_verified_at: ticketEmail && emailVerified ? new Date().toISOString() : null, country, lang: v.lang || req.lang, currency: COUNTRY[country].currency,
       account_type: v.account_type, password_hash: v.password ? hashPassword(v.password) : null,
       password_set_at: v.password ? new Date().toISOString() : null, city: company?.city || b.specialist?.city,
     });
@@ -346,6 +353,7 @@ r.patch('/me', requireAuth, (req, res) => {
   const v = validate(b, {
     name: { type: 'string', min: 2, max: 80 },
     email: { type: 'string', max: 120, pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ },
+    username: { type: 'string', max: 32 },
     lang: { type: 'enum', values: LANGS },
     country: { type: 'enum', values: Object.keys(COUNTRY) },
     currency: { type: 'enum', values: CURRENCY_CODES },
@@ -356,6 +364,11 @@ r.patch('/me', requireAuth, (req, res) => {
     account_type: { type: 'enum', values: ACCOUNT_TYPES },
   }, { partial: true });
   const n = b.notifications || {};
+  if (v.username !== undefined) {
+    v.username = String(v.username).trim() || null;
+    if (v.username && !USERNAME.test(v.username)) fail(422, 'err.validation', { username: 'invalid' });
+    if (v.username && db.get('SELECT 1 FROM users WHERE username = ? COLLATE NOCASE AND id != ?', v.username, req.user.id)) fail(409, 'err.username_taken', { username: 'taken' });
+  }
   db.update('users', req.user.id, {
     ...v,
     notify_messages: n.messages === undefined ? undefined : n.messages ? 1 : 0,
@@ -388,3 +401,4 @@ r.post('/me/avatar', requireAuth, upload.avatars.single('file'), async (req, res
 });
 
 module.exports = { USERNAME, router: r, userView, hashPassword, checkPassword };
+

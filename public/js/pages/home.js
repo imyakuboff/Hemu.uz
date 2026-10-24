@@ -82,7 +82,7 @@ const BAN_KEYS = [['ban1_t', 'ban1_s', 'ban1_c'], ['ban2_t', 'ban2_s', 'ban2_c']
 const TIER_THEME = { vip: 'vip', gold: 'yellow', premium: 'blue' };
 function tierSlide(l, tier, i) {
   const place = [l.location?.city || l.location?.region_name, l.seller?.name].filter(Boolean).join(' · ');
-  return `<a class="ad-slide ${TIER_THEME[tier]} ad-listing" href="/listing/${l.id}" draggable="false" ${i ? 'aria-hidden="true" tabindex="-1"' : ''}>
+  return `<a class="ad-slide ${TIER_THEME[tier]} ad-listing" href="/listing/${l.id}" draggable="false" aria-label="${esc(l.title)}" ${i ? 'aria-hidden="true" tabindex="-1"' : ''}>
       <div class="ad-txt"><span class="ad-label tier">${tierBadge(tier)}</span><h3>${esc(l.title)}</h3><p class="ad-price">${esc(priceText(l.price))}</p>${place ? `<p>${icon('pin')} ${esc(place)}</p>` : ''}<span class="ad-cta">${esc(t('details'))} ${icon('arrow')}</span></div>
       ${l.cover ? `<div class="ad-img" style="background-image:url('${esc(l.cover)}')"></div>` : ''}
     </a>`;
@@ -98,7 +98,7 @@ function carousel(banners, tiers = {}) {
     const title = b.title || (k[0] ? t(k[0]) : '');
     const text = b.text || (k[1] ? t(k[1]) : '');
     const cta = b.cta || (k[2] ? t(k[2]) : '');
-    return `<a class="ad-slide ${esc(b.theme)}" href="${esc(b.link)}" data-uid="${esc(b.uid || '')}" draggable="false" ${i ? 'aria-hidden="true" tabindex="-1"' : ''}>
+    return `<a class="ad-slide ${esc(b.theme)}" href="${esc(b.link)}" data-uid="${esc(b.uid || '')}" draggable="false" aria-label="${esc([title, cta].filter(Boolean).join('. ') || t('ad_label'))}" ${i ? 'aria-hidden="true" tabindex="-1"' : ''}>
       <div class="ad-txt"><span class="ad-label">${esc(t('ad_label'))}</span><h3>${esc(title)}</h3>${text ? `<p>${esc(text)}</p>` : ''}${cta ? `<span class="ad-cta">${esc(cta)} ${icon('arrow')}</span>` : ''}</div>
       ${b.image ? `<div class="ad-img" style="background-image:url('${esc(b.image)}')"></div>` : ''}
     </a>`;

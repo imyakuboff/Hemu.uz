@@ -332,6 +332,7 @@ in_stock_short|omborda {n} dona|в наличии {n} шт.|{n} in stock|қой�
 with_operator|operator bilan|с оператором|with operator|оператормен|оператор менен|бо оператор|operator bilen|operatorla|با اپراتور|له اپراتور سره
 negotiable|Kelishiladi|Договорная|Negotiable|Келісімді|Келишим боюнча|Бо мувофиқа|Ylalaşyk boýunça|Razılaşma ilə|توافقی|د خبرو له مخې
 home|Bosh sahifa|Главная|Home|Басты бет|Башкы бет|Асосӣ|Baş sahypa|Ana səhifə|خانه|کور
+a11y_menu|Menyu|Меню|Menu|Мәзір|Меню|Меню|Menýu|Menyu|منو|مینو
 catalog_sub|Ish uchun texnika va tovarlar — tekshirilgan ta'minotchilardan|Техника и товары для работы — от проверенных поставщиков|Equipment and goods for work — from verified suppliers|Жұмысқа арналған техника мен тауарлар — тексерілген жеткізушілерден|Иш үчүн техника жана товарлар — текшерилген жеткирүүчүлөрдөн|Техника ва мол барои кор — аз таъминкунандагони тасдиқшуда|Iş üçin tehnika we harytlar — barlanan üpjünçilerden|İş üçün texnika və mallar — yoxlanılmış təchizatçılardan|ماشین‌آلات و کالا برای کار — از تأمین‌کنندگان تأییدشده|د کار لپاره ماشینونه او توکي — له تایید شویو عرضه کوونکو
 filters|Filtrlar|Фильтры|Filters|Сүзгілер|Чыпкалар|Филтрҳо|Süzgüçler|Filtrlər|فیلترها|فلټرونه
 category|Kategoriya|Категория|Category|Санат|Категория|Категория|Kategoriýa|Kateqoriya|دسته|کټګوري

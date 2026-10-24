@@ -59,7 +59,8 @@ function createApp() {
   app.use(express.urlencoded({ extended: false, limit: '256kb' }));
 
   // Faqat ochiq rasmlar statik beriladi; hujjatlar /api/v1/files orqali
-  const staticOpts = { maxAge: '7d', index: false, dotfiles: 'deny', fallthrough: false };
+  // Fayl nomi — mazmun hash'i, shuning uchun o'zgarmaydi: brauzerda bir yil saqlanadi (Core Web Vitals)
+  const staticOpts = { maxAge: '365d', immutable: true, index: false, dotfiles: 'deny', fallthrough: false };
   app.use('/uploads/listings', express.static(path.join(config.uploadDir, 'listings'), staticOpts));
   app.use('/uploads/avatars', express.static(path.join(config.uploadDir, 'avatars'), staticOpts));
   app.use('/uploads/banners', express.static(path.join(config.uploadDir, 'banners'), staticOpts));
@@ -132,7 +133,12 @@ function createApp() {
   app.use(express.static(pub, {
     index: false,
     dotfiles: 'deny',
-    setHeaders: (res, file) => res.set('Cache-Control', /\.(jpg|png|svg)$/.test(file) ? 'public, max-age=604800' : 'no-cache'),
+    // Rasm, shrift va ?v=N bilan so'ralgan fayllar uzoq saqlanadi; qolgan kod har safar tekshiriladi
+    setHeaders: (res, file) => {
+      const versioned = Boolean(res.req?.query?.v);
+      const immutable = versioned || /\.(jpg|jpeg|png|svg|webp|ico|woff2?)$/.test(file);
+      res.set('Cache-Control', immutable ? 'public, max-age=31536000, immutable' : 'no-cache');
+    },
   }));
   // Do'kon qisqa manzili: hemu.uz/s/nom -> do'kon sahifasi (tarif faol bo'lsa)
   app.get(/^\/s\/([A-Za-z0-9-]{3,30})\/?$/, (req, res, next) => {

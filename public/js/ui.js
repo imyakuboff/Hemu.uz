@@ -54,7 +54,7 @@ export function header(path) {
       <div class="icons m-icons">
         ${themeButton('icon-btn', false)}
         <a href="/notifications" class="icon-btn">${icon('bell')}${dot(state.badges.notifications)}</a>
-        <button class="icon-btn" data-menu>${icon('menu')}</button>
+        <button class="icon-btn" data-menu aria-label="${esc(t('a11y_menu'))}">${icon('menu')}</button>
       </div>
     </div>
     <div class="mobile-only"><button class="m-loc" data-location>${icon('pin')} ${esc(locationLabel())} ${icon('chevron-down')}</button>
@@ -76,7 +76,7 @@ const supportLine = () => `<div class="foot-contacts"><a class="foot-phone" href
 
 export function footer() {
   return `<footer class="footer"><div class="container">
-    <div><a href="/" class="logo logo-foot">${LOGO}</a><p>${esc(t('footer_tag'))} © 2026 HEMU.UZ</p>${supportLine()}</div>
+    <div><a href="/" class="logo logo-foot" aria-label="HEMU.UZ — ${esc(t('home'))}">${LOGO}</a><p>${esc(t('footer_tag'))} © 2026 HEMU.UZ</p>${supportLine()}</div>
     <nav><a href="/about">${esc(t('about'))}</a><a href="/contact">${esc(t('contact_title'))}</a><a href="/fura">${esc(t('sec_fura'))}</a><a href="/prices">${esc(t('prices_title'))}</a><a href="/sellers">${esc(t('sellers_title'))}</a><a href="/about#safe">${esc(t('safe_deals'))}</a><a href="/terms">${esc(t('terms_title'))}</a><a href="/privacy">${esc(t('privacy'))}</a></nav>
   </div></footer>`;
 }

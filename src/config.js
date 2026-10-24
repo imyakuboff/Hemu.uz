@@ -12,6 +12,7 @@ if (fs.existsSync(envFile)) {
 
 const env = process.env;
 const root = path.join(__dirname, '..');
+const isDev = env.NODE_ENV !== 'production';
 
 module.exports = {
   port: Number(env.PORT || 4700),

@@ -92,7 +92,7 @@ const route = svg(`${shadow(60, 84, 40)}
   <circle cx="14" cy="76" r="7" fill="#ffc61a"/><path d="M104 8 c-9 0 -15 6 -15 14 c0 11 15 24 15 24 s15 -13 15 -24 c0 -8 -6 -14 -15 -14z" fill="#e34d2c"/><circle cx="104" cy="22" r="5" fill="#fff"/>`);
 
 // Asosiy bo'limlar uchun 3D rasmlar (public/img/sec), qolganlari — SVG
-const img = (n) => `<img class="art" src="/img/sec/${n}.png?v=2" alt="" loading="lazy" decoding="async">`;
+const img = (n) => `<img class="art" src="/img/sec/${n}.webp?v=3" alt="" loading="lazy" decoding="async">`;
 export const ART = {
   transportsale: img('sale'), transportrental: img('rent'), sparepart: img('parts'), fura, cargologistic: cargo,
   transportlogistic: truck, 'transport-repair': img('repair'), mechanic, driver: img('driver'), application: img('deal'), route,

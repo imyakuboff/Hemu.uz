@@ -9,7 +9,7 @@ export default async function home() {
   const tiles = d.categories.filter((c) => NAV_SLUGS.includes(c.slug));
   const often = (d.hero.popular_queries.length ? d.hero.popular_queries : ['JCB 3CX', 'КАМАЗ']).slice(0, 2);
   const html = `
-  <section class="hero">
+  <section class="hero hero-solo">
     <div class="left">
       <div class="kicker">${esc(t('hero_kicker'))}</div>
       <h1>${esc(t('hero_title'))}</h1>
@@ -21,14 +21,6 @@ export default async function home() {
       </div>
       <a class="urgent-cta" href="/urgent">${icon('bolt')}<span><b>${esc(t('urgent_title'))}</b><small>${esc(t('urgent_cta_sub'))}</small></span></a>
     </div>
-    <div class="right" style="background-image:url('/img/demo/hero.jpg')">
-      <div class="hero-ad">
-        <span class="hero-ad-logo">${LOGO}</span>
-        <h2>${esc(t('hero_ad_title'))}</h2>
-        <p>${esc(t('hero_ad_sub'))}</p>
-        <ul>${['hero_ad_p1', 'hero_ad_p2', 'hero_ad_p3'].map((k) => `<li>${icon('check')} ${esc(t(k))}</li>`).join('')}</ul>
-      </div>
-      <span class="badge-white">${esc(t('hero_badge', { n: num(d.hero.total_active), d: d.hero.directions }))}</span></div>
   </section>
 
   ${carousel(ads, d.tiers)}

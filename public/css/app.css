@@ -1735,3 +1735,7 @@ h1 .vtick, h2 .vtick { width: 22px; height: 22px; vertical-align: -4px; }
 .st-tag { display: inline-flex; align-items: center; gap: 5px; margin: 4px 0 6px; background: var(--navy, #0e3352); color: #fff; text-decoration: none; }
 .st-tag svg { width: 13px; height: 13px; }
 @media (max-width: 600px) { .st-hero { min-height: 160px; padding: 18px; border-radius: 14px 14px 0 0; } .banner-navy.st-bar { border-radius: 0 0 14px 14px; } }
+
+/* Bosh sahifa: rasmli blok olib tashlangan — sariq qism to'liq kenglikda */
+.hero.hero-solo { grid-template-columns: 1fr; min-height: 0; }
+.hero.hero-solo .urgent-cta { max-width: 690px; }

@@ -36,6 +36,7 @@ r.get('/meta', (req, res) => {
     lead_statuses: ['new', 'awaiting', 'negotiating', 'closed'].map((v) => ({ value: v, label: t(lang, `lead.${v}`) })),
     sorts: ['new', 'price_asc', 'price_desc', 'popular', 'shared', 'year_desc', 'distance'],
     escrow_fee_pct: require('../config').escrowFeePct,
+    listing_moderation: !!require('../config').listingModeration,
     payment_providers: require('../lib/payments').providers(),
     // Ro'yxatdan o'tishda kodni email (Gmail) orqali olish mumkinmi
     auth: { email_otp: (() => { const c = require('../config'); return require('../lib/mail').enabled() || Boolean(c.otpDevEcho || c.otpTestRegistration); })() },

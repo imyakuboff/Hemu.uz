@@ -21,6 +21,7 @@ const DEFS = [
   ['freeListingLimit', 'int', 0, 100000],
   ['businessTopCredits', 'int', 0, 1000],
   ['escrowFeePct', 'number', 0, 20],
+  ['listingModeration', 'bool'],
   ['autoApproveVerified', 'bool'],
   ['registrationOpen', 'bool'],
   ['requireCompanyDocs', 'bool'],

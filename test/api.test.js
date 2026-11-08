@@ -6,6 +6,7 @@ const path = require('node:path');
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hemu-test-'));
 process.env.NODE_ENV = 'test';
+process.env.LISTING_MODERATION = '1'; // moderatsiya oqimi sinovdan o'tadi
 process.env.DB_FILE = path.join(tmp, 'test.db');
 process.env.UPLOAD_DIR = path.join(tmp, 'uploads');
 process.env.OTP_DEV_ECHO = '1';

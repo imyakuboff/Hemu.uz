@@ -357,6 +357,7 @@ r.patch('/listings/:id', requireAuth, (req, res) => {
 });
 
 function autoApproves(l) {
+  if (!config.listingModeration) return true;
   if (!config.autoApproveVerified || !l.company_id) return false;
   return db.get('SELECT verification FROM companies WHERE id = ?', l.company_id)?.verification === 'verified';
 }

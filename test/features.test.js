@@ -7,6 +7,7 @@ const path = require('node:path');
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hemu-feat-'));
 process.env.NODE_ENV = 'test';
+process.env.LISTING_MODERATION = '1'; // moderatsiya oqimi sinovdan o'tadi
 process.env.DB_FILE = path.join(tmp, 'test.db');
 process.env.UPLOAD_DIR = path.join(tmp, 'uploads');
 process.env.OTP_DEV_ECHO = '1';
@@ -551,4 +552,30 @@ test('CSS versiyasi fayl mazmunidan: o\'zgarsa brauzer yangisini oladi', async (
   const html = await (await fetch(`${base}/`)).text();
   const hash = crypto.createHash('md5').update(fs.readFileSync(path.join(__dirname, '..', 'public', 'css', 'app.css'))).digest('hex').slice(0, 10);
   assert.ok(html.includes(`/css/app.css?v=${hash}`), html.match(/app\.css\?v=[\w-]+/)?.[0]);
+});
+
+test("moderatsiya o'chiq: e'lon darhol faol bo'ladi; yoqilsa tekshiruvga tushadi", async () => {
+  const config = require('../src/config');
+  const u = await login('+998935550011');
+  const mk = async (title) => {
+    const c = await api('POST', '/api/v1/listings', { token: u.token, body: { deal_type: 'sale', category: 'special', subcategory: 'loaders', title, price: 5000, currency: 'USD', region: 'tashkent', city: 'Toshkent' } });
+    const fd = new FormData();
+    fd.append('files', new Blob([PNG], { type: 'image/png' }), 'a.png');
+    await api('POST', `/api/v1/listings/${c.body.id}/photos`, { token: u.token, form: fd });
+    return c.body.id;
+  };
+  const prev = config.listingModeration;
+  try {
+    config.listingModeration = false;
+    const a = await mk('Yuklagich SDLG 956');
+    const pub = await api('POST', `/api/v1/listings/${a}/publish`, { token: u.token });
+    assert.equal(pub.body.status, 'active', JSON.stringify(pub.body));
+    assert.equal((await api('GET', `/api/v1/listings/${a}`)).status, 200, "e'lon darhol ko'rinadi");
+    // Faol e'lon nomi o'zgarsa ham faol qoladi
+    await api('PATCH', `/api/v1/listings/${a}`, { token: u.token, body: { title: 'Yuklagich SDLG 956 (2024)' } });
+    assert.equal(db.get('SELECT status FROM listings WHERE id = ?', a).status, 'active');
+    config.listingModeration = true;
+    await api('PATCH', `/api/v1/listings/${a}`, { token: u.token, body: { title: 'Yuklagich SDLG 956, 2024-yil' } });
+    assert.equal(db.get('SELECT status FROM listings WHERE id = ?', a).status, 'moderation');
+  } finally { config.listingModeration = prev; }
 });

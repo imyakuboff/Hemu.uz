@@ -143,7 +143,7 @@ export async function listing({ params }) {
     <div class="box" data-tier-box><h3>${esc(t('promote_opt'))}</h3><p class="tiny muted" style="margin-top:-6px">${esc(t('promote_opt_sub'))}</p>
       <div data-tiers></div>
     </div>
-    <div class="box"><h3>${esc(t('ready'))}</h3><p class="tiny muted" style="margin-top:-6px">${esc(t('ready_sub'))}</p>
+    <div class="box"><h3>${esc(t('ready'))}</h3><p class="tiny muted" style="margin-top:-6px">${esc(t(state.meta.listing_moderation ? 'ready_sub' : 'ready_sub_now'))}</p>
       <label class="check"><input type="checkbox" name="accept_rules" ${id ? 'checked' : ''}> ${esc(t('accept_rules'))}</label>
       <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
         <button class="btn btn-primary" data-publish>${esc(isActive ? t('save_changes') : t('publish'))}</button>

@@ -32,6 +32,8 @@ module.exports = {
   corsOrigins: (env.CORS_ORIGINS || '*').split(',').map((s) => s.trim()).filter(Boolean),
   // Tasdiqlangan kompaniyalar e'lonlari moderatsiyasiz chiqadi
   autoApproveVerified: env.AUTO_APPROVE_VERIFIED !== '0',
+  // E'lonlar moderatsiyasi: o'chiq bo'lsa hamma e'lon darhol faol (shikoyatlar baribir tekshiruvga tushiradi)
+  listingModeration: env.LISTING_MODERATION === '1',
   // Valyuta kurslari manbai: O'zbekiston Markaziy banki (barcha mintaqa valyutalari bor)
   ratesUrl: env.RATES_URL || 'https://cbu.uz/uz/arkhiv-kursov-valyut/json/',
   smsProvider: env.SMS_PROVIDER || 'log',

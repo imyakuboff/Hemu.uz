@@ -8,7 +8,12 @@ const { pick, normalizeLang, pickFromAcceptLanguage } = require('../i18n');
 
 const INDEX = path.join(__dirname, '..', '..', 'public', 'index.html');
 let tpl = null;
-const template = () => (tpl && !process.env.SEO_NO_CACHE ? tpl : (tpl = fs.readFileSync(INDEX, 'utf8')));
+// CSS versiyasi fayl mazmunidan olinadi: o'zgarsa — brauzer yangisini yuklaydi (eski ?v=N 1 yil keshda qolardi)
+const assetVersion = (rel) => {
+  try { return require('node:crypto').createHash('md5').update(fs.readFileSync(path.join(__dirname, '..', '..', 'public', rel))).digest('hex').slice(0, 10); } catch { return String(Date.now()); }
+};
+const template = () => (tpl && !process.env.SEO_NO_CACHE ? tpl : (tpl = fs.readFileSync(INDEX, 'utf8')
+  .replace(/\/css\/app\.css\?v=[\w-]+/, `/css/app.css?v=${assetVersion('css/app.css')}`)));
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const abs = (u) => (!u ? null : /^https?:/.test(u) ? u : `${config.siteUrl}${u.startsWith('/') ? '' : '/uploads/'}${u}`);
 

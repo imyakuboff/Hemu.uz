@@ -546,3 +546,9 @@ test("shikoyat: adminga xabar; 3 kishi firibgar desa e'lon tekshiruvga olinadi",
   assert.ok(db.get(`SELECT 1 FROM notifications WHERE user_id = ? AND type = 'listing_on_review'`, l.user_id));
   void kzId;
 });
+
+test('CSS versiyasi fayl mazmunidan: o\'zgarsa brauzer yangisini oladi', async () => {
+  const html = await (await fetch(`${base}/`)).text();
+  const hash = crypto.createHash('md5').update(fs.readFileSync(path.join(__dirname, '..', 'public', 'css', 'app.css'))).digest('hex').slice(0, 10);
+  assert.ok(html.includes(`/css/app.css?v=${hash}`), html.match(/app\.css\?v=[\w-]+/)?.[0]);
+});

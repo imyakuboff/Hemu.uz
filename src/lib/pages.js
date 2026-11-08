@@ -16,7 +16,7 @@ const DEFAULTS = {
 - Platforma — {site} sayti va unga tegishli ilovalar.
 - Ma'muriyat — {company}, platforma egasi.
 - Foydalanuvchi — platformada ro'yxatdan o'tgan jismoniy yoki yuridik shaxs.
-- E'lon — texnika, ehtiyot qism, material yoki xizmat haqidagi ma'lumot.
+- E'lon — texnika, ehtiyot qism yoki xizmat haqidagi ma'lumot.
 - Pullik xizmatlar — VIP, GOLD, PREMIUM darajalari, Biznes tarif, texnik ko'rik va boshqalar.
 
 ## 2. Oferta predmeti
@@ -61,7 +61,7 @@ Nizolar muzokaralar yo'li bilan, kelishuvga erishilmasa — O'zbekiston Respubli
 - Платформа — сайт {site} и связанные приложения.
 - Администрация — {company}, владелец платформы.
 - Пользователь — физическое или юридическое лицо, зарегистрированное на платформе.
-- Объявление — информация о технике, запчастях, материалах или услугах.
+- Объявление — информация о технике, запчастях или услугах.
 - Платные услуги — уровни VIP, GOLD, PREMIUM, тариф «Бизнес», техническая проверка и другие.
 
 ## 2. Предмет оферты
@@ -106,7 +106,7 @@ Nizolar muzokaralar yo'li bilan, kelishuvga erishilmasa — O'zbekiston Respubli
 - Platform — the {site} website and related apps.
 - Administration — {company}, the owner of the platform.
 - User — an individual or legal entity registered on the platform.
-- Listing — information about equipment, parts, materials or services.
+- Listing — information about equipment, parts or services.
 - Paid services — VIP, GOLD and PREMIUM levels, the Business plan, technical inspection and others.
 
 ## 2. Subject

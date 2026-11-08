@@ -129,85 +129,13 @@ r.post('/jobs/:id/close', requireAuth, (req, res) => {
   res.json({ ok: true });
 });
 
-// ---------- Logistika ----------
-const LOG_RULES = {
-  kind: { type: 'enum', values: ['cargo', 'transport'], required: true },
-  title: { type: 'string', min: 5, max: 120, required: true },
-  description: { type: 'string', max: 3000 },
-  from_country: { type: 'enum', values: Object.keys(COUNTRY) },
-  from_city: { type: 'string', min: 2, max: 80, required: true },
-  to_country: { type: 'enum', values: Object.keys(COUNTRY) },
-  to_city: { type: 'string', max: 80 },
-  cargo_type: { type: 'string', max: 60 },
-  vehicle_type: { type: 'string', max: 60 },
-  weight_t: { type: 'number', min: 0, max: 1000 },
-  volume_m3: { type: 'number', min: 0, max: 10000 },
-  ready_date: { type: 'string', max: 40 },
-  price: { type: 'number', min: 0 },
-  currency: { type: 'enum', values: CURRENCY_CODES },
-  price_unit: { type: 'enum', values: ['total', 'km', 'ton', 'hour'] },
-};
-
-function logView(x, req) {
-  const u = db.get('SELECT name FROM users WHERE id = ?', x.user_id);
-  const c = x.company_id ? db.get('SELECT id, name, verification FROM companies WHERE id = ?', x.company_id) : null;
-  return {
-    id: x.id, kind: x.kind, title: x.title, description: x.description,
-    from: { country: x.from_country, country_name: countryName(x.from_country, req.lang), city: x.from_city },
-    to: x.to_city ? { country: x.to_country, country_name: countryName(x.to_country, req.lang), city: x.to_city } : null,
-    cargo_type: x.cargo_type, vehicle_type: x.vehicle_type, weight_t: x.weight_t, volume_m3: x.volume_m3, ready_date: x.ready_date,
-    price: x.price, currency: x.currency, price_unit: x.price_unit,
-    price_formatted: x.price !== null && x.price !== undefined ? money.formatAmount(x.price, x.currency, req.lang) : null,
-    owner: c ? { company_id: c.id, name: c.name, verified: c.verification === 'verified' } : { name: u?.name },
-    user_id: x.user_id, status: x.status, is_owner: req.user?.id === x.user_id, created_at: x.created_at,
-  };
-}
-
-r.get('/logistics', (req, res) => {
-  const pg = paging(req.query, 20);
-  const where = [`status = 'open'`];
-  const params = [];
-  if (['cargo', 'transport'].includes(req.query.kind)) { where.push('kind = ?'); params.push(req.query.kind); }
-  if (req.query.country) { where.push('(from_country = ? OR to_country = ?)'); params.push(String(req.query.country).toUpperCase(), String(req.query.country).toUpperCase()); }
-  for (const [w, p] of textFilter(req.query.from)) { where.push(w); params.push(p); }
-  for (const [w, p] of textFilter(req.query.q)) { where.push(w); params.push(p); }
-  const sql = where.join(' AND ');
-  const total = db.get(`SELECT COUNT(*) AS n FROM logistics WHERE ${sql}`, ...params).n;
-  const rows = db.all(`SELECT * FROM logistics WHERE ${sql} ORDER BY id DESC LIMIT ? OFFSET ?`, ...params, pg.perPage, pg.offset);
-  res.json(pageResult(rows.map((x) => logView(x, req)), total, pg));
-});
-
-r.get('/my/logistics', requireAuth, (req, res) => res.json(db.all('SELECT * FROM logistics WHERE user_id = ? ORDER BY id DESC', req.user.id).map((x) => logView(x, req))));
-
-r.post('/logistics', requireAuth, rateLimit({ name: 'logi', windowMs: 3600000, max: 30, key: (req) => req.user.id }), (req, res) => {
-  const v = validate(req.body, LOG_RULES);
-  v.from_country = v.from_country || req.user.country;
-  if (v.to_city && !v.to_country) v.to_country = v.from_country;
-  if (!v.currency) v.currency = COUNTRY[v.from_country].currency;
-  const company = companyFor(req.user.id);
-  const id = db.insert('logistics', {
-    ...v, user_id: req.user.id, company_id: company?.id || null,
-    search_text: normalizeSearch([v.title, v.description, v.from_city, v.to_city, v.cargo_type, v.vehicle_type].filter(Boolean).join(' ')),
-    expires_at: db.get(`SELECT datetime('now', '+30 days') AS d`).d,
-  });
-  res.status(201).json(logView(db.get('SELECT * FROM logistics WHERE id = ?', id), req));
-});
-
-r.post('/logistics/:id/close', requireAuth, (req, res) => {
-  const x = db.get('SELECT * FROM logistics WHERE id = ?', Number(req.params.id));
-  if (!x) notFound();
-  if (x.user_id !== req.user.id) forbidden();
-  db.run(`UPDATE logistics SET status = 'closed' WHERE id = ?`, x.id);
-  res.json({ ok: true });
-});
-
-// Telefon (vakansiya / logistika muallifi)
+// Telefon (vakansiya muallifi)
 r.post('/contact/:type/:id/phone', requireAuth, (req, res) => {
-  const table = { job: 'jobs', logistics: 'logistics' }[req.params.type];
+  const table = { job: 'jobs' }[req.params.type];
   if (!table) notFound();
   const x = db.get(`SELECT user_id FROM ${table} WHERE id = ?`, Number(req.params.id));
   if (!x) notFound();
   res.json({ phone: db.get('SELECT phone FROM users WHERE id = ?', x.user_id).phone });
 });
 
-module.exports = { router: r, jobView, logView };
+module.exports = { router: r, jobView };

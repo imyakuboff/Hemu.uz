@@ -6,7 +6,6 @@ import { ART } from '../art.js';
 // Bo'limlar ro'yxati (bosh sahifa, katalog, mobil menyu uchun)
 export const SECTIONS = [
   ['transportsale', 'excavator'], ['transportrental', 'calendar'], ['sparepart', 'gear'],
-  ['fura', 'truck'],
   ['mechanic', 'gear'], ['driver', 'user'], ['application', 'clipboard'],
 ];
 const secKey = (s) => (s === 'transport-repair' ? 'repair' : s);
@@ -134,21 +133,21 @@ async function peopleSection(kind, query) {
 export const driver = ({ query }) => peopleSection('driver', query);
 export const mechanic = ({ query }) => peopleSection('mechanic', query);
 
-// Telefon, yozish, yopish tugmalari (vakansiya va logistika uchun umumiy)
+// Telefon, yozish, yopish tugmalari (vakansiyalar uchun)
 function bindContacts(main, type) {
   main.addEventListener('click', async (e) => {
-    const ph = e.target.closest('[data-phone-job],[data-phone-logi]');
+    const ph = e.target.closest('[data-phone-job]');
     if (ph) {
       if (!requireLogin(onAuthChanged)) return;
-      const r = await api(`/contact/${type}/${ph.dataset.phoneJob || ph.dataset.phoneLogi}/phone`, { method: 'POST' });
+      const r = await api(`/contact/${type}/${ph.dataset.phoneJob}/phone`, { method: 'POST' });
       ph.outerHTML = `<a class="btn btn-primary btn-sm" href="tel:${esc(r.phone)}">${icon('phone')} ${esc(r.phone)}</a>`;
       return;
     }
     const w = e.target.closest('[data-write]');
     if (w) { if (requireLogin(onAuthChanged)) writeModal(Number(w.dataset.write), w.dataset.ctx); return; }
-    const cl = e.target.closest('[data-close-job],[data-close-logi]');
+    const cl = e.target.closest('[data-close-job]');
     if (cl) {
-      await api(cl.dataset.closeJob ? `/jobs/${cl.dataset.closeJob}/close` : `/logistics/${cl.dataset.closeLogi}/close`, { method: 'POST' });
+      await api(`/jobs/${cl.dataset.closeJob}/close`, { method: 'POST' });
       render({ keepScroll: true });
     }
   });
@@ -227,70 +226,6 @@ export async function specialist({ params }) {
       });
       $('[data-write]', main)?.addEventListener('click', () => { if (requireLogin(onAuthChanged)) writeModal(p.user_id, p.headline); });
     },
-  };
-}
-
-// ---------- Logistika ----------
-function logiCard(x) {
-  const pu = x.price_unit ? t(`pu_${x.price_unit}`) : '';
-  return `<div class="order">
-    <div class="hd"><span class="route">${esc(x.from.city)}${x.to ? ` ${icon('arrow', 'arrow-flip')} ${esc(x.to.city)}` : ''}</span><b style="font-size:16px">${esc(x.price_formatted || '')} <span class="small muted">${esc(x.price_formatted ? pu : '')}</span></b></div>
-    <div style="font-weight:600;margin-top:6px">${esc(x.title)}</div>
-    <div class="small muted" style="margin-top:4px">${esc([x.cargo_type, x.vehicle_type, x.weight_t ? `${num(x.weight_t)} ${t('u_t')}` : null, x.volume_m3 ? `${num(x.volume_m3)} м³` : null, x.ready_date, x.owner.name, fmtRel(x.created_at)].filter(Boolean).join(' · '))}</div>
-    ${x.description ? `<p class="small" style="margin:8px 0 0">${esc(x.description)}</p>` : ''}
-    <div class="actions">${x.is_owner ? `<button class="btn btn-ghost btn-sm" data-close-logi="${x.id}">${esc(t('close_request'))}</button>` : `<button class="btn btn-primary btn-sm" data-phone-logi="${x.id}">${icon('phone')} ${esc(t('show_phone'))}</button><button class="btn btn-soft btn-sm" data-write="${x.user_id}" data-ctx="${esc(x.title)}">${icon('chat')} ${esc(t('write_seller'))}</button>`}</div>
-  </div>`;
-}
-
-async function logisticsSection(s, query) {
-  const kind = s === 'cargologistic' ? 'cargo' : 'transport';
-  const data = await api(`/logistics${qs({ kind, country: state.country || undefined, q: query.q, from: query.from, page: query.page })}`);
-  const path = `/${s}`;
-  const html = `
-  ${head(s, `<button class="btn btn-primary" data-post>${icon('plus')} ${esc(t(kind === 'cargo' ? 'post_cargo' : 'post_transport'))}</button>`)}
-  <div class="tabs"><a class="tab ${kind === 'cargo' ? 'on' : ''}" href="/cargologistic">${esc(t('cargo_tab'))}</a><a class="tab ${kind === 'transport' ? 'on' : ''}" href="/transportlogistic">${esc(t('transport_tab'))}</a></div>
-  <form class="box" data-lf style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;padding:14px 16px">
-    <div><label class="lbl">${esc(t('route_from'))}</label><input class="input" name="from" value="${esc(query.from || '')}"></div>
-    <div><label class="lbl">${esc(t('cargo_type'))}</label><input class="input" name="q" value="${esc(query.q || '')}"></div>
-    <button class="btn btn-primary">${icon('search')} ${esc(t('find'))}</button>
-  </form>
-  <div class="results-head" style="margin-top:14px"><h2>${esc(t('found_items', { n: num(data.total) }))}</h2></div>
-  ${data.items.length ? data.items.map(logiCard).join('') : emptyBox(t('nothing_found'))}
-  ${pager(data.page, data.pages, (p) => `${path}${qs({ ...query, page: p })}`)}`;
-  return {
-    title: t(`sec_${s}`),
-    html,
-    mount(main) {
-      $('[data-lf]', main).onsubmit = (e) => { e.preventDefault(); nav(path, { from: e.target.from.value.trim() || undefined, q: e.target.q.value.trim() || undefined }); };
-      $('[data-post]', main).onclick = () => { if (requireLogin(onAuthChanged)) logiModal(kind, s); };
-      bindContacts(main, 'logistics');
-    },
-  };
-}
-export const cargologistic = ({ query }) => logisticsSection('cargologistic', query);
-export const transportlogistic = ({ query }) => logisticsSection('transportlogistic', query);
-
-function logiModal(kind, s) {
-  const m = openModal(`<h3>${esc(t(kind === 'cargo' ? 'post_cargo' : 'post_transport'))}</h3>
-    <form class="form-grid" style="margin-top:12px">
-      <div class="full"><label class="lbl">${esc(t('request_title'))} *</label><input class="input" name="title" required minlength="5" maxlength="120"></div>
-      <div><label class="lbl">${esc(t('route_from'))} *</label><input class="input" name="from_city" required></div>
-      <div><label class="lbl">${esc(t('route_to'))}</label><input class="input" name="to_city"></div>
-      <div><label class="lbl">${esc(t(kind === 'cargo' ? 'cargo_type' : 'vehicle_type'))}</label><input class="input" name="type"></div>
-      <div><label class="lbl">${esc(t('weight_t'))}</label><input class="input" name="weight_t" inputmode="decimal"></div>
-      ${kind === 'cargo' ? `<div><label class="lbl">${esc(t('ready_date'))}</label><input class="input" name="ready_date"></div>` : `<div><label class="lbl">${esc(t('volume_m3'))}</label><input class="input" name="volume_m3" inputmode="decimal"></div>`}
-      <div><label class="lbl">${esc(t('price'))}</label><div class="row2i"><input class="input" name="price" inputmode="numeric"><select class="input" name="price_unit">${['total', 'km', 'ton', 'hour'].map((u) => `<option value="${u}">${esc(t(`pu_${u}`))}</option>`).join('')}</select></div></div>
-      <div class="full"><label class="lbl">${esc(t('description'))}</label><textarea class="input" name="description" style="min-height:70px"></textarea></div>
-      <div class="full"><button class="btn btn-primary btn-block">${esc(t('publish_short'))}</button></div>
-    </form>`, { wide: true });
-  m.querySelector('form').onsubmit = async (e) => {
-    e.preventDefault();
-    const f = e.target;
-    const num2 = (v) => v.replace(/\s/g, '').replace(',', '.') || undefined;
-    await api('/logistics', { method: 'POST', body: { kind, title: f.title.value.trim(), from_city: f.from_city.value.trim(), to_city: f.to_city.value.trim() || undefined, [kind === 'cargo' ? 'cargo_type' : 'vehicle_type']: f.type.value.trim() || undefined, weight_t: num2(f.weight_t.value), volume_m3: f.volume_m3 ? num2(f.volume_m3.value) : undefined, ready_date: f.ready_date ? f.ready_date.value.trim() || undefined : undefined, price: num2(f.price.value), price_unit: f.price_unit.value, description: f.description.value.trim() || undefined } });
-    closeModal();
-    toast(t('published'), 'ok');
-    render({ keepScroll: true });
   };
 }
 

@@ -98,9 +98,7 @@ function createApp() {
   api.use(require('./routes/discover').router);
   api.use(require('./routes/platform').router);
   api.use(require('./routes/site').router);
-  api.use(require('./routes/freight').router);
   api.use(require('./routes/promos').router);
-  api.use(require('./routes/materials').router);
   api.use(require('./routes/admin').router);
   app.use('/api/v1', api);
 

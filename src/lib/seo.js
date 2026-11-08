@@ -34,16 +34,14 @@ const SECTIONS = {
   '/transportsale': { src: 'listings', where: `kind = 'equipment' AND deal_type = 'sale'`, name: 'seo.sec_transportsale' },
   '/transportrental': { src: 'listings', where: `deal_type = 'rent'`, name: 'seo.sec_transportrental' },
   '/sparepart': { src: 'listings', where: `kind = 'part'`, name: 'seo.sec_sparepart' },
-  '/materials': { src: 'listings', where: `kind = 'material'`, name: 'seo.sec_materials' },
   '/feed': { src: 'listings', where: '1 = 1', name: 'seo.sec_feed' },
   '/mechanic': { src: 'specialists', where: `kind = 'mechanic'`, name: 'seo.sec_mechanic', desc: 'seo.sec_desc_people' },
   '/driver': { src: 'specialists', where: `kind = 'driver'`, name: 'seo.sec_driver', desc: 'seo.sec_desc_people' },
-  '/fura': { src: 'logistics', name: 'seo.sec_fura', desc: 'seo.sec_desc_offers' },
   '/application': { src: 'requests', name: 'seo.sec_application', desc: 'seo.sec_desc_offers' },
   '/sellers': { src: 'companies', name: 'seo.sec_sellers', desc: 'seo.sec_desc_offers' },
 };
 // Bir xil sahifani ko'rsatadigan manzillar: canonical asosiy manzilga ishora qiladi (takroriy kontent bo'lmasligi uchun)
-const ALIASES = { '/transport-repair': '/mechanic', '/cargologistic': '/fura', '/transportlogistic': '/fura' };
+const ALIASES = { '/transport-repair': '/mechanic' };
 // Matni o'zgarmaydigan sahifalar: kamida o'z sarlavhasi bo'lishi kerak
 const STATIC = {
   '/about': 'seo.page_about', '/contact': 'seo.page_contact', '/plans': 'seo.page_plans',
@@ -75,10 +73,6 @@ function sectionRows(sec, lang) {
   if (sec.src === 'specialists') {
     return db.all(`SELECT id, headline, city, rate, currency FROM specialists WHERE status = 'active'${w} ORDER BY updated_at DESC LIMIT 40`)
       .map((s) => ({ href: `/specialist/${s.id}`, title: s.headline, note: [amount(s.rate, s.currency), s.city].filter(Boolean).join(' · ') }));
-  }
-  if (sec.src === 'logistics') {
-    return db.all(`SELECT id, title, from_city, to_city, price, currency FROM logistics WHERE status = 'open' ORDER BY id DESC LIMIT 40`)
-      .map((x) => ({ href: `/fura/${x.id}`, title: x.title, note: [[x.from_city, x.to_city].filter(Boolean).join(' → '), amount(x.price, x.currency)].filter(Boolean).join(' · ') }));
   }
   if (sec.src === 'requests') {
     return db.all(`SELECT id, title, city, budget_max, currency FROM requests WHERE status = 'open' ORDER BY id DESC LIMIT 40`)
@@ -382,7 +376,7 @@ function robots() {
 function sitemapUrls() {
   return [
     ['/', 'daily', '1.0'], ['/categories', 'weekly', '0.8'], ['/feed', 'hourly', '0.8'], ['/prices', 'daily', '0.7'],
-    // Bo'lim sahifalari (/transportsale, /mechanic, /fura ...) — nusxa manzillari kiritilmaydi
+    // Bo'lim sahifalari (/transportsale, /mechanic ...) — nusxa manzillari kiritilmaydi
     ...Object.keys(SECTIONS).filter((p) => p !== '/feed').map((p) => [p, 'daily', '0.9']),
     // Ma'lumot sahifalari
     ...Object.keys(STATIC).map((p) => [p, 'monthly', '0.3']),
@@ -391,7 +385,6 @@ function sitemapUrls() {
     // Kompaniya do'konlari va mutaxassislar
     ...db.all('SELECT id FROM companies ORDER BY id LIMIT 5000').map((c) => [`/company/${c.id}`, 'weekly', '0.6']),
     ...db.all(`SELECT id, updated_at FROM specialists WHERE status = 'active' ORDER BY id LIMIT 5000`).map((s) => [`/specialist/${s.id}`, 'weekly', '0.5', s.updated_at]),
-    ...db.all(`SELECT id FROM logistics WHERE status = 'open' ORDER BY id DESC LIMIT 5000`).map((x) => [`/fura/${x.id}`, 'weekly', '0.4']),
     ...cats.load().roots.flatMap((c) => [
       [`/catalog?category=${c.slug}`, 'daily', '0.7'], [`/prices?category=${c.slug}`, 'daily', '0.6'],
       ...c.children.flatMap((s) => [[`/catalog?category=${s.slug}`, 'daily', '0.5'], [`/prices?category=${s.slug}`, 'weekly', '0.4']]),

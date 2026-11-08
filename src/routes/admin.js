@@ -24,7 +24,7 @@ const { activate } = require('./listings');
 const r = Router();
 const admin = Router();
 // Moderator: e'lonlar, kompaniyalar, VIP/GOLD/PREMIUM narxlari va murojaatlar. Qolgani — faqat admin.
-const MODERATOR_PATHS = [/^\/overview$/, /^\/listings(\/|$)/, /^\/companies(\/|$)/, /^\/tiers(\/|$)/, /^\/support(\/|$)/, /^\/freight(\/|$)/];
+const MODERATOR_PATHS = [/^\/overview$/, /^\/listings(\/|$)/, /^\/companies(\/|$)/, /^\/tiers(\/|$)/, /^\/support(\/|$)/];
 admin.use(requireStaff, (req, _res, next) => {
   if (req.user.role === 'admin' || MODERATOR_PATHS.some((p) => p.test(req.path))) return next();
   fail(403, 'err.forbidden');
@@ -929,28 +929,6 @@ admin.post('/integrations/mail-test', async (req, res) => {
 });
 admin.get('/integrations/sms-balance', async (_req, res) => {
   try { res.json({ ok: true, balance: await require('../lib/sms').eskizBalance() }); } catch (e) { res.json({ ok: false, error: e.message }); }
-});
-
-// ---------- Fura logistika: nazorat (moderator ham) ----------
-admin.get('/freight', (req, res) => {
-  const pg = paging(req.query, 30);
-  const status = ['open', 'closed'].includes(req.query.status) ? req.query.status : 'open';
-  const where = ['f.status = ?'];
-  const p = [status];
-  if (['load', 'truck'].includes(req.query.kind)) { where.push('f.kind = ?'); p.push(req.query.kind); }
-  if (req.query.q) { where.push('(f.search_text LIKE ? OR u.phone LIKE ?)'); p.push(`%${String(req.query.q).toLowerCase()}%`, `%${String(req.query.q)}%`); }
-  const w = where.join(' AND ');
-  const total = db.get(`SELECT COUNT(*) AS n FROM freight f JOIN users u ON u.id = f.user_id WHERE ${w}`, ...p).n;
-  const rows = db.all(`SELECT f.* FROM freight f JOIN users u ON u.id = f.user_id WHERE ${w} ORDER BY f.id DESC LIMIT ? OFFSET ?`, ...p, pg.perPage, pg.offset);
-  const fv = require('./freight').view;
-  res.json(pageResult(rows.map((x) => ({ ...fv(x, req, { full: true }), phone: db.get('SELECT phone FROM users WHERE id = ?', x.user_id)?.phone, contacts: x.contacts })), total, pg));
-});
-admin.delete('/freight/:id', (req, res) => {
-  const x = db.get('SELECT id FROM freight WHERE id = ?', id(req));
-  if (!x) notFound();
-  db.run('DELETE FROM freight WHERE id = ?', x.id);
-  log(req, 'freight.delete', 'freight', x.id);
-  res.json({ ok: true });
 });
 
 // ---------- Reklama bannerlari ----------

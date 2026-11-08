@@ -140,18 +140,16 @@ test("parolni tiklash SMS orqali", async () => {
   assert.equal(ch.status, 401);
 });
 
-test('vakansiya, logistika, mutaxassisga yozish', async () => {
+test('vakansiya, mutaxassisga yozish; logistika va materiallar olib tashlangan', async () => {
   const j = await api('POST', '/api/v1/jobs', { token: S.seller.token, body: { kind: 'driver', title: 'Нужен водитель JCB 3CX', description: 'Работа на объектах в Ташкентской области, 5/2.', salary_min: 8000000, salary_unit: 'month', region: 'tashkent' } });
   assert.equal(j.status, 201);
   assert.equal(j.body.employer.name, 'ООО «ТехноПарк»');
   const jobs = await api('GET', '/api/v1/jobs?kind=driver');
   assert.ok(jobs.body.total >= 3);
-  const l = await api('POST', '/api/v1/logistics', { token: S.buyer.token, body: { kind: 'cargo', title: 'Перевезти бульдозер 18 т', from_city: 'Ташкент', to_city: 'Навои', weight_t: 18, price: 9000000 } });
-  assert.equal(l.status, 201);
-  assert.equal(l.body.currency, 'UZS');
-  const cargo = await api('GET', `/api/v1/logistics?kind=cargo&from=${encodeURIComponent('Ташкент')}`);
-  assert.ok(cargo.body.items.some((x) => x.id === l.body.id));
-  assert.equal((await api('GET', '/api/v1/logistics?kind=transport')).body.total, 2);
+  assert.equal((await api('POST', '/api/v1/logistics', { token: S.buyer.token, body: { kind: 'cargo', title: 'Перевезти бульдозер', from_city: 'Ташкент' } })).status, 404);
+  assert.equal((await api('GET', '/api/v1/freight')).status, 404);
+  const cats = (await api('GET', '/api/v1/categories')).body;
+  assert.ok(!(cats.items || cats).some((c) => c.slug === 'materials'), "qurilish materiallari kategoriyasi yo'q");
   const sp = (await api('GET', '/api/v1/specialists?kind=mechanic&country=UZ')).body.items[0];
   const c = await api('POST', '/api/v1/conversations/direct', { token: S.buyer.token, body: { user_id: sp.user_id, body: 'Можете приехать завтра?', context: sp.headline } });
   assert.equal(c.status, 201);
@@ -223,7 +221,7 @@ test("aqlli qidiruv, bo'limlar, zayavkaga mos e'lonlar", async () => {
   assert.ok(sec.body.transportsale >= 8);
   assert.ok(sec.body.transportrental >= 3);
   assert.ok(sec.body.driver >= 5);
-  assert.ok(sec.body.cargologistic >= 2);
+  assert.equal(sec.body.fura, undefined);
   const reqs = await api('GET', '/api/v1/requests');
   const m = await api('GET', `/api/v1/requests/${reqs.body.items[0].id}/matches`);
   assert.ok(m.body.length >= 1);

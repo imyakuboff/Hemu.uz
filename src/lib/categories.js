@@ -1,5 +1,5 @@
 const db = require('../db');
-const { CATALOG } = require('../catalog');
+const { CATALOG, REMOVED_ROOTS } = require('../catalog');
 const { L, pick, normalizeSearch } = require('../i18n');
 
 let cache = null; // { byId, bySlug, roots }
@@ -37,7 +37,9 @@ function upsert(slug, parentId, kind, icon, sort, names) {
 
 function load() {
   if (cache) return cache;
-  const rows = db.all('SELECT * FROM categories ORDER BY sort');
+  // Faqat katalogdagi kategoriyalar (olib tashlanganlari bazada qolsa ham ko'rsatilmaydi)
+  const inCatalog = new Set(CATALOG.flatMap((r) => [r.slug, ...r.children.map((c) => c.slug)]));
+  const rows = db.all('SELECT * FROM categories ORDER BY sort').filter((r) => inCatalog.has(r.slug));
   const byId = new Map();
   const bySlug = new Map();
   for (const r of rows) {

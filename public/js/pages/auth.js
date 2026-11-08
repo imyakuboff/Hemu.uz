@@ -9,7 +9,7 @@ const TYPES = [
   ['mechanic', 'wrench', 'type_mechanic', 'type_mechanic_sub'],
   ['driver', 'truck', 'type_driver', 'type_driver_sub'],
 ];
-const ACTIVITIES = [['equipment_sale', 'excavator'], ['equipment_rent', 'calendar'], ['parts', 'gear'], ['repair', 'wrench'], ['logistics', 'truck'], ['materials', 'layers']];
+const ACTIVITIES = [['equipment_sale', 'excavator'], ['equipment_rent', 'calendar'], ['parts', 'gear'], ['repair', 'wrench']];
 
 const certTag = (req) => `<span class="tag ${req ? 'red' : 'grey'}">${esc(t(req ? 'required_mark' : 'optional_mark'))}</span>`;
 const stepper = (n) => `<div class="steps">${[t('step_phone'), t('step_code'), t('step_who'), t('step_details')].map((s, i) => `<span class="${i + 1 < n ? 'done' : i + 1 === n ? 'on' : ''}"><b>${i + 1 < n ? '✓' : i + 1}</b>${esc(s)}</span>`).join('')}</div>`;

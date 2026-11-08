@@ -16,6 +16,8 @@ const N = {
   tractors: ['Traktorlar', 'Тракторы', 'Tractors', 'Тракторлар', 'Тракторлор', 'Тракторҳо', 'Traktorlar', 'Traktorlar', 'تراکتورها', 'ټراکټورونه'],
 };
 
+// Saytdan butunlay olib tashlangan bo'limlar: e'lon va so'rovlari yopiladi, kategoriyalari ko'rsatilmaydi
+const REMOVED_ROOTS = ['materials'];
 const C = (slug, kind, icon, names, children = []) => ({ slug, kind, icon, names, children });
 const S = (slug, names) => ({ slug, names });
 
@@ -70,24 +72,6 @@ const CATALOG = [
       S('generators', ['Generatorlar', 'Генераторы', 'Generators', 'Генераторлар', 'Генераторлор', 'Генераторҳо', 'Generatorlar', 'Generatorlar', 'جنراتورها', 'جنراتورونه']),
       S('road-machinery', ["Yo'l texnikasi", 'Дорожная техника', 'Road machinery', 'Жол техникасы', 'Жол техникасы', 'Техникаи роҳсозӣ', 'Ýol tehnikasy', 'Yol texnikası', 'ماشین‌آلات سرک‌سازی', 'د سړک جوړونې ماشینونه']),
     ]),
-  C('materials', 'material', 'layers',
-    ['Qurilish materiallari', 'Стройматериалы', 'Building materials', 'Құрылыс материалдары', 'Курулуш материалдары', 'Масолеҳи сохтмонӣ', 'Gurluşyk materiallary', 'Tikinti materialları', 'مواد ساختمانی', 'ساختماني توکي'],
-    [
-      S('cement', ['Sement', 'Цемент', 'Cement', 'Цемент', 'Цемент', 'Семент', 'Sement', 'Sement', 'سمنت', 'سمنټ']),
-      S('sand', ['Qum', 'Песок', 'Sand', 'Құм', 'Кум', 'Рег', 'Çäge', 'Qum', 'ریگ', 'شګه']),
-      S('brick', ["Pishgan g'isht", 'Кирпич жжёный', 'Fired brick', 'Күйдірілген кірпіш', 'Бышырылган кыш', 'Хишти пухта', 'Bişen kerpiç', 'Bişmiş kərpic', 'خشت پخته', 'پخه خښته']),
-      S('brick-raw', ["Xom g'isht", 'Кирпич-сырец (саман)', 'Raw (adobe) brick', 'Шикі кірпіш', 'Чийки кыш', 'Хишти хом', 'Çig kerpiç', 'Çiy kərpic', 'خشت خام', 'اومه خښته']),
-      S('wood-boards', ['Taxta (obreznoy, neobreznoy)', 'Доска обрезная и необрезная', 'Boards (edged, unedged)', 'Тақтай', 'Такта', 'Тахта', 'Tagta', 'Taxta', 'تخته', 'تخته']),
-      S('wood-beam', ["Brus va yog'och", 'Брус и пиломатериалы', 'Beams and timber', 'Брус және ағаш', 'Брус жана жыгач', 'Чӯби брус', 'Brus we agaç', 'Tir və taxta-şalban', 'تیر چوبی', 'لرګي او تیرونه']),
-      S('plywood', ['Fanera, DSP, OSB', 'Фанера, ДСП, OSB', 'Plywood, chipboard, OSB', 'Фанера, ДСП, OSB', 'Фанера, ДСП, OSB', 'Фанера, ДСП, OSB', 'Fanera, DSP, OSB', 'Fanera, DSP, OSB', 'تخته سه‌لایی، OSB', 'فنر، OSB']),
-      S('melkusok', ['Melkusok tosh', 'Мелкусок (бутовый камень)', 'Rubble stone', 'Тас (бут)', 'Бут таш', 'Санги бут', 'Bur daş', 'Bud daşı', 'سنگ لاشه', 'ډبرې (بوت)']),
-      S('penoblok', ['Penoblok, gazoblok', 'Пеноблок, газоблок', 'Foam and aerated blocks', 'Көбік блок, газоблок', 'Көбүк блок, газоблок', 'Пеноблок, газоблок', 'Penoblok, gazoblok', 'Penoblok, qazoblok', 'بلوک سبک', 'پینوبلاک']),
-      S('shlakoblok', ['Shlakoblok', 'Шлакоблок', 'Cinder block', 'Шлакоблок', 'Шлакоблок', 'Шлакоблок', 'Şlakoblok', 'Şlakoblok', 'بلوک سیمانی', 'شلاکوبلاک']),
-      S('crushed-stone', ["Shag'al (sheben)", 'Щебень', 'Crushed stone', 'Қиыршық тас', 'Шагыл', 'Шағал', 'Çagyl daş', 'Çınqıl', 'سنگ‌ریزه', 'میده ډبرې']),
-      S('gravel', ['Graviy', 'Гравий', 'Gravel', 'Малтатас', 'Шагыл таш', 'Сангреза', 'Çagyl', 'Qravi', 'جغل', 'جغل']),
-      S('asphalt', ['Asfalt', 'Асфальт', 'Asphalt', 'Асфальт', 'Асфальт', 'Асфалт', 'Asfalt', 'Asfalt', 'اسفالت', 'اسفالټ']),
-      S('materials-other', ['Boshqa qurilish materiallari', 'Другие строительные материалы', 'Other building materials', 'Басқа құрылыс материалдары', 'Башка курулуш материалдары', 'Дигар масолеҳи сохтмонӣ', 'Beýleki gurluşyk materiallary', 'Digər tikinti materialları', 'سایر مواد ساختمانی', 'نور ساختماني توکي']),
-    ]),
 ];
 
-module.exports = { CATALOG };
+module.exports = { CATALOG, REMOVED_ROOTS };

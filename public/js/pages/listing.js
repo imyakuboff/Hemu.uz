@@ -137,7 +137,7 @@ export default async function listing({ params, query }) {
     ? `<div class="serial ${sc.ok ? 'ok' : 'bad'}">${icon(sc.ok ? 'shield' : 'flag')}<span>${esc(t('serial_number'))}: ${esc(sc.serial_masked)}<br>${esc(sc.wanted ? t('serial_wanted') : sc.duplicates ? t('serial_dup', { n: sc.duplicates }) : t('serial_ok'))}</span></div>`
     : '';
   const html = `
-  ${crumbs([[t('home'), '/'], ...(l.kind === 'material' ? [[t('mat_title'), '/materials']] : []), [cardTitle]])}
+  ${crumbs([[t('home'), '/'], [cardTitle]])}
   <h1 class="page-title" style="margin-bottom:2px">${esc(cardTitle)}</h1>
   <p class="page-sub" style="margin:0 0 16px">${esc(path)}</p>
   <div class="detail">

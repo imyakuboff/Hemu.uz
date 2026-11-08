@@ -387,12 +387,12 @@ export function a(k, p) {
 const NAV = [
   ['overview', 'dash', '/admin'], ['users', 'user', '/admin/users'], ['companies', 'building', '/admin/companies'],
   ['listings', 'list', '/admin/listings'], ['orders', 'box', '/admin/orders'], ['finance', 'card', '/admin/finance'],
-  ['tiers', 'star', '/admin/tiers'], ['promos', 'target', '/admin/promos'], ['freight', 'truck', '/admin/freight'], ['broadcast', 'bell', '/admin/broadcast'], ['banners', 'image', '/admin/banners'], ['support', 'inbox', '/admin/support'], ['trust', 'shield', '/admin/trust'],
+  ['tiers', 'star', '/admin/tiers'], ['promos', 'target', '/admin/promos'], ['broadcast', 'bell', '/admin/broadcast'], ['banners', 'image', '/admin/banners'], ['support', 'inbox', '/admin/support'], ['trust', 'shield', '/admin/trust'],
   ['pages', 'file', '/admin/pages'], ['integrations', 'globe', '/admin/integrations'], ['system', 'chart', '/admin/system'],
   ['settings', 'gear', '/admin/settings'], ['log', 'list', '/admin/log'],
 ];
 // Moderator ko'radigan bo'limlar
-const MOD_SECTIONS = ['overview', 'listings', 'companies', 'tiers', 'promos', 'support', 'trust', 'freight'];
+const MOD_SECTIONS = ['overview', 'listings', 'companies', 'tiers', 'promos', 'support', 'trust'];
 const isAdmin = () => state.user?.role === 'admin';
 const allowed = (k) => isAdmin() || MOD_SECTIONS.includes(k);
 const ACCOUNT_TYPES = ['client', 'company', 'mechanic', 'driver'];
@@ -521,7 +521,7 @@ export async function adminPage({ params, query }) {
   if (state.user.role !== 'admin' && state.user.role !== 'moderator') return { title: a('admin'), html: gate(`<p>${esc(a('no_access'))}</p><div style="display:flex;gap:8px;justify-content:center"><a class="btn btn-soft" href="/">${esc(a('to_site'))}</a><button class="btn btn-soft" data-logout>${esc(t('logout'))}</button></div>`) };
   const [section = 'overview', id] = params;
   if (!state.adminQueue && section !== 'overview') await loadQueue();
-  const map = { overview, users, companies, listings, orders, finance, broadcast, banners: bannersPage, trust, system, settings, log, tiers: tiersPage, promos: promosPage, freight: freightPage, support: supportPage, integrations: integrationsPage, pages: pagesPage };
+  const map = { overview, users, companies, listings, orders, finance, broadcast, banners: bannersPage, trust, system, settings, log, tiers: tiersPage, promos: promosPage, support: supportPage, integrations: integrationsPage, pages: pagesPage };
   if (!allowed(section)) return { title: a('admin'), html: shell('', a('admin'), '', `<div class="box empty"><h3>${esc(a('no_access'))}</h3></div>`) };
   const fn = id && section === 'users' ? userDetail : id && section === 'companies' ? companyDetail : map[section];
   if (!fn) return { title: a('admin'), html: shell('', a('admin'), '', `<div class="box empty">404</div>`) };
@@ -1716,33 +1716,3 @@ async function pagesPage({ query }) {
   };
 }
 
-// ---------- Fura logistika: nazorat ----------
-async function freightPage({ query }) {
-  const status = query.status === 'closed' ? 'closed' : 'open';
-  const r = await api(`/admin/freight${qs({ status, kind: query.kind, q: query.q, page: query.page })}`);
-  const html = shell('freight', a('nav_freight'), '', `
-    <div class="tabs">${[['open', a('fr_open')], ['closed', a('fr_closed')]].map(([v, l]) => `<a class="tab ${status === v ? 'on' : ''}" href="/admin/freight?status=${v}">${esc(l)}</a>`).join('')}
-      ${[['', a('all')], ['load', t('fr_loads')], ['truck', t('fr_trucks')]].map(([v, l]) => `<a class="tab ${(query.kind || '') === v ? 'on' : ''}" href="/admin/freight${qs({ status, kind: v || undefined })}">${esc(l)}</a>`).join('')}</div>
-    <div class="box adm-table-box"><table class="adm-table"><thead><tr><th>ID</th><th>${esc(t('fr_from'))} → ${esc(t('fr_to'))}</th><th>${esc(t('fr_cargo'))}</th><th>${esc(a('profile'))}</th><th>${esc(a('views'))}</th><th></th></tr></thead><tbody>
-    ${r.items.map((x) => `<tr>
-      <td class="muted">#${x.id}<br><span class="tag ${x.kind === 'load' ? 'yellow' : ''}">${esc(t(x.kind === 'load' ? 'fr_loads' : 'fr_trucks'))}</span></td>
-      <td><a href="/fura/${x.id}" target="_blank"><b>${esc(x.from.city)} → ${esc(x.to?.city || t('fr_any_dir'))}</b></a><br><span class="tiny muted">${esc([x.date_from, x.price_formatted].filter(Boolean).join(' · '))}</span></td>
-      <td>${esc(x.cargo || (x.body_types || []).map((b) => t(`body_${b}`)).join(', '))}</td>
-      <td>${esc(x.owner.name || '')}<br><span class="tiny muted">${esc(x.phone || '')}</span></td>
-      <td class="muted">${icon('eye')} ${num(x.views)} · ${icon('phone')} ${num(x.contacts || 0)}</td>
-      <td style="text-align:end;white-space:nowrap">${x.status === 'open' ? `<button class="btn btn-soft btn-sm" data-fclose="${x.id}">${esc(a('close_ticket'))}</button>` : ''}<button class="btn btn-ghost btn-sm red" data-fdel="${x.id}">${icon('trash')}</button></td>
-    </tr>`).join('') || `<tr><td colspan="6" class="empty">${esc(a('empty'))}</td></tr>`}</tbody></table></div>
-    ${pager(r, '/admin/freight', { status, kind: query.kind })}`);
-  return {
-    title: a('nav_freight'),
-    html,
-    mount(main) {
-      main.addEventListener('click', async (e) => {
-        const c = e.target.closest('[data-fclose]');
-        if (c) { await api(`/freight/${c.dataset.fclose}/close`, { method: 'POST' }); return refresh(); }
-        const d = e.target.closest('[data-fdel]');
-        if (d && (await confirmBox(a('fr_del_q')))) { await api(`/admin/freight/${d.dataset.fdel}`, { method: 'DELETE' }); refresh(); }
-      });
-    },
-  };
-}

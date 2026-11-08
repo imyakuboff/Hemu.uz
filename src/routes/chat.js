@@ -95,7 +95,7 @@ r.get('/conversations', requireAuth, (req, res) => {
   res.json({ items, unread_total: items.reduce((s, c) => s + c.unread, 0), unread_conversations: items.filter((c) => c.unread).length });
 });
 
-// E'lonsiz suhbat: mutaxassis, vakansiya, logistika muallifi bilan
+// E'lonsiz suhbat: mutaxassis, vakansiya muallifi bilan
 r.post('/conversations/direct', requireAuth, rateLimit({ name: 'conv', windowMs: 3600000, max: 60, key: (req) => req.user.id }), (req, res) => {
   const v = validate(req.body, { user_id: { type: 'int', required: true }, body: { type: 'string', min: 1, max: 4000, required: true }, context: { type: 'string', max: 160 } });
   if (v.user_id === req.user.id) fail(409, 'err.own_listing');

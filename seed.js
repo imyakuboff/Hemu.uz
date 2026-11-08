@@ -137,11 +137,6 @@ function seed(file = config.dbFile) {
     deal_type: 'rent', title: 'Аренда автокрана 25 тонн', brand: 'XCMG', capacity_t: 25, price: 18000, currency: 'KZT', price_unit: 'hour', price_from: 1, with_operator: 1, min_order: 'от 4 часов',
     description: 'Автокран 25 т с опытным машинистом. Стрела 33 м. Работаем по Алматы и области.', country: 'KZ', region: 'almaty-city', city: 'Алматы',
   }, 6, 702, P('crane'));
-  add(almaty, cAlmaty, 'materials', 'crushed-stone', {
-    deal_type: 'sale', title: 'Щебень гранитный, фракция 5–20', price: 3500, currency: 'KZT', price_unit: 'ton', min_order: 'От 10 тонн · доставка',
-    description: 'Гранитный щебень 5–20, ГОСТ. Доставка самосвалами от 10 тонн по Алматинской области.', country: 'KZ', region: 'almaty', city: 'Конаев',
-    delivery: { local: 'Самосвалами от 10 т' },
-  }, 8, 188, P('stone'));
 
   // --- Qirg'iziston ---
   add(bishkek, cBishkek, 'special', 'special-tractors', {
@@ -258,7 +253,7 @@ function seed(file = config.dbFile) {
   const demoPass = hashPassword('Hemu2026');
   db.run(`UPDATE users SET password_hash = ?, password_set_at = datetime('now')`, demoPass);
   db.run(`UPDATE users SET account_type = 'company' WHERE id IN (SELECT owner_id FROM companies)`);
-  const act = { [cTexno]: ['equipment_sale', 'parts', 'repair'], [cAlmaty]: ['equipment_sale', 'equipment_rent', 'materials'], [cBishkek]: ['equipment_sale'], [cAshgabat]: ['equipment_sale', 'logistics'], [cBaku]: ['equipment_sale'], [cMoscow]: ['equipment_rent', 'logistics'] };
+  const act = { [cTexno]: ['equipment_sale', 'parts', 'repair'], [cAlmaty]: ['equipment_sale', 'equipment_rent'], [cBishkek]: ['equipment_sale'], [cAshgabat]: ['equipment_sale'], [cBaku]: ['equipment_sale'], [cMoscow]: ['equipment_rent'] };
   for (const [id, a] of Object.entries(act)) db.run('UPDATE companies SET activities = ? WHERE id = ?', JSON.stringify(a), Number(id));
 
   // Mexaniklar va haydovchilar
@@ -279,24 +274,6 @@ function seed(file = config.dbFile) {
   job(petrov, cTexno, { kind: 'mechanic', title: 'Механик в сервис JCB', description: 'Обслуживание и ремонт экскаваторов-погрузчиков JCB в сервисном центре в Чирчике. Официальное оформление.', requirements: ['hydraulics', 'engine'], salary_min: 9000000, salary_max: 14000000, currency: 'UZS', salary_unit: 'month', schedule: '5/2', country: 'UZ', region: 'tashkent', city: 'Чирчик' });
   job(almaty, cAlmaty, { kind: 'driver', title: 'Водитель самосвала (Howo, Shacman)', description: 'Перевозка щебня по Алматинской области. Категория C, опыт от 2 лет.', requirements: ['dump_truck'], salary_min: 400000, salary_max: 550000, currency: 'KZT', salary_unit: 'month', schedule: '6/1', country: 'KZ', region: 'almaty', city: 'Конаев' });
 
-  // Logistika
-  const logi = (uid, comp, data) => db.insert('logistics', { user_id: uid, company_id: comp, ...data, search_text: require('./src/i18n').normalizeSearch(`${data.title} ${data.from_city} ${data.to_city || ''} ${data.cargo_type || ''} ${data.vehicle_type || ''}`), expires_at: db.get(`SELECT datetime('now', '+30 days') AS d`).d });
-  logi(buyer, null, { kind: 'cargo', title: 'Перевезти экскаватор-погрузчик JCB 3CX', description: 'Нужен трал. Погрузка своим ходом.', from_country: 'UZ', from_city: 'Чирчик', to_country: 'UZ', to_city: 'Самарканд', cargo_type: 'Спецтехника', weight_t: 8.1, ready_date: '15 октября', price: 6000000, currency: 'UZS', price_unit: 'total' });
-  logi(buyer2, null, { kind: 'cargo', title: 'Щебень 20 т, Конаев — Алматы', from_country: 'KZ', from_city: 'Конаев', to_country: 'KZ', to_city: 'Алматы', cargo_type: 'Стройматериалы', weight_t: 20, ready_date: 'Ежедневно', price: 45000, currency: 'KZT', price_unit: 'total' });
-  logi(moscow, cMoscow, { kind: 'transport', title: 'Трал до 40 т — перевозка спецтехники', description: 'Низкорамный трал, сопровождение, все разрешения. Россия, Казахстан, Узбекистан.', from_country: 'RU', from_city: 'Москва', to_country: 'UZ', to_city: 'Ташкент', vehicle_type: 'Трал', weight_t: 40, price: 180, currency: 'RUB', price_unit: 'km' });
-  logi(ashgabat, cAshgabat, { kind: 'transport', title: 'Фура 20 т, Ашхабад — Ташкент — Алматы', description: 'Тент 82 м³, регулярные рейсы раз в неделю.', from_country: 'TM', from_city: 'Ашхабад', to_country: 'KZ', to_city: 'Алматы', vehicle_type: 'Фура (тент)', weight_t: 20, volume_m3: 82, price: 2.2, currency: 'USD', price_unit: 'km' });
-
-  // Biznes kabinet: filiallar, xodim, obuna, qiziqishlar
-  db.insert('company_branches', { company_id: cTexno, name: 'Головной офис и площадка', country: 'UZ', region: 'tashkent', city: 'Чирчик', address: 'Ташкентское шоссе, 18', phone: '+998901234567', work_hours: 'Пн–Пт, 09:00–18:00', lat: 41.469, lng: 69.582 });
-  db.insert('company_branches', { company_id: cTexno, name: 'Склад запчастей', country: 'UZ', region: 'tashkent-city', city: 'Ташкент', address: 'ул. Фаробий, 12', phone: '+998901234500', work_hours: 'Пн–Сб, 09:00–19:00', lat: 41.33, lng: 69.24 });
-  db.insert('company_branches', { company_id: cTexno, name: 'Филиал Самарканд', country: 'UZ', region: 'samarkand', city: 'Самарканд', address: 'ул. Дагбитская, 44', phone: '+998901234511', work_hours: 'Пн–Пт, 09:00–18:00', lat: 39.65, lng: 66.96 });
-  db.insert('company_members', { company_id: cTexno, phone: '+998901112233', name: 'Нигора Алиева', role: 'sales' });
-  db.run('INSERT INTO company_follows (user_id, company_id) VALUES (?, ?), (?, ?)', buyer, cTexno, buyer2, cTexno);
-  for (const slug of ['backhoe-loaders', 'filters', 'truck-cranes']) db.run('INSERT INTO user_interests (user_id, category_id) VALUES (?, ?)', buyer, cats.bySlug(slug).id);
-  for (const [q, n, r] of [['JCB 3CX', 42, 4], ['экскаватор', 31, 3], ['КАМАЗ', 18, 2], ['фильтр JCB', 12, 3], ['аренда крана', 9, 2], ['МТЗ 82', 7, 2], ['Hyundai R220', 5, 2]]) {
-    db.run('INSERT INTO search_log (q, display, n, results) VALUES (?, ?, ?, ?)', require('./src/i18n').normalizeSearch(q), q, n, r);
-  }
-  // Hamyonlar: sotuvchiga bonus, xaridorga to'ldirish
   const wtx = (uid, usd, kind, note, extra = {}) => {
     const after = Math.round(((db.get('SELECT balance_usd FROM users WHERE id = ?', uid).balance_usd || 0) + usd) * 10000) / 10000;
     db.run('UPDATE users SET balance_usd = ? WHERE id = ?', after, uid);
@@ -309,46 +286,8 @@ function seed(file = config.dbFile) {
   return { admin, petrov, buyer, listings: listings.length };
 }
 
-// Fura logistika uchun demo yuklar va bo'sh furalar (jadval bo'sh bo'lsa). Serverda alohida ham ishlatiladi:
-//   node -e "require('./seed').seedFreightDemo()"
-function seedFreightDemo(file = config.dbFile) {
-  if (!db.db) db.open(file);
-  if (db.get('SELECT COUNT(*) AS n FROM freight').n) return 0;
-  const uid = (phone) => db.get('SELECT id FROM users WHERE phone = ?', phone)?.id;
-  const cid = (u) => db.get('SELECT id FROM companies WHERE owner_id = ?', u)?.id || null;
-  const seller = uid('+998901234567');
-  const driver = uid('+998977778899');
-  const buyer = uid('+998907654321');
-  const kz = uid('+77011234567') || seller;
-  if (!seller || !driver) return 0;
-  const day = (n) => new Date(Date.now() + n * 864e5).toISOString().slice(0, 10);
-  const L = [
-    [seller, 'load', 'UZ', 'Toshkent', 'RU', 'Moskva', 1, 3, 'Paxta tolasi (presslangan)', ['tent', 'van'], ['back', 'side'], 20, 86, null, 3200, 'USD', 'total', 'bank', { cmr: 1 }],
-    [seller, 'load', 'UZ', 'Andijon', 'KZ', 'Almaty', 2, 4, 'Meva-sabzavot (olma)', ['ref'], ['back'], 18, 70, null, 1400, 'USD', 'total', 'cash', {}],
-    [buyer, 'load', 'UZ', 'Navoiy', 'CN', 'Urumchi', 3, 6, 'Mis katodlar', ['tent', 'flatbed'], ['side', 'top'], 22, null, null, 2600, 'USD', 'total', 'vat', { tir: 1 }],
-    [kz, 'load', 'KZ', 'Almaty', 'UZ', 'Toshkent', 1, 2, 'Qurilish materiallari', ['tent'], ['back'], 15, 60, null, 9500000, 'UZS', 'total', 'bank', {}],
-    [seller, 'load', 'UZ', 'Toshkent', 'UZ', 'Samarqand', 0, 1, 'Ekskavator JCB 3CX (tral kerak)', ['lowbed'], ['top'], 9, null, null, 4500000, 'UZS', 'total', 'cash', {}],
-    [buyer, 'load', 'TR', 'Istanbul', 'UZ', 'Toshkent', 5, 8, 'Mebel va maishiy texnika', ['tent', 'van'], ['back'], 12, 90, null, 4100, 'USD', 'total', 'bank', { cmr: 1 }],
-    [driver, 'truck', 'UZ', 'Toshkent', 'RU', null, 0, 3, null, ['tent'], ['back', 'side', 'top'], 22, 92, 13.6, 1.1, 'USD', 'km', null, { tir: 1, cmr: 1 }],
-    [driver, 'truck', 'UZ', 'Samarqand', null, null, 1, 2, null, ['ref'], ['back'], 20, 82, 13.6, null, null, null, null, {}],
-    [kz, 'truck', 'KZ', 'Shymkent', 'UZ', 'Toshkent', 0, 1, null, ['tent', 'board'], ['back', 'side'], 20, 86, 13.6, 650, 'USD', 'total', null, {}],
-    [driver, 'truck', 'UZ', 'Toshkent', 'UZ', null, 0, 1, null, ['lowbed'], ['top'], 40, null, 15, 12000, 'UZS', 'km', 'cash', {}],
-  ];
-  for (const [u, kind, fc, fcity, tc, tcity, d1, d2, cargo, bodies, loading, w, vol, len, price, cur, pu, pay, ex] of L) {
-    db.insert('freight', {
-      user_id: u, company_id: cid(u), kind, from_country: fc, from_city: fcity, to_country: tc, to_city: tcity,
-      date_from: day(d1), date_to: day(d2), cargo, body_types: bodies, loading, weight_t: w, volume_m3: vol, length_m: len,
-      price, currency: cur, price_unit: pu, payment: pay, adr: 0, tir: ex.tir || 0, cmr: ex.cmr || 0,
-      search_text: require('./src/i18n').normalizeSearch([fcity, tcity, cargo, ...bodies].filter(Boolean).join(' ')),
-      expires_at: db.get(`SELECT datetime('now', '+15 days') AS d`).d,
-    });
-  }
-  return L.length;
-}
-
 if (require.main === module) {
   const r = seed();
-  seedFreightDemo();
   db.close();
   console.log(`Seed tayyor: ${r.listings} ta e'lon. Demo kirish (dev rejimida SMS kodi javobda qaytadi):`);
   console.log('  admin    +998900000001');
@@ -358,4 +297,4 @@ if (require.main === module) {
   console.log("  Hammasining paroli: Hemu2026");
 }
 
-module.exports = { seed, seedFreightDemo };
+module.exports = { seed };

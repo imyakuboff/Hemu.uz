@@ -36,7 +36,6 @@ function startJobs() {
       db.run('DELETE FROM listings WHERE id = ?', l.id);
     }
     db.run(`UPDATE jobs SET status = 'closed' WHERE status = 'open' AND expires_at < datetime('now')`);
-    db.run(`UPDATE logistics SET status = 'closed' WHERE status = 'open' AND expires_at < datetime('now')`);
   };
   cleanup();
   timers.push(setInterval(cleanup, 3600000));

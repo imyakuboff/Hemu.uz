@@ -94,8 +94,8 @@ const route = svg(`${shadow(60, 84, 40)}
 // Asosiy bo'limlar uchun 3D rasmlar (public/img/sec), qolganlari — SVG
 const img = (n) => `<img class="art" src="/img/sec/${n}.webp?v=3" alt="" loading="lazy" decoding="async">`;
 export const ART = {
-  transportsale: img('sale'), transportrental: img('rent'), sparepart: img('parts'), fura, cargologistic: cargo,
-  transportlogistic: truck, 'transport-repair': img('repair'), mechanic, driver: img('driver'), application: img('deal'), route,
+  transportsale: img('sale'), transportrental: img('rent'), sparepart: img('parts'),
+  'transport-repair': img('repair'), mechanic, driver: img('driver'), application: img('deal'), route,
 };
 export const ART_SVG = { excavator, loader, parts, toolbox, wheel, deal };
 

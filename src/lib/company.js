@@ -1,7 +1,7 @@
 const db = require('../db');
 
 // Faoliyat turlari ("Nima bilan shug'ullanasiz?")
-const ACTIVITIES = ['equipment_sale', 'equipment_rent', 'parts', 'repair', 'logistics', 'materials'];
+const ACTIVITIES = ['equipment_sale', 'equipment_rent', 'parts', 'repair'];
 
 // Foydalanuvchining kompaniyasi: egasi yoki xodimi sifatida
 function companyFor(userId) {

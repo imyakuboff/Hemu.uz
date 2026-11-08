@@ -7,7 +7,7 @@ const needLogin = () => ({ title: t('login'), html: `<div class="box empty"><h3>
 const f2 = (label, inner, req) => `<div><label class="lbl">${esc(label)}${req ? ' *' : ''}</label>${inner}</div>`;
 const inp = (name, v, attrs = '') => `<input class="input" name="${name}" value="${esc(v ?? '')}" ${attrs}>`;
 const chip = (name, value, label, on = false) => `<label class="pick"><input type="checkbox" name="${name}" value="${esc(value)}" ${on ? 'checked' : ''}><span>${esc(label)}</span></label>`;
-const ACTS = [['equipment_sale', 'excavator'], ['equipment_rent', 'calendar'], ['parts', 'gear'], ['repair', 'wrench'], ['logistics', 'truck'], ['materials', 'layers']];
+const ACTS = [['equipment_sale', 'excavator'], ['equipment_rent', 'calendar'], ['parts', 'gear'], ['repair', 'wrench']];
 const toggle = (name, on) => `<label class="toggle"><input type="checkbox" name="${name}" ${on ? 'checked' : ''}><span></span></label>`;
 
 // ---------- Profil ----------

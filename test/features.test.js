@@ -612,7 +612,8 @@ test("CRM: raqamni ochgan va yozgan xaridorlar; Do'kon tarifisiz faqat sonlar; b
   assert.equal(c2.note, "Ertaga ko'rishga keladi");
   assert.ok(again.reminders >= 1);
   // Begona (murojaat qilmagan) foydalanuvchi — 404
-  assert.equal((await api('PATCH', `/api/v1/crm/contacts/${S.kz.user.id}`, { token: S.seller.token, body: { stage: 'won' } })).status, 404);
+  const stranger = await login('+998935557799');
+  assert.equal((await api('PATCH', `/api/v1/crm/contacts/${stranger.user.id}`, { token: S.seller.token, body: { stage: 'won' } })).status, 404);
   // Sotuvchi o'zi yozishi uchun suhbat; xaridor bir xil suhbatda
   const ch = await api('POST', `/api/v1/crm/contacts/${b.user.id}/chat`, { token: S.seller.token });
   assert.equal(ch.status, 200);

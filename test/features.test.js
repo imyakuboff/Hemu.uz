@@ -70,7 +70,7 @@ test("reklama: VIP/GOLD/PREMIUM, sinov to'lovi, VIP birinchi o'rinda, tarif kred
   // Kompaniya: 3 ta biznes darajasi + 3 ta TOP paketi
   assert.equal(pk.body.is_company, true);
   assert.deepEqual(pk.body.items.map((x) => x.id), ['vip', 'gold', 'premium', 'top', 'highlight', 'combo']);
-  assert.equal(pk.body.items[0].place, 'Карусель №1 на главной и самые верхние места в поиске');
+  assert.equal(pk.body.items[0].place, 'Самые верхние места в поиске и каталоге');
   assert.ok(pk.body.providers.some((p) => p.id === 'click') && pk.body.providers.some((p) => p.id === 'payme'));
   const mine = await api('GET', '/api/v1/my/listings?status=active', { token: S.seller.token });
   const target = mine.body.items.find((x) => !x.promoted && !x.tier);

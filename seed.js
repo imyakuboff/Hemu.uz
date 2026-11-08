@@ -274,6 +274,17 @@ function seed(file = config.dbFile) {
   job(petrov, cTexno, { kind: 'mechanic', title: 'Механик в сервис JCB', description: 'Обслуживание и ремонт экскаваторов-погрузчиков JCB в сервисном центре в Чирчике. Официальное оформление.', requirements: ['hydraulics', 'engine'], salary_min: 9000000, salary_max: 14000000, currency: 'UZS', salary_unit: 'month', schedule: '5/2', country: 'UZ', region: 'tashkent', city: 'Чирчик' });
   job(almaty, cAlmaty, { kind: 'driver', title: 'Водитель самосвала (Howo, Shacman)', description: 'Перевозка щебня по Алматинской области. Категория C, опыт от 2 лет.', requirements: ['dump_truck'], salary_min: 400000, salary_max: 550000, currency: 'KZT', salary_unit: 'month', schedule: '6/1', country: 'KZ', region: 'almaty', city: 'Конаев' });
 
+  // Biznes kabinet: filiallar, xodim, obuna, qiziqishlar
+  db.insert('company_branches', { company_id: cTexno, name: 'Головной офис и площадка', country: 'UZ', region: 'tashkent', city: 'Чирчик', address: 'Ташкентское шоссе, 18', phone: '+998901234567', work_hours: 'Пн–Пт, 09:00–18:00', lat: 41.469, lng: 69.582 });
+  db.insert('company_branches', { company_id: cTexno, name: 'Склад запчастей', country: 'UZ', region: 'tashkent-city', city: 'Ташкент', address: 'ул. Фаробий, 12', phone: '+998901234500', work_hours: 'Пн–Сб, 09:00–19:00', lat: 41.33, lng: 69.24 });
+  db.insert('company_branches', { company_id: cTexno, name: 'Филиал Самарканд', country: 'UZ', region: 'samarkand', city: 'Самарканд', address: 'ул. Дагбитская, 44', phone: '+998901234511', work_hours: 'Пн–Пт, 09:00–18:00', lat: 39.65, lng: 66.96 });
+  db.insert('company_members', { company_id: cTexno, phone: '+998901112233', name: 'Нигора Алиева', role: 'sales' });
+  db.run('INSERT INTO company_follows (user_id, company_id) VALUES (?, ?), (?, ?)', buyer, cTexno, buyer2, cTexno);
+  for (const slug of ['backhoe-loaders', 'filters', 'truck-cranes']) db.run('INSERT INTO user_interests (user_id, category_id) VALUES (?, ?)', buyer, cats.bySlug(slug).id);
+  for (const [q, n, r] of [['JCB 3CX', 42, 4], ['экскаватор', 31, 3], ['КАМАЗ', 18, 2], ['фильтр JCB', 12, 3], ['аренда крана', 9, 2], ['МТЗ 82', 7, 2], ['Hyundai R220', 5, 2]]) {
+    db.run('INSERT INTO search_log (q, display, n, results) VALUES (?, ?, ?, ?)', require('./src/i18n').normalizeSearch(q), q, n, r);
+  }
+  // Hamyonlar: sotuvchiga bonus, xaridorga to'ldirish
   const wtx = (uid, usd, kind, note, extra = {}) => {
     const after = Math.round(((db.get('SELECT balance_usd FROM users WHERE id = ?', uid).balance_usd || 0) + usd) * 10000) / 10000;
     db.run('UPDATE users SET balance_usd = ? WHERE id = ?', after, uid);

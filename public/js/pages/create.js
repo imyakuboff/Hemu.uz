@@ -327,7 +327,7 @@ export async function request() {
   const html = `
   ${crumbs([[t('home'), '/'], [t('create_request')]])}
   <div class="page-head"><h1 class="page-title">${esc(t('create_request'))}</h1><p class="page-sub">${esc(t('request_sub'))}</p></div>
-  <div class="detail" style="grid-template-columns:1fr 340px">
+  <div class="detail side-340">
     <form data-rf novalidate>
       <div class="box"><h3>${esc(t('what_looking'))}</h3>
         <div class="seg" data-want>${[['equipment', t('want_equipment')], ['part', t('want_part')]].map(([v, l]) => `<button type="button" data-v="${v}" class="${v === preWant ? 'on' : ''}">${esc(l)}</button>`).join('')}</div>
@@ -340,7 +340,7 @@ export async function request() {
       <div class="box"><h3>${esc(t('requirements'))}</h3>
         <div class="form-grid">
           ${field(t('describe_task'), '<textarea class="input" name="description" maxlength="3000" rows="4"></textarea>', { req: true, full: true })}
-          ${field(t('condition'), sel('condition', conds, 'any'))}${field(t('qty'), input('quantity', ''))}
+          ${field(t('condition'), sel('condition', conds, 'any'))}${field(t('quantity'), input('quantity', ''))}
         </div>
         <label class="btn btn-soft btn-sm" style="margin-top:14px;cursor:pointer">${icon('clip')} <span data-att>${esc(t('attach_file'))}</span><input type="file" name="file" accept="image/jpeg,image/png,application/pdf" hidden></label>
         <p class="tiny muted" style="margin:6px 0 0">${esc(t('attach_hint'))}</p>

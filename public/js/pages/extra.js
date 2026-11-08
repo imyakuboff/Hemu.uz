@@ -10,7 +10,7 @@ const pstTag = (s) => `<span class="tag ${{ paid: 'green', pending: 'orange', ca
 // Admin orqali to'lov (galochka): karta rekvizitlari, "To'ladim" va holat
 function manualBox(p) {
   const m = p.manual;
-  if (p.status === 'cancelled' && m.reject_reason !== null) return `<div class="note" style="text-align:left;margin:0 0 12px"><div><b>${esc(t('mp_rejected', { r: m.reject_reason || '—' }))}</b></div></div><a class="btn btn-primary btn-block" href="${p.purpose === 'store' ? '/business#store-plan' : p.purpose === 'badge' ? '/badge' : p.ref?.type === 'listing' ? `/listing/${p.ref.id}` : '/payments'}">${esc(t(p.purpose === 'store' ? 'st_buy' : p.purpose === 'badge' ? 'tick_get' : 'back'))}</a>`;
+  if (p.status === 'cancelled' && m.reject_reason !== null) return `<div class="note" style="text-align:left;margin:0 0 12px"><div><b>${esc(t('mp_rejected', { r: m.reject_reason || '—' }))}</b></div></div><a class="btn btn-primary btn-block" href="${p.purpose === 'store' ? '/business#store-plan' : p.purpose === 'badge' ? '/verified' : p.ref?.type === 'listing' ? `/listing/${p.ref.id}` : '/payments'}">${esc(t(p.purpose === 'store' ? 'st_buy' : p.purpose === 'badge' ? 'tick_get' : 'back'))}</a>`;
   if (p.status !== 'pending') return '';
   if (m.claimed_at) return `<div class="note" style="text-align:left;margin:0 0 12px">${icon('refresh')}<div><b>${esc(t('mp_waiting'))}</b>${m.note ? `<p>${esc(m.note)}</p>` : ''}</div></div>`;
   const tg = m.telegram ? `https://t.me/${m.telegram.replace(/^@|^https?:\/\/t\.me\//, '')}` : '';
@@ -36,7 +36,7 @@ function manualBox(p) {
 export async function payment({ params }) {
   if (!state.user) return needLogin();
   const p = await api(`/payments/${params[0]}`);
-  const back = p.ref?.type === 'listing' ? `/listing/${p.ref.id}` : p.ref?.type === 'order' ? '/my/orders' : p.purpose === 'plan' ? '/plans' : p.purpose === 'badge' ? '/badge' : p.purpose === 'store' ? '/business' : '/payments';
+  const back = p.ref?.type === 'listing' ? `/listing/${p.ref.id}` : p.ref?.type === 'order' ? '/my/orders' : p.purpose === 'plan' ? '/plans' : p.purpose === 'badge' ? '/verified' : p.purpose === 'store' ? '/business' : '/payments';
   const html = `
     ${crumbs([[t('home'), '/'], [t('payments_history'), '/payments'], [`№ ${p.id}`]])}
     <div style="max-width:560px;margin:0 auto">
@@ -139,6 +139,40 @@ export async function plans() {
       <div class="plan pro"><h3>${esc(biz.name)}</h3><div class="pp">${esc(t('per_month_price', { p: biz.price.formatted }))}</div>
         <ul>${li(t('unlimited_listings'))}${li(t('top_credits', { n: biz.top_credits }))}${li(t('priority_mod'))}${li(t('analytics'))}${li(t('import'))}</ul>
         ${state.user ? `<label class="lbl">${esc(t('term_months'))}</label><div class="seg" data-months>${[1, 3, 6, 12].map((n, i) => `<button type="button" data-v="${n}" class="${i === 0 ? 'on' : ''}">${esc(t('months_n', { n }))}</button>`).join('')}</div>
+        <label class="lbl">${esc(t('pay_with'))}</label>${providerOptions(d.providers)}
+        <button class="btn btn-primary btn-block" data-sub>${esc(t('choose_plan'))}</button>` : `<button class="btn btn-primary btn-block" data-login>${esc(t('login'))}</button>`}</div>
+    </div>`;
+  return {
+    title: t('plans_link'),
+    html,
+    mount(main) {
+      const months = bindSeg(main, '[data-months]');
+      const prov = bindSeg(main, '[data-provider]');
+      $('[data-sub]', main)?.addEventListener('click', async () => {
+        const r = await api('/plans/subscribe', { method: 'POST', body: { plan: 'business', months: Number(months() || 1), provider: prov() || d.providers[0]?.id } });
+        goPay(r);
+      });
+    },
+  };
+}
+
+// ---------- Tasdiq belgisi (galochka): guvohnoma bilan bepul yoki oylik obuna ----------
+export async function badgePage() {
+  const d = await api('/badge');
+  const st = d.status;
+  const li = (txt) => `<li>${icon('check')} ${esc(txt)}</li>`;
+  const html = `
+    ${crumbs([[t('home'), '/'], [t('tick_title')]])}
+    <div class="page-head"><h1 class="page-title">${verifiedTick()} ${esc(t('tick_title'))}</h1><p class="page-sub">${esc(t('tick_sub'))}</p></div>
+    ${st.by_docs ? `<div class="note" style="margin:0 0 18px">${verifiedTick()}<div><b>${esc(t('tick_docs'))}</b><p>${esc(t('tick_docs_free'))}</p></div></div>` : ''}
+    ${st.active ? `<div class="note" style="margin:0 0 18px">${verifiedTick('paid')}<div><b>${esc(t('tick_active', { d: fmtDate(st.until) }))}</b></div></div>` : ''}
+    <div class="plans">
+      <div class="plan"><h3>${verifiedTick()} ${esc(t('tick_free_title'))}</h3><div class="pp">0</div>
+        <ul>${li(t('tick_free_1'))}${li(t('tick_free_2'))}</ul>
+        ${st.by_docs ? `<span class="tag green">${esc(t('tick_have'))}</span>` : st.docs_pending ? `<span class="tag orange">${esc(t('ver_pending'))}</span>` : `<a class="btn btn-soft btn-block" href="/profile#p-company">${icon('upload')} ${esc(t('tick_upload_cert'))}</a>`}</div>
+      <div class="plan pro badge-buy"><h3>${verifiedTick('paid')} ${esc(t('tick_paid_title'))}</h3><div class="pp">${esc(t('per_month_price', { p: d.price.formatted }))}</div>
+        <ul>${li(t('tick_paid_1'))}${li(t('tick_paid_2'))}${li(t('tick_paid_3'))}</ul>
+        ${state.user ? `<label class="lbl">${esc(t('term_months'))}</label><div class="seg" data-months>${[1, 3, 6, 12].map((n, i) => `<button type="button" data-v="${n}" class="${i === 0 ? 'on' : ''}">${esc(t('months_n', { n }))}</button>`).join('')}</div>
         <p class="tiny muted" style="margin:10px 0">${esc(t('tick_admin_note'))}</p>
         ${st.pending_payment ? `<a class="note" style="margin:0 0 10px;display:flex" href="/payments/${st.pending_payment}">${icon('refresh')}<div><b>${esc(t('tick_pending_pay'))}</b></div></a>` : ''}
         <button class="btn btn-primary btn-block" data-buy>${esc(t(st.active ? 'tick_extend' : 'tick_pay_admin'))}</button>` : `<button class="btn btn-primary btn-block" data-login>${esc(t('login'))}</button>`}</div>
@@ -150,7 +184,7 @@ export async function plans() {
       const months = bindSeg(main, '[data-months]');
       $('[data-buy]', main)?.addEventListener('click', async () => {
         const r = await api('/badge/subscribe', { method: 'POST', body: { months: Number(months() || 1), provider: 'admin' } });
-        window.mxGo(`/payments/${r.id}`);
+        go(`/payments/${r.id}`);
       });
     },
   };

@@ -232,7 +232,7 @@ export async function filters({ query }) {
   const html = `
   ${crumbs([[t('home'), '/'], [t('filters')]])}
   <div class="page-head"><h1 class="page-title">${esc(t('filters'))}</h1><p class="page-sub">${esc(t('filters_sub'))}</p></div>
-  <div class="detail" style="grid-template-columns:1fr 340px">
+  <div class="detail side-340">
     <form data-ff>
       <div class="box"><h3>${esc(t('cat_and_offer'))}</h3>
         <div class="form-grid">

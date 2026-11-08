@@ -588,6 +588,7 @@ act_deliver|Yetkazildi|Доставлен|Delivered|Жеткізілді|Жет�
 act_complete|Qabul qildim|Получил|Received|Қабылдадым|Алдым|Гирифтам|Aldym|Aldım|دریافت کردم|ترلاسه مې کړ
 act_cancel|Bekor qilish|Отменить|Cancel|Бас тарту|Жокко чыгаруу|Бекор кардан|Ýatyrmak|Ləğv et|لغو|لغوه کول
 act_review|Sharh qoldirish|Оставить отзыв|Leave a review|Пікір қалдыру|Пикир калтыруу|Тақриз гузоштан|Teswir galdyrmak|Rəy yaz|ثبت نظر|نظر ورکړئ
+track_order|Kuzatish|Отследить|Track|Бақылау|Көзөмөлдөө|Пайгирӣ|Yzarlamak|İzlə|پیگیری|تعقیب
 tracking|Trek raqami|Трек-номер|Tracking number|Трек нөмірі|Трек номери|Рақами пайгирӣ|Trek belgisi|İzləmə nömrəsi|شماره پیگیری|د تعقیب شمېره
 carrier|Tashuvchi|Перевозчик|Carrier|Тасымалдаушы|Ташуучу|Интиқолдиҳанда|Daşaýjy|Daşıyıcı|حمل‌کننده|لېږدوونکی
 eta|Yetkazish muddati|Срок доставки|Delivery time|Жеткізу мерзімі|Жеткирүү мөөнөтү|Мӯҳлати расонидан|Eltip bermek möhleti|Çatdırılma müddəti|زمان تحویل|د رسولو وخت

@@ -87,7 +87,7 @@ export async function myListings({ query }) {
     ${head(t('my_listings'), t('my_listings_sub'))}
     <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start">
       <div class="tabs">${tabs.map(([v, l]) => `<a class="tab ${st === v ? 'on' : ''}" href="/my/listings${qs({ status: v })}">${esc(l)}</a>`).join('')}</div>
-      <div style="display:flex;gap:8px"><a href="/my/promos" class="btn btn-soft">${icon('target')} ${esc(t('my_promos'))}</a><a href="/my/import" class="btn btn-soft">${icon('upload')} ${esc(t('import'))}</a><a href="/create" class="btn btn-primary">${icon('plus')} ${esc(t('post_listing'))}</a></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><a href="/my/promos" class="btn btn-soft">${icon('target')} ${esc(t('my_promos'))}</a><a href="/my/import" class="btn btn-soft">${icon('upload')} ${esc(t('import'))}</a><a href="/create" class="btn btn-primary">${icon('plus')} ${esc(t('post_listing'))}</a></div>
     </div>
     ${st === 'deleted' ? `<p class="small muted" style="margin:0 0 10px">${icon('calendar')} ${esc(t('deleted_note'))}</p>` : ''}
     ${res.items.length ? res.items.map(row).join('') : emptyBox(t('empty'))}
@@ -141,7 +141,7 @@ function orderCard(o) {
   const other = o.role === 'buyer' ? o.seller : o.buyer;
   const delivery = o.delivery.carrier || o.delivery.eta ? t('in_delivery_by', { c: o.delivery.carrier || t(`dm_${o.delivery.method}`), d: o.delivery.eta || '—' }) : t(`dm_${o.delivery.method}`);
   const primary = o.actions.includes('pay') ? `<button class="btn btn-primary btn-sm" data-pay="${o.id}">${icon('card')} ${esc(t('act_pay'))} ${esc(o.escrow.to_pay_formatted)}</button>`
-    : o.status === 'shipped' ? `<button class="btn btn-primary btn-sm" data-track="${o.id}">${esc(t('track'))}</button>` : '';
+    : o.status === 'shipped' ? `<button class="btn btn-primary btn-sm" data-track="${o.id}">${esc(t('track_order'))}</button>` : '';
   return `<div class="order">
     <div class="hd"><span>${esc(t('order_no', { n: o.number, d: fmtDate(o.created_at) }))}</span><span style="display:flex;gap:6px;flex-wrap:wrap">${o.escrow ? `<span class="tag ${o.escrow.status === 'held' || o.escrow.status === 'released' ? 'green' : o.escrow.status === 'disputed' ? 'red' : 'orange'}">${icon('shield')} ${esc(o.escrow.label)}</span>` : ''}${statusTag(o.status, o.status_label)}</span></div>
     <div class="bd">

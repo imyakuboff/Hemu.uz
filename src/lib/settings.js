@@ -154,6 +154,18 @@ function load() {
     if (!def) continue;
     try { setPath(row.key, coerce(def, JSON.parse(row.value))); } catch { /* noto'g'ri qiymat e'tiborsiz */ }
   }
+  // Bir martalik: moderatsiya o'chirilganda navbatda qolgan e'lonlar faollashadi
+  // (firibgarlik/soxta deb shikoyat qilingan e'lonlar tekshiruvda qoladi)
+  if (!getRaw('_mig.noModeration') && !config.listingModeration) {
+    const r = db.run(
+      `UPDATE listings SET status = 'active', reject_reason = NULL, published_at = COALESCE(published_at, datetime('now')),
+         bumped_at = datetime('now'), expires_at = datetime('now', '+30 days')
+       WHERE status = 'moderation'
+         AND id NOT IN (SELECT listing_id FROM reports WHERE listing_id IS NOT NULL AND reason IN ('fraud', 'fake') AND status = 'open')`,
+    );
+    if (r?.changes) console.log(`Moderatsiyadagi ${r.changes} ta e'lon faollashtirildi`);
+    setRaw('_mig.noModeration', 1);
+  }
 }
 
 // Maxfiy kalitlar (parol, secret key) to'liq qaytarilmaydi — faqat oxirgi 4 belgi

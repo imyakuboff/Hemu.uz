@@ -109,6 +109,34 @@ tick_paid_2|Barcha e'lonlaringiz va do'koningizda ko'k belgi|Синяя гало
 tick_paid_3|"Faqat tasdiqlanganlar" filtrida ko'rinasiz|Вас видно в фильтре «Только проверенные»|You appear in the "Verified only" filter|«Тек тексерілгендер» сүзгісінде көрінесіз|«Текшерилгендер гана» чыпкасында көрүнөсүз|Дар филтри «Танҳо санҷидашуда» намоён мешавед|«Diňe barlananlar» süzgüjinde görünersiňiz|«Yalnız yoxlanılmışlar» filtrində görünürsünüz|در فیلتر «فقط تأییدشده‌ها» دیده می‌شوید|د «یوازې تایید شوي» فلټر کې ښکاري
 tick_buy|Tasdiq belgisini sotib olish|Купить галочку|Buy the badge|Белгіні сатып алу|Белгини сатып алуу|Харидани нишон|Belgini satyn almak|Nişanı al|خرید نشان تأیید|نښه واخلئ
 tick_extend|Muddatni uzaytirish|Продлить|Extend|Ұзарту|Узартуу|Тамдид кардан|Uzaltmak|Uzat|تمدید|اوږدول
+crm|Mijozlar (CRM)|Клиенты (CRM)|Customers (CRM)
+crm_sub|Qo'ng'iroq qilmoqchi bo'lgan, yozgan va ariza qoldirgan har bir xaridor — bitta ro'yxatda|Все, кто хотел позвонить, написал или оставил заявку — в одном списке|Everyone who wanted to call, wrote or sent a request — in one list
+crm_leads|Arizalar|Заявки|Requests
+crm_contacts|Mijozlar|Клиенты|Customers
+crm_calls|Raqamni ochdi|Открыли номер|Opened phone
+crm_chats|Yozdi|Написали|Wrote
+crm_conv|Sotuvga aylandi|Конверсия в продажу|Converted
+crm_stage_new|Yangi|Новый|New
+crm_stage_talking|Gaplashilmoqda|В работе|In talks
+crm_stage_agreed|Kelishildi|Договорились|Agreed
+crm_stage_won|Sotildi|Продано|Won
+crm_stage_lost|Bo'lmadi|Отказ|Lost
+crm_all|Hammasi|Все|All
+crm_due|Eslatma vaqti keldi|Пора связаться|Follow-up due
+crm_note_ph|Izoh: nima kelishildi, narx, qachon qayta qo'ng'iroq qilish…|Заметка: о чём договорились, цена, когда перезвонить…|Note: what was agreed, price, when to call back…
+crm_remind|Eslatma|Напомнить|Remind
+crm_due_n|Bugun bog'lanish kerak: {n} ta mijoz|Сегодня нужно связаться: {n}|Follow-ups due today: {n}
+crm_write|Yozish|Написать|Message
+crm_call_n|Raqamni ochdi: {n}|Открыл номер: {n}|Opened phone: {n}
+crm_msg_n|Xabar: {n}|Сообщений: {n}|Messages: {n}
+crm_lead_n|Ariza: {n}|Заявок: {n}|Requests: {n}
+crm_empty|Hozircha murojaat yo'q. E'lonlaringizni TOPga chiqaring — mijozlar shu yerda paydo bo'ladi.|Пока обращений нет. Поднимите объявления в ТОП — клиенты появятся здесь.|No contacts yet. Boost your listings — customers will show up here.
+crm_locked_title|So'nggi {d} kunda sizga {n} kishi murojaat qildi|За последние {d} дн. к вам обратились: {n}|{n} people contacted you in the last {d} days
+crm_locked_sub|Ular kimligini ko'rish, har biri bilan ishni bosqichma-bosqich kuzatish va eslatma qo'yish uchun «Do'kon» tarifini ulang.|Чтобы видеть, кто это, вести каждого клиента по этапам и ставить напоминания, подключите тариф «Магазин».|Get the Store plan to see who they are, track each customer by stage and set reminders.
+crm_need_company|Do'kon tarifi kompaniya uchun ulanadi — avval kompaniya qo'shing.|Тариф «Магазин» подключается для компании — сначала добавьте компанию.|The Store plan is for companies — add your company first.
+crm_privacy|Xaridor raqami ko'rsatilmaydi — u bilan sayt chatida bog'laning.|Номер покупателя не показывается — свяжитесь с ним в чате сайта.|Buyer phone numbers are not shown — contact them via site chat.
+crm_user|Xaridor #{id}|Покупатель #{id}|Buyer #{id}
+st_f6|Mijozlar CRM: kim raqamni ochdi, kim yozdi — bosqich, izoh va eslatmalar bilan|CRM клиентов: кто открыл номер и кто написал — с этапами, заметками и напоминаниями|Customer CRM: who opened your number and who wrote — with stages, notes and reminders
 st_title|Do'kon tarifi|Тариф «Магазин»|Store plan|«Дүкен» тарифі|«Дүкөн» тарифи|Тарифи «Мағоза»|«Dükan» tarifi|«Mağaza» tarifi|طرح «فروشگاه»|د «پلورنځي» تعرفه
 st_sub|Dilerlar uchun: o'z brendingizdagi alohida do'kon sahifasi|Для дилеров: отдельная страница магазина в вашем бренде|For dealers: your own branded store page|Дилерлерге: өз брендіңіздегі жеке дүкен беті|Дилерлер үчүн: өз брендиңиздеги өзүнчө дүкөн барагы|Барои дилерҳо: саҳифаи алоҳидаи мағоза бо бренди худ|Dilerler üçin: öz brendiňizdäki aýratyn dükan sahypasy|Dilerlər üçün: öz brendinizdə ayrıca mağaza səhifəsi|برای نمایندگی‌ها: صفحه فروشگاه اختصاصی با برند شما|د ډیلرانو لپاره: ستاسو په برانډ جلا پلورنځی پاڼه
 st_f1|Muqova banner va brend rangi|Обложка-баннер и фирменный цвет|Cover banner and brand colour|Мұқаба баннер және бренд түсі|Мукаба баннер жана бренд түсү|Баннери муқова ва ранги бренд|Örtük banner we brend reňki|Üz banner və brend rəngi|بنر جلد و رنگ برند|پوښ بینر او د برانډ رنګ

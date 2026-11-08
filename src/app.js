@@ -88,6 +88,7 @@ function createApp() {
   api.use(require('./routes/orders').router);
   api.use(require('./routes/requests').router);
   api.use(require('./routes/seller').router);
+  api.use(require('./routes/crm').router);
   api.use(require('./routes/payments').router);
   api.use(require('./routes/trust').router);
   api.use(require('./routes/rental').router);

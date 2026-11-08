@@ -50,6 +50,7 @@ const routes = [
   [/^\/compare$/, () => import('./pages/extra.js'), 'compare'],
   [/^\/my\/import$/, () => import('./pages/extra.js'), 'importPage'],
   [/^\/analytics$/, () => import('./pages/extra.js'), 'analytics'],
+  [/^\/crm$/, () => import('./pages/extra.js'), 'crm'],
 ];
 
 const app = document.getElementById('app');

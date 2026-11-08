@@ -514,7 +514,13 @@ r.delete('/listings/:id/photos/:photoId', requireAuth, (req, res) => {
 r.post('/listings/:id/phone', requireAuth, rateLimit({ name: 'phone', windowMs: 3600000, max: 100, key: (req) => req.user.id }), (req, res) => {
   const l = loadListing(req.params.id);
   if (l.status !== 'active') notFound();
-  if (req.user.id !== l.user_id) bumpStat(l.id, 'phone_reveals');
+  if (req.user.id !== l.user_id) {
+    bumpStat(l.id, 'phone_reveals');
+    // CRM uchun: bir xaridor bir e'lon bo'yicha sutkada bir marta yoziladi
+    if (!db.get(`SELECT 1 FROM phone_reveal_log WHERE listing_id = ? AND buyer_id = ? AND created_at > datetime('now', '-1 day')`, l.id, req.user.id)) {
+      db.insert('phone_reveal_log', { listing_id: l.id, seller_id: l.user_id, buyer_id: req.user.id });
+    }
+  }
   const company = l.company_id ? db.get('SELECT work_hours FROM companies WHERE id = ?', l.company_id) : null;
   res.json({ phone: l.contact_phone, contact_name: l.contact_name, work_hours: company?.work_hours || null });
 });

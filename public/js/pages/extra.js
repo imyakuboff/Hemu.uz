@@ -1,4 +1,4 @@
-import { state, t, esc, api, icon, num, fmtDate, toast, openModal, closeModal, $, $$ } from '../core.js';
+import { state, t, esc, api, icon, num, fmtDate, fmtTime, toast, openModal, closeModal, $, $$ } from '../core.js';
 import { crumbs, accountLayout, imgOf, priceText, emptyBox, factsLine, verifiedTick } from '../ui.js';
 import { providerOptions, bindSeg, goPay, compareList, toggleCompare } from '../features.js';
 import { go, render, refreshBadges } from '../app.js';
@@ -302,6 +302,89 @@ export async function analytics({ query }) {
       <div style="overflow-x:auto"><table class="spec" style="font-size:12px"><tr><td><b>${esc(t('listing_title'))}</b></td><td><b>${esc(t('f_views'))}</b></td><td><b>${esc(t('f_phone_reveals'))}</b></td><td><b>${esc(t('f_conversations'))}</b></td><td><b>${esc(t('conversion'))}</b></td></tr>
       ${a.top.map((x) => `<tr><td><a class="link-blue" href="/listing/${x.id}">${esc(x.title)}</a></td><td>${num(x.views)}</td><td>${num(x.phones)}</td><td>${num(x.chats)}</td><td>${String(x.conversion).replace('.', ',')}%</td></tr>`).join('')}</table></div></div>`);
   return { title: t('analytics'), html };
+}
+
+// ---------- Mijozlar (CRM) ----------
+const CRM_STAGES = ['new', 'talking', 'agreed', 'won', 'lost'];
+const CRM_TAG = { new: '', talking: 'orange', agreed: 'orange', won: 'green', lost: 'grey' };
+export async function crm({ query }) {
+  if (!state.user) return needLogin();
+  const days = [7, 30, 90, 365].includes(Number(query.days)) ? Number(query.days) : 30;
+  const stage = CRM_STAGES.includes(query.stage) ? query.stage : '';
+  const d = await api(`/crm?days=${days}`);
+  const s = d.summary;
+  const head = `${crumbs([[t('home'), '/'], [t('dashboard'), '/dashboard'], [t('crm')]])}
+    <div class="page-head" style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-end"><div><h1 class="page-title">${esc(t('crm'))}</h1><p class="page-sub">${esc(t('crm_sub'))}</p></div>
+      <div class="tabs" style="margin:0">${[7, 30, 90].map((n) => `<a class="tab ${days === n ? 'on' : ''}" href="/crm?days=${n}${stage ? `&stage=${stage}` : ''}">${esc(t('last_n_days', { n }))}</a>`).join('')}</div></div>`;
+  const tiles = (arr) => `<div class="stats" style="margin:0 0 14px">${arr.map(([l, v]) => `<div class="stat"><span>${esc(l)}</span><b>${v}</b></div>`).join('')}</div>`;
+
+  if (d.locked) {
+    const html = accountLayout('/dashboard', `${head}
+      ${tiles([[t('crm_contacts'), num(s.contacts)], [t('crm_calls'), num(s.calls)], [t('crm_chats'), num(s.messages)], [t('crm_leads'), num(s.leads)]])}
+      <div class="box crm-locked">
+        <div class="crm-ghost" aria-hidden="true">${[1, 2, 3].map(() => '<div class="crm-card"><div class="crm-ghost-line w60"></div><div class="crm-ghost-line w40"></div><div class="crm-ghost-line w80"></div></div>').join('')}</div>
+        <div class="crm-lock-msg">
+          <h3>${esc(t('crm_locked_title', { d: days, n: num(s.contacts) }))}</h3>
+          <p class="muted">${esc(d.has_company ? t('crm_locked_sub') : t('crm_need_company'))}</p>
+          <a class="btn btn-primary" href="${d.has_company ? '/business#store-plan' : '/profile#p-company'}">${icon('rocket')} ${esc(d.has_company ? t('st_buy') : t('create_company'))}</a>
+        </div>
+      </div>`);
+    return { title: t('crm'), html };
+  }
+
+  const items = stage ? d.items.filter((x) => x.stage === stage) : d.items;
+  const today = new Date().toISOString().slice(0, 10);
+  const card = (x) => {
+    const due = x.remind_on && x.remind_on <= today && !['won', 'lost'].includes(x.stage);
+    const who = x.name || t('crm_user', { id: x.buyer_id });
+    return `<div class="crm-card${due ? ' due' : ''}" data-buyer="${x.buyer_id}">
+      <div class="crm-top">
+        <div style="min-width:0"><b class="crm-name">${esc(who)}</b>${x.company ? `<span class="tiny muted"> · ${esc(x.company)}</span>` : ''}
+          <div class="tiny muted">${esc(fmtTime(x.last_at))}${due ? ` · <span class="tag red">${esc(t('crm_due'))}</span>` : ''}</div></div>
+        <select class="input crm-stage" data-stage aria-label="${esc(t('crm'))}">${CRM_STAGES.map((v) => `<option value="${v}" ${x.stage === v ? 'selected' : ''}>${esc(t(`crm_stage_${v}`))}</option>`).join('')}</select>
+      </div>
+      <div class="crm-acts">${x.calls ? `<span class="chip-x">${icon('phone')} ${esc(t('crm_call_n', { n: x.calls }))}</span>` : ''}${x.messages ? `<span class="chip-x">${icon('chat')} ${esc(t('crm_msg_n', { n: x.messages }))}</span>` : ''}${x.leads ? `<span class="chip-x">${icon('clipboard')} ${esc(t('crm_lead_n', { n: x.leads }))}</span>` : ''}</div>
+      ${x.listings.length ? `<div class="crm-lst tiny">${x.listings.map((l) => `<a class="link-blue" href="/listing/${l.id}">${esc(l.title)}</a>`).join(' · ')}</div>` : ''}
+      ${x.last_text ? `<p class="crm-quote">“${esc(x.last_text)}”</p>` : ''}
+      <textarea class="input crm-note" data-note rows="2" maxlength="1000" placeholder="${esc(t('crm_note_ph'))}">${esc(x.note)}</textarea>
+      <div class="crm-foot">
+        <label class="tiny muted crm-remind">${icon('calendar')} ${esc(t('crm_remind'))} <input type="date" class="input" data-remind value="${esc(x.remind_on || '')}"></label>
+        <button type="button" class="btn btn-primary btn-sm" data-write>${icon('chat')} ${esc(t('crm_write'))}</button>
+      </div>
+    </div>`;
+  };
+  const html = accountLayout('/dashboard', `${head}
+    ${tiles([[t('crm_contacts'), num(s.contacts)], [t('crm_calls'), num(s.calls)], [t('crm_chats'), num(s.messages)], [t('crm_conv'), `${String(s.conversion).replace('.', ',')}%`]])}
+    ${d.reminders ? `<div class="note" style="margin:0 0 14px">${icon('bell')}<div><b>${esc(t('crm_due_n', { n: d.reminders }))}</b></div></div>` : ''}
+    <div class="chips" style="margin-bottom:14px"><a class="chip ${stage ? '' : 'on'}" href="/crm?days=${days}">${esc(t('crm_all'))} · ${d.items.length}</a>${CRM_STAGES.map((v) => `<a class="chip ${stage === v ? 'on' : ''}" href="/crm?days=${days}&stage=${v}">${esc(t(`crm_stage_${v}`))} · ${d.stages[v]}</a>`).join('')}</div>
+    ${items.length ? `<div class="crm-list">${items.map(card).join('')}</div>` : `<div class="box empty"><p>${esc(t('crm_empty'))}</p></div>`}
+    <p class="tiny muted" style="margin-top:12px">${esc(t('crm_privacy'))}</p>`);
+  return {
+    title: t('crm'),
+    html,
+    mount(main) {
+      const save = async (el, body) => {
+        const id = el.closest('[data-buyer]').dataset.buyer;
+        await api(`/crm/contacts/${id}`, { method: 'PATCH', body });
+        toast(t('saved'), 'ok');
+      };
+      main.addEventListener('change', (e) => {
+        if (e.target.matches('[data-stage]')) save(e.target, { stage: e.target.value }).catch(() => {});
+        if (e.target.matches('[data-remind]')) save(e.target, { remind_on: e.target.value }).catch(() => {});
+        if (e.target.matches('[data-note]')) save(e.target, { note: e.target.value.trim() }).catch(() => {});
+      });
+      main.addEventListener('click', async (e) => {
+        const w = e.target.closest('[data-write]');
+        if (!w) return;
+        w.disabled = true;
+        try {
+          const id = w.closest('[data-buyer]').dataset.buyer;
+          const c = await api(`/crm/contacts/${id}/chat`, { method: 'POST' });
+          go(`/messages/${c.id}`);
+        } finally { w.disabled = false; }
+      });
+    },
+  };
 }
 
 export { go, factsLine };

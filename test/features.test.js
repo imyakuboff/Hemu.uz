@@ -579,3 +579,48 @@ test("moderatsiya o'chiq: e'lon darhol faol bo'ladi; yoqilsa tekshiruvga tushadi
     assert.equal(db.get('SELECT status FROM listings WHERE id = ?', a).status, 'moderation');
   } finally { config.listingModeration = prev; }
 });
+
+test("CRM: raqamni ochgan va yozgan xaridorlar; Do'kon tarifisiz faqat sonlar; bosqich, izoh, chat", async () => {
+  const me = S.seller.user.id;
+  const l = db.get(`SELECT id FROM listings WHERE user_id = ? AND status = 'active' ORDER BY id LIMIT 1`, me);
+  const b = await login('+998935557788');
+  db.run('UPDATE companies SET store_until = NULL WHERE owner_id = ?', me);
+  // Raqamni ikki marta ochish — sutkada bitta yozuv
+  assert.equal((await api('POST', `/api/v1/listings/${l.id}/phone`, { token: b.token })).status, 200);
+  await api('POST', `/api/v1/listings/${l.id}/phone`, { token: b.token });
+  assert.equal(db.get('SELECT COUNT(*) AS n FROM phone_reveal_log WHERE buyer_id = ? AND listing_id = ?', b.user.id, l.id).n, 1);
+  // Tarifsiz: ism-sharif yo'q, faqat statistik son
+  const locked = await api('GET', '/api/v1/crm', { token: S.seller.token });
+  assert.equal(locked.body.locked, true);
+  assert.ok(locked.body.summary.contacts >= 1 && locked.body.summary.calls >= 1);
+  assert.equal(locked.body.items, undefined);
+  assert.equal((await api('PATCH', `/api/v1/crm/contacts/${b.user.id}`, { token: S.seller.token, body: { stage: 'talking' } })).status, 402);
+  // Do'kon tarifi faol
+  db.run(`UPDATE companies SET store_until = datetime('now', '+1 month') WHERE owner_id = ?`, me);
+  const open = await api('GET', '/api/v1/crm', { token: S.seller.token });
+  assert.equal(open.body.locked, false);
+  const c = open.body.items.find((x) => x.buyer_id === b.user.id);
+  assert.ok(c, JSON.stringify(open.body.items.map((x) => x.buyer_id)));
+  assert.equal(c.calls, 1);
+  assert.equal(c.stage, 'new');
+  assert.equal(c.phone, undefined, "xaridor raqami ko'rsatilmaydi");
+  const up = await api('PATCH', `/api/v1/crm/contacts/${b.user.id}`, { token: S.seller.token, body: { stage: 'agreed', note: 'Ertaga ko\'rishga keladi', remind_on: '2026-01-01' } });
+  assert.equal(up.status, 200, JSON.stringify(up.body));
+  const again = (await api('GET', '/api/v1/crm', { token: S.seller.token })).body;
+  const c2 = again.items.find((x) => x.buyer_id === b.user.id);
+  assert.equal(c2.stage, 'agreed');
+  assert.equal(c2.note, "Ertaga ko'rishga keladi");
+  assert.ok(again.reminders >= 1);
+  // Begona (murojaat qilmagan) foydalanuvchi — 404
+  assert.equal((await api('PATCH', `/api/v1/crm/contacts/${S.kz.user.id}`, { token: S.seller.token, body: { stage: 'won' } })).status, 404);
+  // Sotuvchi o'zi yozishi uchun suhbat; xaridor bir xil suhbatda
+  const ch = await api('POST', `/api/v1/crm/contacts/${b.user.id}/chat`, { token: S.seller.token });
+  assert.equal(ch.status, 200);
+  const conv = db.get('SELECT * FROM conversations WHERE id = ?', ch.body.id);
+  assert.equal(conv.buyer_id, b.user.id);
+  assert.equal(conv.seller_id, me);
+  assert.equal((await api('POST', `/api/v1/crm/contacts/${b.user.id}/chat`, { token: S.seller.token })).body.id, ch.body.id);
+  // Boshqa sotuvchi bu mijozni ko'rmaydi
+  const kz = (await api('GET', '/api/v1/crm', { token: S.kz.token })).body;
+  assert.ok(!kz.items?.some((x) => x.buyer_id === b.user.id));
+});

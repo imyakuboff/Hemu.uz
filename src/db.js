@@ -232,6 +232,27 @@ CREATE TABLE IF NOT EXISTS request_offers (
 );
 
 -- E'lon bo'yicha arizalar: ko'rik, hisob-faktura, moslik, ijara
+-- CRM: kim telefon raqamini ochgani (sotuvchining mijozlar ro'yxati uchun)
+CREATE TABLE IF NOT EXISTS phone_reveal_log (
+  id INTEGER PRIMARY KEY,
+  listing_id INTEGER NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
+  seller_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  buyer_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS ix_reveal_seller ON phone_reveal_log(seller_id, created_at);
+
+-- CRM: sotuvchi mijozni qaysi bosqichda ko'radi, izoh va eslatma
+CREATE TABLE IF NOT EXISTS crm_contacts (
+  seller_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  buyer_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  stage TEXT NOT NULL DEFAULT 'new',             -- new | talking | agreed | won | lost
+  note TEXT,
+  remind_on TEXT,                                -- YYYY-MM-DD
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (seller_id, buyer_id)
+);
+
 CREATE TABLE IF NOT EXISTS leads (
   id INTEGER PRIMARY KEY,
   listing_id INTEGER NOT NULL REFERENCES listings(id) ON DELETE CASCADE,

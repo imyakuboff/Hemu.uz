@@ -75,7 +75,7 @@ export async function business() {
 function storePlanBox(sp, mine) {
   const st = sp.status;
   const li = (k) => `<li>${icon('check')} ${esc(t(k))}</li>`;
-  const feats = `<ul class="st-feats">${['st_f1', 'st_f2', 'st_f3', 'st_f4', 'st_f5'].map(li).join('')}</ul>`;
+  const feats = `<ul class="st-feats">${['st_f6', 'st_f1', 'st_f2', 'st_f3', 'st_f4', 'st_f5'].map(li).join('')}</ul>`;
   const buy = `<label class="lbl">${esc(t('term_months'))}</label><div class="seg" data-st-months>${[1, 3, 6, 12].map((n, i) => `<button type="button" data-v="${n}" class="${i === 0 ? 'on' : ''}">${esc(t('months_n', { n }))}</button>`).join('')}</div>
     <p class="tiny muted" style="margin:10px 0">${esc(t('tick_admin_note'))}</p>
     ${st.pending_payment ? `<a class="note" style="margin:0 0 10px;display:flex" href="/payments/${st.pending_payment}">${icon('refresh')}<div><b>${esc(t('tick_pending_pay'))}</b></div></a>` : ''}

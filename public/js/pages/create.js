@@ -7,6 +7,17 @@ const field = (label, inner, { req = false, full = false, hint = '' } = {}) => `
 const input = (name, v = '', attrs = '') => `<input class="input" name="${name}" value="${esc(v ?? '')}" ${attrs}>`;
 const numIn = (name, v) => input(name, v ?? '', 'inputmode="numeric"');
 const sel = (name, opts, v) => `<select class="input" name="${name}">${opts.map(([val, l]) => `<option value="${esc(val)}" ${String(val) === String(v ?? '') ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>`;
+// Ixtiyoriy maydonlar yig'ilgan holda turadi — forma qisqa va tushunarli bo'ladi
+const more = (inner, open = false) => `<details class="more-box"${open ? ' open' : ''}><summary>${esc(t('more_opt'))}</summary><div class="form-grid">${inner}</div></details>`;
+const filled = (...vals) => vals.some((v) => v !== undefined && v !== null && v !== '' && v !== 0 && !(Array.isArray(v) && !v.length));
+// Narx birligi: sotuvda kerak emas (umumiy narx), ijarada soat/kun/smena, ehtiyot qismda umumiy/dona
+const UNITS = { rent: ['hour', 'day', 'shift', 'total'], part: ['total', 'piece'] };
+function unitField(kind, deal, v) {
+  const list = kind === 'part' ? UNITS.part : deal === 'rent' ? UNITS.rent : null;
+  if (!list) return '<input type="hidden" name="price_unit" value="total">';
+  const val = list.includes(v) ? v : list[0];
+  return field(t('price_unit'), sel('price_unit', list.map((u) => [u, state.meta.price_units.find((x) => x.value === u)?.label || t('unit_total')]), val));
+}
 const findRoot = (slug) => state.cats.find((c) => c.slug === slug || c.children.some((s) => s.slug === slug));
 
 function needLogin() {
@@ -24,13 +35,14 @@ function specsHtml(kind, e, deal) {
   if (kind === 'part') {
     return `<div class="form-grid">
       ${field(t('brand'), input('brand', e.brand), { req: true })}${field(t('article'), input('part_number', e.part_number))}
-      ${field(t('manufacturer'), input('manufacturer', e.manufacturer))}${field(t('condition'), sel('condition', conds, e.condition), { req: true })}
-      ${field(t('stock'), numIn('stock_qty', e.stock_qty))}${field(`${t('warranty')}, ${t('months', { n: '' }).trim()}`, numIn('warranty_months', e.warranty_months))}
-      ${field(t('analogs'), input('analogs', e.analogs), { full: true })}
+      ${field(t('condition'), sel('condition', conds, e.condition), { req: true })}${field(t('stock'), numIn('stock_qty', e.stock_qty))}
       ${field(t('compat_hint'), input('compatibility', (e.compatibility || []).join(', ')), { full: true })}
+    </div>
+    ${more(`${field(t('manufacturer'), input('manufacturer', e.manufacturer))}${field(`${t('warranty')}, ${t('months', { n: '' }).trim()}`, numIn('warranty_months', e.warranty_months))}
+      ${field(t('analogs'), input('analogs', e.analogs), { full: true })}
       ${field(t('pickup'), input('d_pickup', e.delivery?.pickup))}${field(t('delivery_local'), input('d_local', e.delivery?.local))}
-      ${field(t('delivery_national'), input('d_national', e.delivery?.national))}${field(t('payment'), input('d_payment', e.delivery?.payment))}
-    </div>`;
+      ${field(t('delivery_national'), input('d_national', e.delivery?.national))}${field(t('payment'), input('d_payment', e.delivery?.payment))}`,
+      filled(e.manufacturer, e.warranty_months, e.analogs, e.delivery?.pickup, e.delivery?.local, e.delivery?.national, e.delivery?.payment))}`;
   }
   if (kind === 'material') {
     return `<div class="form-grid">
@@ -45,18 +57,19 @@ function specsHtml(kind, e, deal) {
   if (kind === 'service' || deal === 'rent') {
     return `<div class="form-grid">${field(t('brand'), input('brand', e.brand))}${field(t('model'), input('model', e.model))}
       ${field(t('year'), numIn('year', e.year))}${field(t('min_order'), input('min_order', e.min_order))}
-      ${field(t('sp_capacity'), numIn('capacity_t', e.capacity_t))}${field(t('sp_power'), numIn('power_hp', e.power_hp))}
-      <label class="check full"><input type="checkbox" name="with_operator" ${e.with_operator ? 'checked' : ''}> ${esc(t('with_operator'))}</label></div>`;
+      <label class="check full"><input type="checkbox" name="with_operator" ${e.with_operator ? 'checked' : ''}> ${esc(t('with_operator'))}</label></div>
+    ${more(`${field(t('sp_capacity'), numIn('capacity_t', e.capacity_t))}${field(t('sp_power'), numIn('power_hp', e.power_hp))}`, filled(e.capacity_t, e.power_hp))}`;
   }
   return `<div class="form-grid">
     ${field(t('brand'), input('brand', e.brand), { req: true })}${field(t('model'), input('model', e.model), { req: true })}
-    ${field(t('year'), numIn('year', e.year), { req: true })}${field(`${t('sp_hours')}, ${t('u_mh')}`, numIn('hours', e.hours))}
-    ${field(t('condition'), sel('condition', conds, e.condition), { req: true })}${field(`${t('sp_power')}, ${t('u_hp')}`, numIn('power_hp', e.power_hp))}
-    ${field(`${t('sp_weight')}, kg`, numIn('weight_kg', e.weight_kg))}${field(t('sp_drive'), input('drive', e.drive, 'list="drives"'))}
-    ${field(`${t('sp_mileage')}, ${t('u_km')}`, numIn('mileage_km', e.mileage_km))}${field(t('sp_docs'), input('docs', e.docs))}
+    ${field(t('year'), numIn('year', e.year), { req: true })}${field(t('condition'), sel('condition', conds, e.condition), { req: true })}
+    ${field(`${t('sp_hours')}, ${t('u_mh')}`, numIn('hours', e.hours))}${field(`${t('sp_mileage')}, ${t('u_km')}`, numIn('mileage_km', e.mileage_km))}
+  </div>
+  ${more(`${field(`${t('sp_power')}, ${t('u_hp')}`, numIn('power_hp', e.power_hp))}${field(`${t('sp_weight')}, kg`, numIn('weight_kg', e.weight_kg))}
+    ${field(t('sp_drive'), input('drive', e.drive, 'list="drives"'))}${field(t('sp_docs'), input('docs', e.docs))}
     ${field(t('serial_number'), input('serial_number', e.serial_number, 'maxlength="40" autocomplete="off"'), { full: true })}
-    <datalist id="drives"><option value="4×4"><option value="4×2"><option value="6×4"><option value="6×6"><option value="8×4"></datalist>
-  </div>`;
+    <datalist id="drives"><option value="4×4"><option value="4×2"><option value="6×4"><option value="6×6"><option value="8×4"></datalist>`,
+    filled(e.power_hp, e.weight_kg, e.drive, e.docs, e.serial_number))}`;
 }
 
 // ---------- E'lon yaratish / tahrirlash ----------
@@ -77,7 +90,6 @@ export async function listing({ params }) {
   const root = findRoot(e.category) || state.cats[0];
   const company = state.user.company;
   const cur = state.meta.currencies.map((c) => [c.code, c.code]);
-  const units = state.meta.price_units.map((u) => [u.value, u.label || t('unit_total')]);
   const vats = [['', t('vat_none')], ...[12, 15, 18, 20].map((n) => [n, t('vat_incl', { n })])];
   const isActive = e.status === 'active';
 
@@ -88,11 +100,11 @@ export async function listing({ params }) {
   ${e.reject_reason ? `<div class="note" style="margin:0 0 16px"><div><b>${esc(t('reject_reason', { r: e.reject_reason }))}</b></div></div>` : ''}
   ${!id && !company ? `<div class="note" style="margin:0 0 16px">${icon('user')}<div><b>${esc(t('seller_private'))}</b><p>${esc(t('private_sell_hint'))}</p></div></div>` : ''}
   <form data-lf novalidate>
-    <div class="box"><h3>${esc(t('basic_info'))}</h3>
-      <div class="seg" data-deal>${state.meta.deal_types.map((d) => `<button type="button" data-v="${d.value}" class="${e.deal_type === d.value ? 'on' : ''}">${esc(d.label)}</button>`).join('')}</div>
+    <div class="box"><h3>${esc(t('what_post'))}</h3>
       <div class="form-grid">
         ${field(t('category'), sel('category', state.cats.map((c) => [c.slug, shortCat(c)]), root.slug), { req: true })}
         ${field(t('subcategory'), `<select class="input" name="subcategory">${root.children.map((s) => `<option value="${s.slug}" ${s.slug === e.subcategory ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select>`, { req: true })}
+        <div class="full" data-deal-wrap ${root.kind === 'part' ? 'hidden' : ''}><div class="seg" data-deal style="margin:0">${state.meta.deal_types.map((d) => `<button type="button" data-v="${d.value}" class="${(root.kind === 'part' ? 'sale' : e.deal_type) === d.value ? 'on' : ''}">${esc(d.label)}</button>`).join('')}</div></div>
         ${field(t('listing_title'), input('title', e.title, 'maxlength="80"'), { req: true, full: true, hint: `${esc(t('title_hint'))} <span data-tcount>${(e.title || '').length}</span> / 80` })}
       </div>
     </div>
@@ -103,21 +115,25 @@ export async function listing({ params }) {
     <!-- Tavsif kerak emas: e'lon xarakteristikalar bilan to'ldiriladi -->
     <div class="box"><h3>${esc(t('price_location'))}</h3>
       <div class="form-grid">
-        ${field(t('price'), numIn('price', e.price), { req: true })}
-        <div class="row2i">${field(t('currency'), sel('currency', cur, e.currency))}${field(t('price_unit'), sel('price_unit', units, e.price_unit || 'total'))}</div>
+        <div class="row2i">${field(t('price'), numIn('price', e.price), { req: true })}${field(t('currency'), sel('currency', cur, e.currency))}</div>
+        <div data-unit style="display:contents">${unitField(root.kind, e.deal_type, e.price_unit)}</div>
         ${field(t('country'), sel('country', state.meta.countries.map((c) => [c.code, c.name]), e.country), { req: true })}
         ${field(t('city'), `<select class="input" name="region">${await regionOpts(e.country, e.region)}</select>`, { req: true })}
-        ${field(t('sp_vat'), sel('vat_rate', vats, e.vat_rate ?? ''))}
-        ${field(t('site_address'), input('address', e.address))}
       </div>
-      <label class="lbl" style="margin-top:14px">${esc(t('set_on_map'))}</label><div class="map-box" data-pick></div>
-      <input type="hidden" name="lat" value="${esc(e.lat ?? '')}"><input type="hidden" name="lng" value="${esc(e.lng ?? '')}">
-      <label class="check" style="margin-top:12px"><input type="checkbox" name="leasing" ${e.leasing ? 'checked' : ''}> ${esc(t('leasing'))}</label>
-      <label class="check"><input type="checkbox" name="price_from" ${e.price_from ? 'checked' : ''}> ${esc(t('price_from_lbl'))}</label>
+      <details class="more-box" data-more-price ${filled(e.vat_rate, e.address, e.lat, e.leasing, e.price_from) ? 'open' : ''}><summary>${esc(t('more_opt'))}</summary>
+        <div class="form-grid">
+          ${field(t('sp_vat'), sel('vat_rate', vats, e.vat_rate ?? ''))}
+          ${field(t('site_address'), input('address', e.address))}
+        </div>
+        <label class="lbl" style="margin-top:14px">${esc(t('set_on_map'))}</label><div class="map-box" data-pick></div>
+        <input type="hidden" name="lat" value="${esc(e.lat ?? '')}"><input type="hidden" name="lng" value="${esc(e.lng ?? '')}">
+        <label class="check" style="margin-top:12px"><input type="checkbox" name="leasing" ${e.leasing ? 'checked' : ''}> ${esc(t('leasing'))}</label>
+        <label class="check"><input type="checkbox" name="price_from" ${e.price_from ? 'checked' : ''}> ${esc(t('price_from_lbl'))}</label>
+      </details>
     </div>
     <div class="box"><h3>${esc(t('seller_contacts'))}</h3>
       <div class="form-grid">
-        ${field(company ? t('company') : t('seller_private'), `<input class="input" value="${esc(company?.name || state.user.name || t('seller_private'))}" disabled>`)}
+        ${company ? field(t('company'), `<input class="input" value="${esc(company.name)}" disabled>`, { full: true }) : ''}
         ${field(t('contact_person'), input('contact_name', e.contact_name), { req: true })}
         ${field(t('phone'), input('contact_phone', e.contact_phone, 'type="tel"'), { req: true })}
         ${field(t('email'), input('contact_email', e.contact_email, 'type="email"'))}
@@ -148,8 +164,8 @@ export async function listing({ params }) {
       }).catch(() => { $('[data-tier-box]', main)?.remove(); });
       const chosenTier = () => main.querySelector('input[name=d_tier]:checked')?.value || '';
       const form = $('[data-lf]', main);
-      let deal = e.deal_type || 'sale';
       let kind = root.kind;
+      let deal = kind === 'part' ? 'sale' : e.deal_type || 'sale';
       let busy = false;
 
       const drawPhotos = () => {
@@ -158,6 +174,13 @@ export async function listing({ params }) {
       };
       drawPhotos();
 
+      const redraw = () => {
+        const v = collect();
+        $('[data-specs]', main).innerHTML = specsHtml(kind, v, deal);
+        // Yashirin "umumiy" qiymat ijaraga o'tganda soatbay narxga almashadi
+        const prevUnit = form.price_unit?.tagName === 'SELECT' ? v.price_unit : undefined;
+        $('[data-unit]', main).innerHTML = unitField(kind, deal, prevUnit);
+      };
       const collect = () => {
         const v = {};
         for (const el of form.elements) {
@@ -206,15 +229,21 @@ export async function listing({ params }) {
         const b = ev.target.closest('[data-v]');
         if (!b) return;
         deal = b.dataset.v;
-        $$('[data-v]', main).forEach((x) => x.classList.toggle('on', x === b));
-        $('[data-specs]', main).innerHTML = specsHtml(kind, collect(), deal);
+        $$('[data-deal] [data-v]', main).forEach((x) => x.classList.toggle('on', x === b));
+        redraw();
         autosave();
       });
       form.category.addEventListener('change', () => {
         const r = findRoot(form.category.value);
         kind = r.kind;
         form.subcategory.innerHTML = r.children.map((s) => `<option value="${s.slug}">${esc(s.name)}</option>`).join('');
-        $('[data-specs]', main).innerHTML = specsHtml(kind, collect(), deal);
+        // Ehtiyot qism ijaraga berilmaydi — faqat sotuv
+        $('[data-deal-wrap]', main).hidden = kind === 'part';
+        if (kind === 'part' && deal !== 'sale') {
+          deal = 'sale';
+          $$('[data-deal] [data-v]', main).forEach((x) => x.classList.toggle('on', x.dataset.v === 'sale'));
+        }
+        redraw();
       });
       form.country.addEventListener('change', async () => {
         form.region.innerHTML = await regionOpts(form.country.value, '');
@@ -226,7 +255,16 @@ export async function listing({ params }) {
       const CITY = { tashkent: [41.31, 69.28], 'tashkent-city': [41.31, 69.28], 'almaty-city': [43.24, 76.95], bishkek: [42.87, 74.57], dushanbe: [38.56, 68.79], ashgabat: [37.96, 58.33], baku: [40.41, 49.87], moscow: [55.76, 37.62], kabul: [34.55, 69.21] };
       const pickEl = $('[data-pick]', main);
       const c0 = e.lat ? null : CITY[e.region] || { UZ: [41.31, 69.28], KZ: [43.24, 76.95], KG: [42.87, 74.57], TJ: [38.56, 68.79], TM: [37.96, 58.33], AZ: [40.41, 49.87], RU: [55.76, 37.62], AF: [34.55, 69.21] }[e.country];
-      mapWidget(pickEl, { picked: e.lat ? { lat: e.lat, lng: e.lng } : null, center: c0, zoom: 10, onClick: (p) => { form.lat.value = p.lat; form.lng.value = p.lng; autosave(); } }).catch(() => pickEl.remove());
+      // Xarita yopiq blok ichida — faqat ochilganda chiziladi (aks holda o'lchami 0 bo'lib qoladi)
+      let mapReady = false;
+      const initMap = () => {
+        if (mapReady) return;
+        mapReady = true;
+        mapWidget(pickEl, { picked: e.lat ? { lat: e.lat, lng: e.lng } : null, center: c0, zoom: 10, onClick: (p) => { form.lat.value = p.lat; form.lng.value = p.lng; autosave(); } }).catch(() => pickEl.remove());
+      };
+      const morePrice = $('[data-more-price]', main);
+      if (morePrice.open) initMap();
+      morePrice.addEventListener('toggle', () => { if (morePrice.open) initMap(); });
 
       // Rasmlar
       const fileIn = $('[data-file]', main);

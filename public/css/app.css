@@ -1742,3 +1742,13 @@ h1 .vtick, h2 .vtick { width: 22px; height: 22px; vertical-align: -4px; }
 /* Bosh sahifa: rasmli blok olib tashlangan — sariq qism to'liq kenglikda */
 .hero.hero-solo { grid-template-columns: 1fr; min-height: 0; }
 .hero.hero-solo .urgent-cta { max-width: 690px; }
+
+/* E'lon formasi: ixtiyoriy maydonlar yig'ma blokda, bitim turi katta tugmalar */
+.more-box { margin-top: 16px; border-top: 1px dashed var(--line); padding-top: 12px; }
+.more-box > summary { cursor: pointer; list-style: none; display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13px; color: var(--blue); padding: 4px 0; }
+.more-box > summary::-webkit-details-marker { display: none; }
+.more-box > summary::before { content: '+'; display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--blue-soft); font-weight: 700; }
+.more-box[open] > summary::before { content: '−'; }
+.more-box[open] > summary { margin-bottom: 12px; }
+[data-deal-wrap] .seg { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+[data-deal-wrap] .seg button { height: 42px; font-size: 14px; }

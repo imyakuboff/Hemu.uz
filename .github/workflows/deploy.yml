@@ -103,6 +103,10 @@ jobs:
             fi
             PUB=$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' --max-time 10 https://hemu.uz/ ; echo " | www: $(curl -s -o /dev/null -w '%{http_code} -> %{redirect_url}' --max-time 10 https://www.hemu.uz/catalog)")
             step "hemu.uz: $PUB"
+            # Bosh sahifa: sarlavha va kategoriyalar (o'zgarish haqiqatan tushganini ko'rish uchun)
+            TTL=$(curl -s --max-time 10 "http://127.0.0.1:$PORT/?lang=ru" | grep -o '<title>[^<]*' | head -1 | sed 's/<title>//')
+            CATS=$(curl -s --max-time 10 "http://127.0.0.1:$PORT/api/v1/categories?lang=ru" | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{try{console.log(JSON.parse(d).map(c=>c.slug).join(' '))}catch(e){console.log('?')}})")
+            step "Bosh sahifa: $TTL | kategoriyalar: $CATS"
             if [ -n "$OK" ]; then step "Sayt javob beryapti (port $PORT): $H"; else echo "::warning::health javob bermadi (port $PORT), lekin xizmat ishlayapti: $(journalctl -u hemu -n 3 --no-pager | tr '\n' ' ' | cut -c1-400)"; fi
             # Email sozlamasi va oxirgi yuborishlar (diagnostika)
             DB=$(grep -E '^DB_FILE=' .env 2>/dev/null | cut -d= -f2 | tr -d '"\r '); DB=${DB:-data/movexgo.db}

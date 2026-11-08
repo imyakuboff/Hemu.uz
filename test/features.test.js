@@ -454,17 +454,6 @@ test("SEO: asosiy domenga 301 (www, nip.io, IP), API yo'naltirilmaydi; tashkilot
   assert.equal((await get('/', 'www.example.com')).status, 200);
 });
 
-test('donat oynasi: /platform karta raqamini beradi, admin o\'chira oladi', async () => {
-  const p = await api('GET', '/api/v1/platform');
-  assert.equal(p.body.donate.card, '4466 1369 5190 3724');
-  assert.ok(p.body.donate.holder);
-  const off = await api('PUT', '/api/v1/admin/settings', { token: S.admin.token, body: { 'donate.enabled': false } });
-  assert.equal(off.status, 200, JSON.stringify(off.body));
-  assert.equal((await api('GET', '/api/v1/platform')).body.donate, null);
-  await api('PUT', '/api/v1/admin/settings', { token: S.admin.token, body: { 'donate.enabled': true } });
-  assert.ok((await api('GET', '/api/v1/platform')).body.donate);
-});
-
 test("Do'kon tarifi: admin orqali to'lov, qisqa manzil, qadalgan e'lonlar, faqat o'z tavsiyalari", async () => {
   const sellerId = db.get(`SELECT id FROM users WHERE phone = '+998901234567'`).id;
   const comp = db.get('SELECT * FROM companies WHERE owner_id = ?', sellerId);

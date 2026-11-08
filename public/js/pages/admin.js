@@ -134,9 +134,6 @@ const D = {
   manual_claimed: ["To'ladim deb bosgan", 'Отметил «Оплатил»', 'Marked as paid'],
   manual_not_claimed: ["Hali to'lamagan", 'Ещё не оплатил', 'Not paid yet'],
   approve_tick: ['Tasdiqlash va yoqish', 'Подтвердить и включить', 'Confirm and activate'],
-  'donate.enabled': ["Saytga kirganda donat oynasini ko'rsatish", 'Показывать окно доната при входе на сайт', 'Show donation popup on site entry'],
-  'donate.card': ['Donat: karta raqami', 'Донат: номер карты', 'Donation: card number'],
-  'donate.holder': ['Donat: karta egasi', 'Донат: владелец карты', 'Donation: card holder'],
   'manualPay.card': ["Galochka to'lovi: karta raqami", 'Оплата галочки: номер карты', 'Badge payment: card number'],
   'manualPay.holder': ['Karta egasi (ism familiya)', 'Владелец карты (имя фамилия)', 'Card holder name'],
   'manualPay.info': ["To'lov bo'yicha qo'shimcha izoh", 'Дополнительная инструкция по оплате', 'Extra payment instructions'],
@@ -179,7 +176,6 @@ const D = {
   g_prices: ['Narxlar (USD)', 'Цены (USD)', 'Prices (USD)'],
   g_limits: ['Limitlar', 'Лимиты', 'Limits'],
   g_platform: ['Platforma', 'Платформа', 'Platform'],
-  g_donate: ['Donat (sayt uchun yordam)', 'Донат (поддержка сайта)', 'Donations'],
   'prices.promo.top': ["TOP paket narxi", 'Цена пакета ТОП', 'TOP package price'],
   'prices.promo.highlight': ['Ajratib ko\'rsatish narxi', 'Цена выделения', 'Highlight price'],
   'prices.promo.combo': ['Kombo paket narxi', 'Цена пакета Комбо', 'Combo package price'],
@@ -1299,7 +1295,6 @@ async function settings() {
   const GROUPS = [
     // VIP / GOLD / PREMIUM narxlari — alohida bo'limda (/admin/tiers)
     ['g_prices', ['prices.plan.business', 'prices.inspection', 'prices.badge', 'prices.store', 'manualPay.card', 'manualPay.holder', 'manualPay.info']],
-    ['g_donate', ['donate.enabled', 'donate.card', 'donate.holder']],
     ['g_limits', ['freeListingLimit', 'businessTopCredits', 'escrowFeePct']],
     ['g_platform', ['registrationOpen', 'autoApproveVerified', 'requireCompanyDocs', 'supportPhone', 'supportTelegram', 'announcementType', 'announcement']],
     ['g_bonus', ['welcomeBonus.enabled', 'welcomeBonus.amount', 'welcomeBonus.currency']],

@@ -10,7 +10,7 @@ const pstTag = (s) => `<span class="tag ${{ paid: 'green', pending: 'orange', ca
 // Admin orqali to'lov (galochka): karta rekvizitlari, "To'ladim" va holat
 function manualBox(p) {
   const m = p.manual;
-  if (p.status === 'cancelled' && m.reject_reason !== null) return `<div class="note" style="text-align:left;margin:0 0 12px"><div><b>${esc(t('mp_rejected', { r: m.reject_reason || '—' }))}</b></div></div><a class="btn btn-primary btn-block" href="${p.purpose === 'store' ? '/business#store-plan' : '/badge'}">${esc(t(p.purpose === 'store' ? 'st_buy' : 'tick_get'))}</a>`;
+  if (p.status === 'cancelled' && m.reject_reason !== null) return `<div class="note" style="text-align:left;margin:0 0 12px"><div><b>${esc(t('mp_rejected', { r: m.reject_reason || '—' }))}</b></div></div><a class="btn btn-primary btn-block" href="${p.purpose === 'store' ? '/business#store-plan' : p.purpose === 'badge' ? '/badge' : p.ref?.type === 'listing' ? `/listing/${p.ref.id}` : '/payments'}">${esc(t(p.purpose === 'store' ? 'st_buy' : p.purpose === 'badge' ? 'tick_get' : 'back'))}</a>`;
   if (p.status !== 'pending') return '';
   if (m.claimed_at) return `<div class="note" style="text-align:left;margin:0 0 12px">${icon('refresh')}<div><b>${esc(t('mp_waiting'))}</b>${m.note ? `<p>${esc(m.note)}</p>` : ''}</div></div>`;
   const tg = m.telegram ? `https://t.me/${m.telegram.replace(/^@|^https?:\/\/t\.me\//, '')}` : '';

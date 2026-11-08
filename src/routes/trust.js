@@ -25,6 +25,20 @@ r.post('/listings/:id/report', requireAuth, rateLimit({ name: 'report', windowMs
      ON CONFLICT(listing_id, reporter_id) DO UPDATE SET reason = excluded.reason, comment = excluded.comment, status = 'open', created_at = datetime('now')`,
     l.id, req.user.id, v.reason, v.comment,
   );
+  // Adminlarga darhol xabar
+  const title = db.get('SELECT title FROM listings WHERE id = ?', l.id)?.title;
+  for (const a of db.all(`SELECT id FROM users WHERE role IN ('admin', 'moderator') AND blocked = 0`)) {
+    notify(a.id, 'report_new', { title, reason_key: `rr.${v.reason}`, listing_id: l.id }, '/admin/trust');
+  }
+  // 3 xil foydalanuvchi "firibgar/soxta" desa — e'lon tekshiruvga olinadi (admin qaytadan ochishi mumkin)
+  const serious = db.get(`SELECT COUNT(DISTINCT reporter_id) AS n FROM reports WHERE listing_id = ? AND status = 'open' AND reason IN ('fraud', 'fake')`, l.id).n;
+  if (serious >= 3) {
+    const st = db.get('SELECT status FROM listings WHERE id = ?', l.id).status;
+    if (st === 'active') {
+      db.run(`UPDATE listings SET status = 'moderation' WHERE id = ?`, l.id);
+      notify(l.user_id, 'listing_on_review', { title, listing_id: l.id }, `/listing/${l.id}`);
+    }
+  }
   res.status(201).json({ ok: true });
 });
 
@@ -58,7 +72,7 @@ function inspectionView(i, req) {
 
 r.get('/inspection/price', (req, res) => {
   const amount = pay.priceIn(config.prices.inspection, req.currency);
-  res.json({ amount, currency: req.currency, formatted: money.formatAmount(amount, req.currency, req.lang), providers: pay.providers() });
+  res.json({ amount, currency: req.currency, formatted: money.formatAmount(amount, req.currency, req.lang), providers: pay.providers({ manual: true }) });
 });
 
 r.post('/listings/:id/inspections', requireAuth, (req, res) => {

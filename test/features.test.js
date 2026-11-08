@@ -507,3 +507,42 @@ test("Do'kon tarifi: admin orqali to'lov, qisqa manzil, qadalgan e'lonlar, faqat
   assert.equal((await fetch(`${base}/s/jcb-diler`, { redirect: 'manual' })).status, 200);
   assert.equal((await api('GET', `/api/v1/listings/${own[0]}`)).body.store, null);
 });
+
+test("texnik ko'rik: kartaga o'tkazma (admin tasdiqlaydi) — Click/Payme bo'lmasa ham ishlaydi", async () => {
+  const pr = await api('GET', '/api/v1/inspection/price', { token: S.buyer.token });
+  assert.ok(pr.body.providers.some((p) => p.id === 'admin'));
+  const lid = db.get(`SELECT id FROM listings WHERE status = 'active' AND user_id != (SELECT id FROM users WHERE phone = '+998907654321') ORDER BY id LIMIT 1`).id;
+  const r = await api('POST', `/api/v1/listings/${lid}/inspections`, { token: S.buyer.token, body: { provider: 'admin', note: 'Gidravlikani tekshiring' } });
+  assert.equal(r.status, 201, JSON.stringify(r.body));
+  assert.equal(r.body.provider, 'admin');
+  const v = await api('GET', `/api/v1/payments/${r.body.id}`, { token: S.buyer.token });
+  assert.ok(v.body.manual, "karta rekvizitlari ko'rsatiladi");
+  assert.equal(v.body.ref.id, lid);
+  assert.equal((await api('POST', `/api/v1/payments/${r.body.id}/claim`, { token: S.buyer.token, body: { note: 'chek 555' } })).status, 200);
+  assert.equal((await api('POST', `/api/v1/admin/payments/${r.body.id}/mark-paid`, { token: S.admin.token })).status, 200);
+  assert.equal(db.get('SELECT status FROM inspections WHERE id = ?', r.body.inspection_id).status, 'paid');
+  // Boshqa xizmatlar uchun "admin" usuli yo'q
+  assert.equal((await api('POST', '/api/v1/me/wallet/topup', { token: S.buyer.token, body: { amount: 10, provider: 'admin' } })).status >= 400, true);
+});
+
+test("shikoyat: adminga xabar; 3 kishi firibgar desa e'lon tekshiruvga olinadi", async () => {
+  const kzId = db.get(`SELECT id FROM users WHERE phone = '+77015550011'`)?.id;
+  const l = db.get(`SELECT id, user_id FROM listings WHERE status = 'active' ORDER BY id DESC LIMIT 1`);
+  const adminId = db.get(`SELECT id FROM users WHERE phone = '+998900000001'`).id;
+  const before = db.get(`SELECT COUNT(*) AS n FROM notifications WHERE user_id = ? AND type = 'report_new'`, adminId).n;
+  const users = [];
+  for (const ph of ['+998931110001', '+998931110002', '+998931110003']) users.push(await login(ph));
+  assert.equal((await api('POST', `/api/v1/listings/${l.id}/report`, { token: users[0].token, body: { reason: 'fraud' } })).status, 201);
+  assert.equal(db.get(`SELECT COUNT(*) AS n FROM notifications WHERE user_id = ? AND type = 'report_new'`, adminId).n, before + 1);
+  const nt = (await api('GET', '/api/v1/notifications?lang=uz', { token: S.admin.token })).body.items.find((x) => x.type === 'report_new' || /Shikoyat/.test(x.text));
+  assert.ok(/Firibgarlik/.test(nt.text), nt.text);
+  // Ikkita "narx" shikoyati hisobga olinmaydi
+  await api('POST', `/api/v1/listings/${l.id}/report`, { token: users[1].token, body: { reason: 'price' } });
+  assert.equal(db.get('SELECT status FROM listings WHERE id = ?', l.id).status, 'active');
+  await api('POST', `/api/v1/listings/${l.id}/report`, { token: users[1].token, body: { reason: 'fake' } });
+  assert.equal(db.get('SELECT status FROM listings WHERE id = ?', l.id).status, 'active');
+  await api('POST', `/api/v1/listings/${l.id}/report`, { token: users[2].token, body: { reason: 'fraud' } });
+  assert.equal(db.get('SELECT status FROM listings WHERE id = ?', l.id).status, 'moderation');
+  assert.ok(db.get(`SELECT 1 FROM notifications WHERE user_id = ? AND type = 'listing_on_review'`, l.user_id));
+  void kzId;
+});

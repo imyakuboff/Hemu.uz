@@ -9,7 +9,9 @@ const { fail, parseJson } = require('./http');
 const clickReady = () => Boolean(config.click.serviceId && config.click.merchantId && config.click.secretKey);
 const paymeReady = () => Boolean(config.payme.merchantId && config.payme.key);
 
-const PROVIDER_IDS = ['click', 'payme', 'dev', 'balance'];
+const PROVIDER_IDS = ['click', 'payme', 'dev', 'balance', 'admin'];
+// Kartaga o'tkazma, admin qo'lda tasdiqlaydi (Click/Payme ulanmagan bo'lsa ham ishlaydi)
+const MANUAL_PURPOSES = ['inspection', 'badge', 'store'];
 function providers(opts = {}) {
   const out = [];
   if (clickReady()) out.push({ id: 'click', name: 'Click', currencies: ['UZS'] });
@@ -17,6 +19,8 @@ function providers(opts = {}) {
   if (config.paymentsDev) out.push({ id: 'dev', name: 'Test', currencies: ['*'] });
   // Ichki hamyon — har doim mavjud (to'ldirish uchun emas)
   if (!opts.topup) out.unshift({ id: 'balance', name: 'Balance', currencies: ['*'] });
+  // Onlayn to'lov ulanmagan bo'lsa — kartaga o'tkazma birinchi taklif qilinadi
+  if (opts.manual) out[clickReady() || paymeReady() ? 'push' : 'unshift']({ id: 'admin', name: 'Admin', currencies: ['*'] });
   return out;
 }
 
@@ -32,6 +36,13 @@ function priceIn(usd, currency) {
 
 // To'lov yaratish va to'lov sahifasi manzilini qaytarish
 function create(user, { purpose, refId, meta, usd, amount, currency, provider }) {
+  if (provider === 'admin') {
+    if (!MANUAL_PURPOSES.includes(purpose)) fail(422, 'err.not_configured', { provider });
+    const cur = currency || user.currency || 'USD';
+    const sum = amount !== undefined ? amount : priceIn(usd, cur);
+    const id = db.insert('payments', { user_id: user.id, purpose, ref_id: refId, meta: { ...(meta || {}), usd }, amount: sum, currency: cur, provider });
+    return { id, amount: sum, currency: cur, provider, status: 'pending', pay_url: `${config.siteUrl}/payments/${id}` };
+  }
   const list = providers().map((p) => p.id);
   if (!list.includes(provider)) fail(422, 'err.not_configured', { provider });
   const cur = chargeCurrency(provider, currency || user.currency);

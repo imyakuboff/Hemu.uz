@@ -29,7 +29,8 @@ function startJobs() {
   const cleanup = () => {
     db.run(`UPDATE listings SET promoted_until = NULL WHERE promoted_until < datetime('now')`);
     db.run(`UPDATE listings SET highlighted_until = NULL WHERE highlighted_until < datetime('now')`);
-    db.run(`UPDATE payments SET status = 'cancelled' WHERE status = 'pending' AND created_at < datetime('now', '-2 days')`);
+    // "To'ladim" bosilgan admin to'lovlari admin tasdiqlaguncha saqlanadi
+    db.run(`UPDATE payments SET status = 'cancelled' WHERE status = 'pending' AND created_at < datetime('now', '-2 days') AND NOT (provider = 'admin' AND json_extract(meta, '$.claimed_at') IS NOT NULL)`);
     // 30 kundan oshgan o'chirilgan e'lonlar butunlay o'chiriladi
     for (const l of db.all(`SELECT id FROM listings WHERE status = 'deleted' AND deleted_at < datetime('now', '-30 days')`)) {
       for (const p of db.all('SELECT path FROM listing_photos WHERE listing_id = ?', l.id)) require('./lib/upload').removeUpload(p.path);

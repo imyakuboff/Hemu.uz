@@ -60,6 +60,7 @@ function render(row, lang) {
   if (params.status_key) params.status = t(lang, params.status_key);
   if (params.price_amount !== undefined) params.price = params.amount = formatAmount(params.price_amount, params.price_currency, lang);
   if (params.purpose_key) params.purpose = t(lang, params.purpose_key);
+  if (params.reason_key) params.reason = t(lang, params.reason_key);
   if (params.category_slug) {
     const c = require('./categories').bySlug(params.category_slug);
     if (c) params.category = require('../i18n').pick(c.names, lang);

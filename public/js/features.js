@@ -128,7 +128,7 @@ export function geolocate() {
 
 // ---------- To'lov ----------
 export function providerOptions(providers, extra = '') {
-  const label = (p) => (p.id === 'dev' ? t('provider_dev') : p.id === 'balance' ? `💳 ${t('pay_balance')}` : p.name);
+  const label = (p) => (p.id === 'dev' ? t('provider_dev') : p.id === 'balance' ? `💳 ${t('pay_balance')}` : p.id === 'admin' ? t('pay_admin_card') : p.name);
   return `<div class="seg" data-provider>${extra}${providers.map((p, i) => `<button type="button" data-v="${p.id}" class="${i === 0 && !extra ? 'on' : ''}">${esc(label(p))}</button>`).join('')}</div>`;
 }
 export function bindSeg(root, sel) {

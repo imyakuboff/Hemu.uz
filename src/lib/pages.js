@@ -252,7 +252,7 @@ Personal data requests: {phone}, {email}, {address}.`,
 Yo'q, oddiy e'lon joylash bepul. Pullik faqat VIP, GOLD, PREMIUM darajalari va Biznes tarif.
 
 ## VIP, GOLD va PREMIUM nima?
-Bu e'loningizni ko'proq odam ko'rishi uchun darajalar. VIP e'lonlar bosh sahifadagi 1-karuselda, GOLD — 2-karuselda, PREMIUM — 3-karuselda ko'rsatiladi va qidiruvda oddiy e'lonlardan yuqorida turadi.
+Bu e'loningizni ko'proq odam ko'rishi uchun darajalar. VIP e'lonlar qidiruv va katalogda eng yuqorida turadi. GOLD va PREMIUM e'lonlar bosh sahifadagi karuselda ham ko'rsatiladi. Hammasi qidiruvda oddiy e'lonlardan yuqorida.
 
 ## Qanday to'lash mumkin?
 Click, Payme yoki ichki hamyon orqali. Hamyonni "To'lovlar" bo'limidan to'ldirasiz.
@@ -275,7 +275,7 @@ E'lon sahifasidagi "Shikoyat qilish" tugmasini bosing yoki shu sahifadagi forma 
 Нет, обычное объявление размещается бесплатно. Платные только уровни VIP, GOLD, PREMIUM и тариф «Бизнес».
 
 ## Что такое VIP, GOLD и PREMIUM?
-Это уровни продвижения, чтобы объявление увидело больше людей. VIP-объявления показываются в карусели №1 на главной, GOLD — в карусели №2, PREMIUM — в карусели №3, и все они стоят в поиске выше обычных.
+Это уровни продвижения, чтобы объявление увидело больше людей. VIP-объявления стоят на самых верхних местах в поиске и каталоге. GOLD и PREMIUM также показываются в карусели на главной. Все они стоят в поиске выше обычных.
 
 ## Как оплатить?
 Через Click, Payme или внутренний кошелёк. Кошелёк пополняется в разделе «Платежи».
@@ -298,7 +298,7 @@ E'lon sahifasidagi "Shikoyat qilish" tugmasini bosing yoki shu sahifadagi forma 
 No, a regular listing is free. Only the VIP, GOLD and PREMIUM levels and the Business plan are paid.
 
 ## What are VIP, GOLD and PREMIUM?
-Promotion levels that get your listing seen by more people. VIP listings appear in carousel #1 on the home page, GOLD in carousel #2, PREMIUM in carousel #3, and all of them rank above regular listings in search.
+Promotion levels that get your listing seen by more people. VIP listings take the very top places in search and the catalog. GOLD and PREMIUM also appear in the home page carousel. All of them rank above regular listings in search.
 
 ## How can I pay?
 With Click, Payme or the internal wallet. Top up the wallet in the Payments section.

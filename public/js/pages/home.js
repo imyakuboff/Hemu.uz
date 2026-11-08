@@ -80,38 +80,7 @@ const BAN_KEYS = [['ban1_t', 'ban1_s', 'ban1_c'], ['ban2_t', 'ban2_s', 'ban2_c']
 
 // Pullik e'lon slaydi: rasm, daraja belgisi, nom, narx, joy — bosilsa e'lon sahifasi
 const TIER_THEME = { vip: 'vip', gold: 'yellow', premium: 'blue' };
-// VIP: yorug' kartochka, sariq toj belgisi, katta narx, o'ngda qiya rasm, pastda e'lonning haqiqiy ma'lumotlari
-const CROWN = '<svg viewBox="0 0 32 24" aria-hidden="true"><path d="M2 7l7 6 7-11 7 11 7-6-3 15H5z" fill="currentColor"/><rect x="5" y="20" width="22" height="3" rx="1.5" fill="currentColor"/></svg>';
-function vipSlide(l, i) {
-  const m = String(l.title).match(/^(.*?)\s*(\(.*)$/);
-  const main = m && m[1] ? m[1] : l.title;
-  const rest = m && m[1] ? m[2] : '';
-  const pt = priceText(l.price);
-  const pm = pt.match(/^([\d\s\u00a0.,]+)\s+(\D.*)$/);
-  const full = l.cover ? l.cover.replace(/\.t\.webp$/, '.webp') : '';
-  const city = l.location?.city || l.location?.region_name || '';
-  const chips = [
-    [l.facts?.condition_label ? 'gear' : 'box', l.facts?.condition_label || l.subcategory?.name || l.category?.name],
-    [l.seller?.verified ? 'shield' : 'user', l.seller?.verified ? t('verified_seller') : l.seller?.name],
-    [l.facts?.year ? 'calendar' : 'check', l.facts?.year ? t('yr', { y: l.facts.year }) : l.deal_label],
-  ].filter(([, txt]) => txt);
-  return `<a class="ad-slide vipx ad-listing" href="/listing/${l.id}" draggable="false" aria-label="${esc(l.title)}" ${i ? 'aria-hidden="true" tabindex="-1"' : ''}>
-      ${full ? `<div class="vx-img" style="background-image:url('${esc(full)}'), url('${esc(l.cover)}')"></div>` : ''}
-      <svg class="vx-wave" viewBox="0 0 400 60" preserveAspectRatio="none" aria-hidden="true"><path d="M0 60V38C70 58 140 60 210 52 260 46 300 40 400 18V60Z" fill="#ffc61a"/><path d="M180 60C260 56 330 44 400 22V60Z" fill="#0e3352"/></svg>
-      <button type="button" class="vx-fav ${l.is_favorite ? 'on' : ''}" data-fav="${l.id}" aria-label="${esc(t('to_favorites'))}" tabindex="-1">${icon('heart')}</button>
-      <div class="vx-body">
-        <span class="vx-badge">${CROWN} VIP</span>
-        <h3><b>${esc(main)}</b>${rest ? `<span>${esc(rest)}</span>` : ''}</h3>
-        <i class="vx-line"></i>
-        <p class="vx-price">${pm ? `${esc(pm[1].trim())} <small>${esc(pm[2])}</small>` : esc(pt)}</p>
-        ${city || l.seller?.name ? `<p class="vx-loc">${icon('pin')}<span><b>${esc(city)}</b>${city && l.seller?.name ? ' • ' : ''}<em>${esc(l.seller?.name || '')}</em></span></p>` : ''}
-      </div>
-      ${chips.length ? `<div class="vx-chips">${chips.map(([ic, txt]) => `<span class="vx-chip">${icon(ic)}<span>${esc(txt)}</span></span>`).join('')}</div>` : ''}
-    </a>`;
-}
-
 function tierSlide(l, tier, i) {
-  if (tier === 'vip') return vipSlide(l, i);
   const place = [l.location?.city || l.location?.region_name, l.seller?.name].filter(Boolean).join(' · ');
   return `<a class="ad-slide ${TIER_THEME[tier]} ad-listing" href="/listing/${l.id}" draggable="false" aria-label="${esc(l.title)}" ${i ? 'aria-hidden="true" tabindex="-1"' : ''}>
       <div class="ad-txt"><span class="ad-label tier">${tierBadge(tier)}</span><h3>${esc(l.title)}</h3><p class="ad-price">${esc(priceText(l.price))}</p>${place ? `<p>${icon('pin')} ${esc(place)}</p>` : ''}<span class="ad-cta">${esc(t('details'))} ${icon('arrow')}</span></div>
@@ -120,7 +89,8 @@ function tierSlide(l, tier, i) {
 }
 
 function carousel(banners, tiers = {}) {
-  const paid = ['vip', 'gold', 'premium'].flatMap((tr) => (tiers[tr] || []).map((l) => [tr, l]));
+  // VIP e'lonlar bosh sahifa karuselida ko'rsatilmaydi (katalogda yuqorida turadi)
+  const paid = ['gold', 'premium'].flatMap((tr) => (tiers[tr] || []).map((l) => [tr, l]));
   const list = [...paid.map(([tr, l]) => ({ tier: tr, l })), ...(banners || [])];
   if (!list.length) return '';
   const slides = list.map((b, i) => {

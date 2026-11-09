@@ -125,6 +125,7 @@ admin.get('/overview', (req, res) => {
   out.warnings = [];
   if (!config.manualPay?.card && !pay.providers({ manual: true }).some((p) => p.id === 'click' || p.id === 'payme')) out.warnings.push('no_payment');
   if (!require('../lib/mail').enabled()) out.warnings.push('no_mail');
+  if (config.backupTelegram && config.telegramToken && !db.get(`SELECT 1 FROM telegram_links tl JOIN users u ON u.id = tl.user_id WHERE u.role = 'admin' AND u.blocked = 0`)) out.warnings.push('no_tg_backup');
   if (req.user.role !== 'admin') { delete out.money; delete out.system; delete out.charts.revenue; }
   res.json(out);
 });

@@ -40,6 +40,26 @@ jobs:
             trap 'echo "::error::Xato: $BASH_COMMAND (qator $LINENO)"' ERR
             set -eE
             step "SSH: kirildi ($(hostname))"
+            # SSH kalit: GitHub deploy kaliti (ochiq qismi — maxfiy emas). Maxfiy qismi GitHub Secrets'da: SSH_KEY
+            DEPLOY_PUB='ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIyPC17nIJ3lIzPeuFZ/HqJa+ZZ07wey0Y4eA37MyWEy hemu-github-deploy'
+            mkdir -p /root/.ssh && chmod 700 /root/.ssh && touch /root/.ssh/authorized_keys && chmod 600 /root/.ssh/authorized_keys
+            grep -qF "$DEPLOY_PUB" /root/.ssh/authorized_keys || echo "$DEPLOY_PUB" >> /root/.ssh/authorized_keys
+            # Kalit bilan kirilgani tasdiqlansa — parol bilan kirish o'chiriladi (brute-force imkoniyati yo'qoladi).
+            # Qaytarish kerak bo'lsa: provayder konsolida /etc/ssh/sshd_config.d/00-hemu.conf ni o'chirib, "systemctl reload ssh"
+            CIP=$(echo "$SSH_CONNECTION" | cut -d' ' -f1); CPORT=$(echo "$SSH_CONNECTION" | cut -d' ' -f2)
+            AUTH=$( (journalctl -u ssh -u sshd --since "-15 min" --no-pager 2>/dev/null; tail -n 300 /var/log/auth.log 2>/dev/null) | grep "Accepted .* for root from $CIP port $CPORT" | tail -1 | awk '{for(i=1;i<=NF;i++) if($i=="Accepted") print $(i+1)}')
+            if [ "$AUTH" = "publickey" ]; then
+              if [ ! -f /etc/ssh/sshd_config.d/00-hemu.conf ]; then
+                mkdir -p /etc/ssh/sshd_config.d
+                grep -qE '^\s*Include\s+/etc/ssh/sshd_config.d/\*\.conf' /etc/ssh/sshd_config || sed -i '1i Include /etc/ssh/sshd_config.d/*.conf' /etc/ssh/sshd_config
+                printf 'PasswordAuthentication no\nKbdInteractiveAuthentication no\nPermitRootLogin prohibit-password\n' > /etc/ssh/sshd_config.d/00-hemu.conf
+                if sshd -t 2>/tmp/sshd-t.log; then (systemctl reload ssh 2>/dev/null || systemctl reload sshd); step "SSH: parol bilan kirish o'chirildi (faqat kalit)"; else rm -f /etc/ssh/sshd_config.d/00-hemu.conf; echo "::warning::sshd sozlamasi xato: $(cat /tmp/sshd-t.log)"; fi
+              else
+                step "SSH: faqat kalit bilan (parol o'chiq)"
+              fi
+            else
+              echo "::warning::SSH hali parol bilan ($AUTH): GitHub Secrets'ga SSH_KEY qo'shing"
+            fi
             mkdir -p /root/hemu-backups && chmod 700 /root/hemu-backups
             # Baza: izchil nusxa (VACUUM INTO — ishlab turgan WAL bazadan ham butun nusxa), 10 tasi saqlanadi
             DBF0=$(grep -E '^DB_FILE=' /opt/hemu/.env 2>/dev/null | cut -d= -f2 | tr -d '"\r '); DBF0=${DBF0:-data/movexgo.db}

@@ -324,6 +324,7 @@ const D = {
   otp_warn: ["Serverda bu rejim yoqilgan bo'lsa, istalgan kishi istalgan hisobga SMS-kod bilan kira oladi. Haqiqiy saytda o'chiring!", 'Если это включено на сервере, кто угодно войдёт в любой аккаунт по SMS-коду. На боевом сайте выключите!', 'If enabled on a live server, anyone can sign in to any account with the SMS code. Turn it off in production!'],
   warn_no_payment: ["To'lov qabul qilinmayapti: Click/Payme ulanmagan va karta raqami (Narxlar → «Galochka to'lovi: karta raqami») bo'sh", 'Оплата не принимается: Click/Payme не подключены и номер карты пуст (Цены → «Оплата галочки: номер карты»)', 'Payments are off: Click/Payme not connected and the card number is empty (Prices → card number)'],
   warn_no_mail: ["Email ulanmagan: parolni tiklash va xatlar ketmaydi (Integratsiyalar → Email)", 'Email не подключён: письма не отправляются (Интеграции → Email)', 'Email is not configured: no emails are sent (Integrations → Email)'],
+  warn_no_tg_backup: ["Baza zaxirasi sizga kelishi uchun Telegram'ni ulang: Profil → Bildirishnomalar → Telegram", 'Чтобы получать копию базы, подключите Telegram: Профиль → Уведомления → Telegram', 'Link Telegram to receive database backups: Profile → Notifications → Telegram'],
   backupTelegram: ["Kunlik baza zaxirasi Telegram'ga bog'langan adminlarga yuborilsin", 'Отправлять ежедневную копию базы админам в Telegram', 'Send the daily database backup to admins on Telegram'],
   adminTwoFactor: ["Admin va moderator kirishida SMS-kod so'ralsin", 'Запрашивать SMS-код при входе админа и модератора', 'Require an SMS code for admin and moderator sign-in'],
   int_pay: ["To'lov tizimlari", 'Платёжные системы', 'Payment systems'],
@@ -552,7 +553,7 @@ async function overview() {
       <a class="adm-qa" href="/admin/tiers">${icon('star')}<b>${esc(a('q_tiers'))}</b></a>
       <a class="adm-qa" href="/admin/support">${icon('inbox')}<b>${esc(a('q_support'))} · ${num(o.queue.support || 0)}</b></a>`;
   const html = shell('overview', a('nav_overview'), esc(fmtDate(new Date().toISOString(), true)), `
-    ${(o.warnings || []).map((w) => `<a class="box adm-warn" href="${w === 'no_mail' ? '/admin/integrations' : '/admin/settings'}">⚠️ ${esc(a(`warn_${w}`))}</a>`).join('')}
+    ${(o.warnings || []).map((w) => `<a class="box adm-warn" href="${w === 'no_mail' ? '/admin/integrations' : w === 'no_tg_backup' ? '/profile#p-telegram' : '/admin/settings'}">⚠️ ${esc(a(`warn_${w}`))}</a>`).join('')}
     <div class="adm-quick">${quick}</div>
     <div class="adm-stats">
       ${stat(a('users_total'), num(o.users.total), `+${num(o.users.new_7d)} · ${esc(a('new_7d'))}`, '/admin/users')}

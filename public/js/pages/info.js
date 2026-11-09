@@ -1,6 +1,6 @@
 // Ma'lumot sahifalari: ommaviy oferta, maxfiylik siyosati, bog'lanish (FAQ + murojaat),
 // texnika narxlari va sotuvchilar reytingi
-import { state, t, esc, api, icon, num, qs, fmtDate, toast } from '../core.js';
+import { state, t, esc, api, icon, num, qs, fmtDate, toast, $ } from '../core.js';
 import { emptyBox, phoneField, readPhone, supportPhone } from '../ui.js';
 import { BRAND } from '../art.js';
 
@@ -158,6 +158,54 @@ export async function sellers({ query }) {
     mount(main) {
       main.querySelector('[data-country]').onchange = (e) => window.mxGo(link({ country: e.target.value || undefined }));
       main.querySelector('[data-verified]').onchange = (e) => window.mxGo(link({ verified: e.target.checked ? '1' : undefined }));
+    },
+  };
+}
+
+// ---------- Ilovani yuklab olish (PWA) ----------
+export async function appPage() {
+  const ua = navigator.userAgent;
+  const ios = /iphone|ipad|ipod/i.test(ua);
+  const android = /android/i.test(ua);
+  const inApp = /telegram|instagram|fbav|fban|line\//i.test(ua);
+  const standalone = window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone;
+  const steps = (arr) => `<ol class="app-steps">${arr.map((s, i) => `<li><span class="n">${i + 1}</span><span>${s}</span></li>`).join('')}</ol>`;
+  const how = ios
+    ? steps([esc(t('app_ios_1')), `${esc(t('app_ios_2'))} <b class="kbd">⬆</b>`, esc(t('app_ios_3')), esc(t('app_ios_4'))])
+    : inApp
+      ? steps([esc(t('app_inapp_1')), esc(t('app_inapp_2')), esc(t('app_android_2'))])
+      : android
+        ? steps([`${esc(t('app_android_1'))} <b class="kbd">⋮</b>`, esc(t('app_android_2')), esc(t('app_android_3'))])
+        : steps([esc(t('app_desk_1')), esc(t('app_desk_2'))]);
+  const html = `
+  <div class="app-hero">
+    <img src="/img/icon-512.png" width="96" height="96" alt="HEMU.UZ" class="app-ic">
+    <div><h1 class="page-title" style="margin:0">${esc(t('app_title'))}</h1><p class="page-sub" style="margin:6px 0 0">${esc(t('app_sub'))}</p></div>
+  </div>
+  <div class="box app-cta">
+    ${standalone ? `<div class="note" style="margin:0"><div><b>✓ ${esc(t('app_already'))}</b></div></div>`
+      : `<button class="btn btn-primary btn-lg btn-block" data-install-now ${window.mxInstallPrompt ? '' : 'hidden'}>📲 ${esc(t('app_install_btn'))}</button>
+         <div data-install-how ${window.mxInstallPrompt ? 'hidden' : ''}><h3 style="margin-top:0">${esc(t('app_how'))}</h3>${how}</div>`}
+  </div>
+  <div class="app-feats">
+    ${[['🔔', 'app_f1'], ['🎵', 'app_f2'], ['⚡', 'app_f3'], ['📶', 'app_f4']].map(([e, k]) => `<div class="box"><span class="app-fe">${e}</span><b>${esc(t(`${k}_t`))}</b><p class="small muted">${esc(t(`${k}_s`))}</p></div>`).join('')}
+  </div>
+  <p class="tiny muted" style="margin-top:14px">${esc(t('app_note'))}</p>`;
+  return {
+    title: t('app_title'),
+    html,
+    mount(main) {
+      const btn = $('[data-install-now]', main);
+      const show = () => { if (btn && window.mxInstallPrompt) { btn.hidden = false; const h = $('[data-install-how]', main); if (h) h.hidden = true; } };
+      window.addEventListener('mx:installable', show);
+      btn?.addEventListener('click', async () => {
+        const p = window.mxInstallPrompt;
+        if (!p) return;
+        p.prompt();
+        const r = await p.userChoice.catch(() => null);
+        if (r?.outcome === 'accepted') { window.mxInstallPrompt = null; btn.hidden = true; }
+      });
+      return () => window.removeEventListener('mx:installable', show);
     },
   };
 }

@@ -75,7 +75,7 @@ const supportLine = () => `<div class="foot-contacts"><a class="foot-phone" href
 export function footer() {
   return `<footer class="footer"><div class="container">
     <div><a href="/" class="logo logo-foot" aria-label="HEMU.UZ — ${esc(t('home'))}">${LOGO}</a><p>${esc(t('footer_tag'))} © 2026 HEMU.UZ</p>${supportLine()}</div>
-    <nav><a href="/about">${esc(t('about'))}</a><a href="/contact">${esc(t('contact_title'))}</a><a href="/prices">${esc(t('prices_title'))}</a><a href="/sellers">${esc(t('sellers_title'))}</a><a href="/about#safe">${esc(t('safe_deals'))}</a><a href="/terms">${esc(t('terms_title'))}</a><a href="/privacy">${esc(t('privacy'))}</a></nav>
+    <nav><a href="/app">📲 ${esc(t('app_get'))}</a><a href="/about">${esc(t('about'))}</a><a href="/contact">${esc(t('contact_title'))}</a><a href="/prices">${esc(t('prices_title'))}</a><a href="/sellers">${esc(t('sellers_title'))}</a><a href="/about#safe">${esc(t('safe_deals'))}</a><a href="/terms">${esc(t('terms_title'))}</a><a href="/privacy">${esc(t('privacy'))}</a></nav>
   </div></footer>`;
 }
 
@@ -384,7 +384,7 @@ export function mobileMenu() {
   if (u) links.push(['/dashboard', 'dash', t('dashboard')], ['/my/listings', 'list', t('my_listings')], ['/my/orders', 'box', t('my_orders')], ['/profile', 'user', t('nav_profile')]);
   if (u?.company) links.push(['/business', 'building', t('business')]);
   if (u?.role === 'admin' || u?.role === 'moderator') links.push(['/admin', 'shield', t('admin')]);
-  links.push(['/prices', 'chart', t('prices_title')], ['/sellers', 'star', t('sellers_title')], ['/contact', 'phone', t('contact_title')]);
+  links.push(['/app', 'phone', `📲 ${t('app_get')}`], ['/prices', 'chart', t('prices_title')], ['/sellers', 'star', t('sellers_title')], ['/contact', 'phone', t('contact_title')]);
   const secs = [['transportsale', 'excavator'], ['transportrental', 'calendar'], ['sparepart', 'gear'], ['mechanic', 'gear'], ['driver', 'user'], ['application', 'clipboard']];
   const el = openModal(`<div class="sheet-menu" style="margin-top:14px">${links.map(([h, i, l]) => `<a href="${h}" data-close-link>${icon(i)} ${esc(l)}</a>`).join('')}
     <p class="tiny muted" style="margin:12px 0 4px;font-weight:600;text-transform:uppercase">${esc(t('sec_title'))}</p>

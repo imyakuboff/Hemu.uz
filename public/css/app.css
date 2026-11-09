@@ -1817,3 +1817,16 @@ h1 .vtick, h2 .vtick { width: 22px; height: 22px; vertical-align: -4px; }
 .tone-pick { display: flex; flex-direction: column; gap: 8px; padding: 4px 0 12px; }
 .tone-pick .res-chip span { min-height: 34px; font-size: 13px; padding: 0 12px; }
 .tone-pick .res-chip input:checked + span::before { content: none; }
+
+/* Ilovani yuklab olish sahifasi */
+.app-hero { display: flex; gap: 18px; align-items: center; margin: 18px 0; }
+.app-ic { border-radius: 22px; box-shadow: 0 8px 24px rgba(14, 51, 82, .25); flex: none; }
+.app-cta { max-width: 640px; }
+.app-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.app-steps li { display: flex; gap: 12px; align-items: flex-start; font-size: 14px; line-height: 1.45; }
+.app-steps .n { flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--blue); color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+.kbd { display: inline-flex; min-width: 24px; justify-content: center; padding: 0 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); }
+.app-feats { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 12px; margin-top: 14px; }
+.app-feats .box { margin: 0; display: flex; flex-direction: column; gap: 4px; }
+.app-feats .app-fe { font-size: 26px; }
+.app-feats p { margin: 0; }

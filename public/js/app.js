@@ -35,6 +35,7 @@ const routes = [
   [/^\/driver$/, () => import('./pages/sections.js'), 'driver'],
   [/^\/mechanic$/, () => import('./pages/sections.js'), 'mechanic'],
   [/^\/resume$/, () => import('./pages/sections.js'), 'resume'],
+  [/^\/app$/, () => import('./pages/info.js'), 'appPage'],
   [/^\/application$/, () => import('./pages/sections.js'), 'application'],
   [/^\/specialist\/(\d+)$/, () => import('./pages/sections.js'), 'specialist'],
   [/^\/admin(?:\/([a-z]+))?(?:\/(\d+))?$/, () => import('./pages/admin.js'), 'adminPage'],
@@ -363,14 +364,19 @@ function setupPwa() {
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferred = e;
-    if (localStorage.getItem('mx_install_dismissed')) return;
+    window.mxInstallPrompt = e; // /app sahifasidagi "O'rnatish" tugmasi uchun
+    window.dispatchEvent(new Event('mx:installable'));
+    // Yopilgan bo'lsa 7 kundan keyin yana eslatiladi
+    const dis = Number(localStorage.getItem('mx_install_dismissed') || 0);
+    if (dis && Date.now() - (dis > 1 ? dis : 0) < 7 * 864e5) return;
     const bar = document.createElement('div');
     bar.className = 'install-bar';
     bar.innerHTML = `<span style="display:flex;gap:8px;align-items:center"><img src="/img/icon-192.png" width="28" height="28" alt="" style="border-radius:6px"><b>HEMU.UZ</b></span><button class="btn btn-primary btn-sm" data-install>${esc(t('install_app'))}</button><button class="icon-btn" style="color:#fff" data-x>${icon('x')}</button>`;
     document.body.appendChild(bar);
     bar.querySelector('[data-install]').onclick = async () => { bar.remove(); deferred.prompt(); };
-    bar.querySelector('[data-x]').onclick = () => { bar.remove(); try { localStorage.setItem('mx_install_dismissed', '1'); } catch { /* */ } };
+    bar.querySelector('[data-x]').onclick = () => { bar.remove(); try { localStorage.setItem('mx_install_dismissed', String(Date.now())); } catch { /* */ } };
   });
+  window.addEventListener('appinstalled', () => { window.mxInstallPrompt = null; document.querySelector('.install-bar')?.remove(); toast(t('app_installed_ok'), 'ok'); });
   const offline = () => {
     let b = document.querySelector('.offline-bar');
     if (!navigator.onLine && !b) { b = document.createElement('div'); b.className = 'offline-bar'; b.textContent = t('offline'); document.body.appendChild(b); }

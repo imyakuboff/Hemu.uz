@@ -914,6 +914,33 @@ src_messages|Xabarlar|Сообщения|Messages|Хабарламалар|Би�
 src_telegram|Telegram|Telegram|Telegram|Telegram|Telegram|Telegram|Telegram|Telegram|تلگرام|ټلګرام
 conversion|Konversiya|Конверсия|Conversion|Конверсия|Конверсия|Конверсия|Konwersiýa|Konversiya|نرخ تبدیل|بدلون
 last_n_days|Oxirgi {n} kun|За {n} дней|Last {n} days|Соңғы {n} күн|Акыркы {n} күн|{n} рӯзи охир|Soňky {n} gün|Son {n} gün|{n} روز اخیر|وروستۍ {n} ورځې
+app_get|Ilovani yuklab olish|Скачать приложение|Get the app
+app_title|HEMU.UZ ilovasi|Приложение HEMU.UZ|HEMU.UZ app
+app_sub|Telefoningizga o'rnating — Play Market shart emas, 1 MB dan kam joy oladi.|Установите на телефон — без Play Market, занимает меньше 1 МБ.|Install on your phone — no app store needed, under 1 MB.
+app_install_btn|Ilovani o'rnatish|Установить приложение|Install the app
+app_already|Ilova o'rnatilgan — siz hozir uning ichidasiz|Приложение установлено — вы уже в нём|The app is installed — you're in it
+app_how|Qanday o'rnatiladi|Как установить|How to install
+app_ios_1|Bu sahifani Safari brauzerida oching|Откройте эту страницу в Safari|Open this page in Safari
+app_ios_2|Pastdagi «Ulashish» tugmasini bosing|Нажмите «Поделиться» внизу|Tap Share at the bottom
+app_ios_3|«Bosh ekranga qo'shish» ni tanlang|Выберите «На экран «Домой»»|Choose “Add to Home Screen”
+app_ios_4|Bosh ekrandagi HEMU ikonkasidan oching va bildirishnomalarni yoqing|Откройте с иконки HEMU и включите уведомления|Open from the HEMU icon and turn on notifications
+app_android_1|Chrome'da yuqori o'ngdagi menyuni bosing|В Chrome нажмите меню справа вверху|In Chrome tap the menu top-right
+app_android_2|«Ilovani o'rnatish» yoki «Bosh ekranga qo'shish» ni tanlang|Выберите «Установить приложение» или «Добавить на главный экран»|Choose “Install app” or “Add to Home screen”
+app_android_3|«O'rnatish» ni tasdiqlang — HEMU ikonkasi bosh ekranda paydo bo'ladi|Подтвердите — иконка HEMU появится на главном экране|Confirm — the HEMU icon appears on your home screen
+app_inapp_1|Siz Telegram/Instagram ichidasiz — u yerdan o'rnatib bo'lmaydi|Вы во встроенном браузере Telegram/Instagram — оттуда установить нельзя|You're in Telegram/Instagram's built-in browser — it can't install apps
+app_inapp_2|Menyudan «Brauzerda ochish» (Chrome) ni tanlang|В меню выберите «Открыть в браузере» (Chrome)|From the menu choose “Open in browser” (Chrome)
+app_desk_1|Manzil qatorining o'ng tomonidagi «O'rnatish» ikonkasini bosing|Нажмите значок «Установить» справа в адресной строке|Click the Install icon on the right of the address bar
+app_desk_2|Yoki telefoningizda hemu.uz/app ni oching|Или откройте hemu.uz/app на телефоне|Or open hemu.uz/app on your phone
+app_f1_t|Yangi buyurtma va e'lonlar|Новые заказы и объявления|New jobs and listings
+app_f1_s|Push xabar ilova yopiq bo'lsa ham keladi|Push-уведомления даже при закрытом приложении|Push alerts even when the app is closed
+app_f2_t|O'z ohangingiz|Своя мелодия|Your own tone
+app_f2_s|Marimba, Signal, Tomchi yoki Qo'ng'iroq|Маримба, Сигнал, Капля или Колокольчик|Marimba, Horn, Pop or Bell
+app_f3_t|Tez ochiladi|Быстрый запуск|Opens fast
+app_f3_s|Bosh ekrandan bir bosishda, brauzer qatorlarisiz|С главного экрана в одно касание, без адресной строки|One tap from your home screen, no browser bars
+app_f4_t|Internet sust bo'lsa ham|Работает при слабом интернете|Works on weak internet
+app_f4_s|Asosiy sahifalar keshda saqlanadi|Основные страницы сохраняются в кэше|Main pages are cached
+app_note|Ilova hemu.uz saytining o'zi: yangilanishlar avtomatik keladi, alohida yuklab olish shart emas.|Приложение — это сам сайт hemu.uz: обновления приходят автоматически.|The app is hemu.uz itself: updates arrive automatically.
+app_installed_ok|HEMU.UZ ilovasi o'rnatildi!|Приложение HEMU.UZ установлено!|HEMU.UZ app installed!
 install_app|Ilovani o'rnatish|Установить приложение|Install app|Қолданбаны орнату|Тиркемени орнотуу|Насб кардани барнома|Programmany gurmak|Tətbiqi quraşdır|نصب برنامه|اپ نصب کړئ
 offline|Internet aloqasi yo'q|Нет соединения с интернетом|No internet connection|Интернет байланысы жоқ|Интернет байланышы жок|Пайвасти интернет нест|Internet baglanyşygy ýok|İnternet bağlantısı yoxdur|اتصال اینترنت برقرار نیست|انټرنیټ نشته
 admin_reports|Shikoyatlar|Жалобы|Reports|Шағымдар|Арыздар|Шикоятҳо|Şikaýatlar|Şikayətlər|گزارش‌ها|شکایتونه

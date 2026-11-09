@@ -1796,3 +1796,17 @@ h1 .vtick, h2 .vtick { width: 22px; height: 22px; vertical-align: -4px; }
 .push-card .btn { flex: none; }
 @media (max-width: 760px) { .push-card { flex-wrap: wrap; } .push-card .btn { width: 100%; } }
 .seg-want { flex-wrap: wrap; }
+
+/* Rezyume formasi: katta, bosib tanlanadigan chiplar */
+.res-form { max-width: 640px; }
+.res-form .box h3 .req { color: var(--red); }
+.res-kind { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+.res-kind button { height: 48px; font-size: 15px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.res-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.res-chip { position: relative; cursor: pointer; }
+.res-chip input { position: absolute; opacity: 0; pointer-events: none; }
+.res-chip span { display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--card); font-size: 14px; font-weight: 600; transition: background .15s, border-color .15s; }
+.res-chip input:checked + span { background: var(--blue); border-color: var(--blue); color: #fff; }
+.res-chip input:checked + span::before { content: '✓'; margin-inline-end: 6px; }
+.res-chip input:focus-visible + span { outline: 2px solid var(--blue); outline-offset: 2px; }
+.btn-lg { height: 50px; font-size: 16px; }

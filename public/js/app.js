@@ -34,6 +34,7 @@ const routes = [
   [/^\/transport-repair$/, () => import('./pages/sections.js'), 'mechanic'],
   [/^\/driver$/, () => import('./pages/sections.js'), 'driver'],
   [/^\/mechanic$/, () => import('./pages/sections.js'), 'mechanic'],
+  [/^\/resume$/, () => import('./pages/sections.js'), 'resume'],
   [/^\/application$/, () => import('./pages/sections.js'), 'application'],
   [/^\/specialist\/(\d+)$/, () => import('./pages/sections.js'), 'specialist'],
   [/^\/admin(?:\/([a-z]+))?(?:\/(\d+))?$/, () => import('./pages/admin.js'), 'adminPage'],

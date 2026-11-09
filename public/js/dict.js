@@ -977,6 +977,34 @@ set_password|Parolni saqlash|Сохранить пароль|Save password|Құ�
 change_password|Parolni o'zgartirish|Изменить пароль|Change password|Құпиясөзді өзгерту|Сырсөздү өзгөртүү|Иваз кардани парол|Açar sözi üýtgetmek|Şifrəni dəyiş|تغییر رمز|پټنوم بدل کړئ
 current_password|Joriy parol|Текущий пароль|Current password|Ағымдағы құпиясөз|Учурдагы сырсөз|Пароли ҷорӣ|Häzirki açar söz|Cari şifrə|رمز فعلی|اوسنی پټنوم
 password_changed|Parol o'zgartirildi|Пароль изменён|Password changed|Құпиясөз өзгертілді|Сырсөз өзгөртүлдү|Парол иваз шуд|Açar söz üýtgedildi|Şifrə dəyişdirildi|رمز تغییر کرد|پټنوم بدل شو
+res_title|Rezyume joylash|Разместить резюме|Post your resume
+res_title_edit|Rezyumeni yangilash|Обновить резюме|Update your resume
+res_sub|2 daqiqa: tanlang va joylang — ish beruvchilar sizga o'zi qo'ng'iroq qiladi.|2 минуты: выберите и разместите — работодатели сами позвонят.|2 minutes: tap, post — employers will call you.
+res_login|Rezyume joylash uchun telefon raqamingiz bilan kiring.|Чтобы разместить резюме, войдите по номеру телефона.|Log in with your phone number to post a resume.
+res_who|Siz kimsiz?|Кто вы?|Who are you?
+res_q_driver|Qaysi texnikani boshqarasiz?|Какой техникой управляете?|Which machines do you operate?
+res_q_mech|Nimani ta'mirlaysiz?|Что ремонтируете?|What do you repair?
+res_many|Bir nechtasini tanlash mumkin|Можно выбрать несколько|You can pick several
+res_where|Qayerda ishlaysiz?|Где работаете?|Where do you work?
+res_travel|Boshqa shaharlarga ham boraman (vaxta)|Готов к выездам (вахта)|Ready to travel (rotation)
+res_pay|Qancha maosh kutasiz?|Какую оплату ожидаете?|Expected pay
+res_about_more|O'zingiz haqingizda yozish|Рассказать о себе|Tell about yourself
+res_about_ph|Masalan: 8 yil JCB 3CX'da ishlaganman, o'z texnikam yo'q, vaxtaga tayyorman|Например: 8 лет на JCB 3CX, готов к вахте|E.g. 8 years on JCB 3CX, ready for rotation
+res_phone|Ish beruvchilar shu raqamga qo'ng'iroq qiladi: {p}|Работодатели позвонят на номер: {p}|Employers will call: {p}
+res_publish|Rezyumeni joylash|Разместить резюме|Post resume
+res_need_skill|Kamida bittasini tanlang|Выберите хотя бы один вариант|Pick at least one
+res_need_name|Ismingizni yozing|Укажите имя|Enter your name
+res_name_ph|Masalan: Sherzod Karimov|Например: Шерзод Каримов|E.g. Sherzod Karimov
+res_need_region|Viloyatni tanlang|Выберите регион|Choose a region
+res_done|Rezyume joylandi! Endi ish e'lonlari haqida xabar olasiz.|Резюме размещено! Теперь вы будете получать уведомления о вакансиях.|Resume posted! You'll now get job alerts.
+res_head_driver|{list} haydovchisi|Водитель: {list}|Operator: {list}
+res_head_mech|Mexanik: {list}|Механик: {list}|Mechanic: {list}
+res_exp_0|1 yilgacha|До 1 года|Under 1 year
+res_exp_1_3|1–3 yil|1–3 года|1–3 years
+res_exp_3_5|3–5 yil|3–5 лет|3–5 years
+res_exp_5_10|5–10 yil|5–10 лет|5–10 years
+res_exp_10|10 yildan ko'p|Более 10 лет|10+ years
+optional|ixtiyoriy|необязательно|optional
 sk_hydraulics|Gidravlika|Гидравлика|Hydraulics|Гидравлика|Гидравлика|Гидравлика|Gidrawlika|Hidravlika|هیدرولیک|هایدرولیک
 sk_engine|Dvigatel|Двигатель|Engine|Қозғалтқыш|Кыймылдаткыч|Муҳаррик|Hereketlendiriji|Mühərrik|موتور|انجن
 sk_electrics|Elektrika|Электрика|Electrics|Электрика|Электрика|Барқ|Elektrika|Elektrik|برق|برق

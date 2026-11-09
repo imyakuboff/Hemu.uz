@@ -111,7 +111,7 @@ async function peopleSection(kind, query) {
     : await api(`/specialists${qs({ kind, country, q: query.q, skill: query.skill, license: query.license, mobile: query.mobile, page: query.page })}`);
   const path = `/${kind}`;
   const html = `
-  ${head(kind, `<div style="display:flex;gap:8px;flex-wrap:wrap">${kind === 'mechanic' ? `<a href="/request/new?want=service" class="btn btn-primary">${icon('gear')} ${esc(t('call_mechanic'))}</a>` : ''}<button class="btn btn-soft" data-post-job>${icon('plus')} ${esc(t('post_vacancy'))}</button><a href="/profile#p-specialist" class="btn btn-soft" data-post-resume>${icon('user')} ${esc(t('post_resume'))}</a></div>`)}
+  ${head(kind, `<div style="display:flex;gap:8px;flex-wrap:wrap">${kind === 'mechanic' ? `<a href="/request/new?want=service" class="btn btn-primary">${icon('gear')} ${esc(t('call_mechanic'))}</a>` : ''}<button class="btn btn-soft" data-post-job>${icon('plus')} ${esc(t('post_vacancy'))}</button><a href="/resume?kind=${kind}" class="btn btn-soft" data-post-resume>${icon('user')} ${esc(t('post_resume'))}</a></div>`)}
   ${['mechanic', 'driver'].includes(state.user?.account_type) || state.user?.specialist ? pushCard('push_card_mech') : ''}
   <div class="tabs"><a class="tab ${tab === 'people' ? 'on' : ''}" href="${path}">${esc(t('resumes_tab'))}</a><a class="tab ${tab === 'jobs' ? 'on' : ''}" href="${path}?tab=jobs">${esc(t('vacancies_tab'))}</a></div>
   <form class="search" data-sq style="margin-bottom:12px">${icon('search')}<input name="q" value="${esc(query.q || '')}" placeholder="${esc(t(tab === 'people' ? 'search_resumes' : 'search_jobs'))}"><button class="btn btn-primary">${esc(t('find'))}</button></form>
@@ -194,7 +194,7 @@ export async function specialist({ params }) {
   const p = await api(`/specialists/${params[0]}`);
   const tags = (arr, fn) => arr.map((x) => `<span class="chip-x">${esc(fn(x))}</span>`).join('');
   const html = `
-  ${crumbs([[t('home'), '/'], [t(`sec_${p.kind}`), `/${p.kind}`], [p.name || '']])}
+  ${crumbs([[t('home'), '/'], [t(`sec_${p.kind}`), `/${p.kind}`], [p.name || p.headline]])}
   <div class="detail">
     <div>
       <div class="box" style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
@@ -246,6 +246,100 @@ export async function application({ query }) {
   </div>`).join('') : emptyBox(t('empty'))}
   ${pager(data.page, data.pages, (p) => `/application${qs({ page: p })}`)}`;
   return { title: t('sec_application'), html };
+}
+
+// ---------- Rezyume joylash (haydovchi / mexanik) — oddiy, bosib tanlanadigan forma ----------
+const EXP = [[0, 'res_exp_0'], [2, 'res_exp_1_3'], [4, 'res_exp_3_5'], [7, 'res_exp_5_10'], [12, 'res_exp_10']];
+const expBucket = (n) => (n === null || n === undefined ? null : n < 1 ? 0 : n <= 3 ? 2 : n <= 5 ? 4 : n <= 10 ? 7 : 12);
+export async function resume({ query }) {
+  if (!state.user) {
+    return {
+      title: t('res_title'),
+      html: `<div class="box empty" style="max-width:520px;margin:20px auto"><h3>${esc(t('res_title'))}</h3><p class="muted">${esc(t('res_login'))}</p><button class="btn btn-primary" data-login style="margin-top:14px">${esc(t('login'))}</button></div>`,
+    };
+  }
+  const [opts, spec] = await Promise.all([api('/specialists/options'), api('/me/specialist', { silent: true }).catch(() => null)]);
+  let kind = query.kind === 'mechanic' || query.kind === 'driver' ? query.kind : spec?.kind || (state.user.account_type === 'mechanic' ? 'mechanic' : 'driver');
+  const country = spec?.location?.country || state.user.country || 'UZ';
+  const regs = await regionsOf(country);
+  const reg = spec?.location?.region || state.region || '';
+  const exp = expBucket(spec?.experience_years);
+  const chip = (name, v, label, on) => `<label class="res-chip"><input type="checkbox" name="${name}" value="${esc(v)}" ${on ? 'checked' : ''}><span>${esc(label)}</span></label>`;
+  const radio = (name, v, label, on) => `<label class="res-chip"><input type="radio" name="${name}" value="${esc(v)}" ${on ? 'checked' : ''}><span>${esc(label)}</span></label>`;
+  const licLabel = (x) => (x === 'tractor' ? t('lic_tractor') : x === 'special' ? t('lic_special') : x);
+  const skillsHtml = (k) => (k === 'driver' ? opts.driver_skills : opts.mechanic_skills)
+    .map((x) => chip('skills', x, t(`sk_${x}`), spec?.kind === k && spec.skills?.includes(x))).join('');
+  const html = `
+  ${crumbs([[t('home'), '/'], [t(kind === 'driver' ? 'sec_driver' : 'sec_mechanic'), `/${kind}`], [t('res_title')]])}
+  <div class="page-head"><h1 class="page-title">${esc(t(spec ? 'res_title_edit' : 'res_title'))}</h1><p class="page-sub">${esc(t('res_sub'))}</p></div>
+  <form class="res-form" data-res novalidate>
+    ${state.user.name ? '' : `<div class="box"><h3>${esc(t('your_name'))} <span class="req">*</span></h3><input class="input" name="name" maxlength="80" autocomplete="name" placeholder="${esc(t('res_name_ph'))}"></div>`}
+    <div class="box"><h3>${esc(t('res_who'))}</h3>
+      <div class="seg res-kind" data-kind><button type="button" data-v="driver" class="${kind === 'driver' ? 'on' : ''}">${icon('user')} ${esc(t('type_driver'))}</button><button type="button" data-v="mechanic" class="${kind === 'mechanic' ? 'on' : ''}">${icon('gear')} ${esc(t('type_mechanic'))}</button></div>
+    </div>
+    <div class="box"><h3 data-skills-h>${esc(t(kind === 'driver' ? 'res_q_driver' : 'res_q_mech'))} <span class="req">*</span></h3><p class="tiny muted" style="margin:-6px 0 10px">${esc(t('res_many'))}</p>
+      <div class="res-chips" data-skills>${skillsHtml(kind)}</div></div>
+    <div class="box" data-lic ${kind === 'driver' ? '' : 'hidden'}><h3>${esc(t('license_cats'))}</h3>
+      <div class="res-chips">${opts.licenses.map((x) => chip('license', x, licLabel(x), spec?.license?.includes(x))).join('')}</div></div>
+    <div class="box"><h3>${esc(t('experience'))}</h3>
+      <div class="res-chips">${EXP.map(([v, k]) => radio('exp', v, t(k), exp === v)).join('')}</div></div>
+    <div class="box"><h3>${esc(t('res_where'))} <span class="req">*</span></h3>
+      <select class="input" name="region"><option value="">${esc(t('choose'))}</option>${regs.map((r) => `<option value="${r.code}" ${r.code === reg ? 'selected' : ''}>${esc(r.name)}</option>`).join('')}</select>
+      <label class="check" style="margin-top:12px"><input type="checkbox" name="mobile" ${spec ? (spec.mobile ? 'checked' : '') : 'checked'}> ${esc(t(kind === 'driver' ? 'res_travel' : 'mobile_lbl'))}</label></div>
+    <div class="box"><h3>${esc(t('res_pay'))} <span class="tiny muted" style="font-weight:400">· ${esc(t('optional'))}</span></h3>
+      <div class="row2i"><input class="input" name="rate" inputmode="numeric" placeholder="${esc(t('rate_lbl'))}" value="${esc(spec?.rate ?? '')}">
+        <select class="input" name="rate_unit">${opts.rate_units.map((x) => `<option value="${x}" ${x === (spec?.rate_unit || (kind === 'driver' ? 'month' : 'hour')) ? 'selected' : ''}>${esc(t(`ru_${x}`))}</option>`).join('')}</select></div>
+      <details class="more-box" ${spec?.about ? 'open' : ''}><summary>${esc(t('res_about_more'))}</summary>
+        <textarea class="input" name="about" maxlength="3000" rows="3" placeholder="${esc(t('res_about_ph'))}">${esc(spec?.about || '')}</textarea></details>
+    </div>
+    <div class="box res-submit">
+      <p class="small" style="margin:0 0 10px">${icon('phone')} ${esc(t('res_phone', { p: state.user.phone || '' }))}</p>
+      <button class="btn btn-primary btn-block btn-lg">${esc(t(spec ? 'save_changes' : 'res_publish'))}</button>
+    </div>
+  </form>`;
+  return {
+    title: t('res_title'),
+    html,
+    mount(main) {
+      const form = $('[data-res]', main);
+      $('[data-kind]', main).addEventListener('click', (e) => {
+        const b = e.target.closest('[data-v]');
+        if (!b || b.dataset.v === kind) return;
+        kind = b.dataset.v;
+        $$('[data-kind] [data-v]', main).forEach((x) => x.classList.toggle('on', x === b));
+        $('[data-skills]', main).innerHTML = skillsHtml(kind);
+        $('[data-skills-h]', main).firstChild.textContent = `${t(kind === 'driver' ? 'res_q_driver' : 'res_q_mech')} `;
+        $('[data-lic]', main).hidden = kind !== 'driver';
+      });
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const vals = (n) => $$(`[name="${n}"]:checked`, form).map((x) => x.value);
+        const skills = vals('skills');
+        if (!skills.length) { toast(t('res_need_skill'), 'err'); $('[data-skills]', main).scrollIntoView({ block: 'center' }); return; }
+        if (form.name && form.name.value.trim().length < 2) { toast(t('res_need_name'), 'err'); form.name.focus(); return; }
+        if (!form.region.value) { toast(t('res_need_region'), 'err'); form.region.focus(); return; }
+        const expV = vals('exp')[0];
+        const list = skills.slice(0, 3).map((x) => t(`sk_${x}`)).join(', ');
+        const headline = `${t(kind === 'driver' ? 'res_head_driver' : 'res_head_mech', { list })}`.slice(0, 120);
+        const rate = Number(String(form.rate.value).replace(/[^\d.]/g, ''));
+        const btn = $('button.btn-primary', form);
+        btn.disabled = true;
+        try {
+          if (form.name) state.user = await api('/me', { method: 'PATCH', body: { name: form.name.value.trim() } });
+          const r = await api('/me/specialist', { method: 'PUT', body: {
+            kind, headline, skills, license: kind === 'driver' ? vals('license') : [],
+            experience_years: expV !== undefined ? Number(expV) : undefined,
+            region: form.region.value, mobile: form.mobile.checked, available: true,
+            rate: rate > 0 ? rate : undefined, rate_unit: form.rate_unit.value, about: form.about.value.trim() || undefined,
+            ...(spec?.status === 'hidden' ? {} : { hidden: false }),
+          } });
+          state.user.account_type = state.user.account_type === 'client' ? kind : state.user.account_type;
+          toast(t('res_done'), 'ok');
+          go(`/specialist/${r.id}`);
+        } finally { btn.disabled = false; }
+      });
+    },
+  };
 }
 
 export { personCard, debounce };

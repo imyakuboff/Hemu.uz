@@ -977,6 +977,8 @@ set_password|Parolni saqlash|Сохранить пароль|Save password|Құ�
 change_password|Parolni o'zgartirish|Изменить пароль|Change password|Құпиясөзді өзгерту|Сырсөздү өзгөртүү|Иваз кардани парол|Açar sözi üýtgetmek|Şifrəni dəyiş|تغییر رمز|پټنوم بدل کړئ
 current_password|Joriy parol|Текущий пароль|Current password|Ағымдағы құпиясөз|Учурдагы сырсөз|Пароли ҷорӣ|Häzirki açar söz|Cari şifrə|رمز فعلی|اوسنی پټنوم
 password_changed|Parol o'zgartirildi|Пароль изменён|Password changed|Құпиясөз өзгертілді|Сырсөз өзгөртүлдү|Парол иваз шуд|Açar söz üýtgedildi|Şifrə dəyişdirildi|رمز تغییر کرد|پټنوم بدل شو
+demo_tag|Namuna|Пример|Sample|Үлгі|Үлгү|Намуна|Nusga|Nümunə|نمونه|نمونه
+demo_note|Bu namuna rezyume: bo'lim qanday ko'rinishini ko'rsatadi, bog'lanib bo'lmaydi. O'z rezyumengizni joylang — ish beruvchilar sizga qo'ng'iroq qiladi.|Это пример резюме: показывает, как выглядит раздел, связаться нельзя. Разместите своё — работодатели позвонят вам.|This is a sample resume showing how the section looks; it can't be contacted. Post yours and employers will call you.
 res_title|Rezyume joylash|Разместить резюме|Post your resume
 res_title_edit|Rezyumeni yangilash|Обновить резюме|Update your resume
 res_sub|2 daqiqa: tanlang va joylang — ish beruvchilar sizga o'zi qo'ng'iroq qiladi.|2 минуты: выберите и разместите — работодатели сами позвонят.|2 minutes: tap, post — employers will call you.

@@ -307,3 +307,31 @@ test("ta'mirlash buyurtmasi mexaniklarga, ish e'loni mutaxassislarga «Yangi buy
   assert.ok(j.body.notified >= 1);
   assert.ok((await notes(m.token)).some((x) => x.type === 'job_new' && x.text.includes('Doimiy mexanik kerak')));
 });
+
+test("namuna rezyumelar: «Namuna» belgisi, telefon/chat yopiq, oxirida, haqiqiylari ko'payganda yashiriladi", async () => {
+  const P = require('../src/lib/people');
+  const n = P.ensureDemoSpecialists();
+  assert.ok(n >= 6);
+  assert.equal(P.ensureDemoSpecialists(), 0, 'bir marta');
+  const list = (await api('GET', '/api/v1/specialists?kind=driver&per_page=50')).body.items;
+  const demos = list.filter((x) => x.demo);
+  assert.ok(demos.length >= 5);
+  // Haqiqiylari oldinda
+  const firstDemo = list.findIndex((x) => x.demo);
+  assert.ok(list.slice(firstDemo).every((x) => x.demo), 'namunalar oxirida');
+  // Boshlang'ich (seed) haydovchi ham namuna bo'ldi
+  assert.ok(demos.some((x) => db.get('SELECT phone FROM users WHERE id = ?', x.user_id).phone === '+998977778899'));
+  const d = demos.find((x) => /^\+0+/.test(db.get('SELECT phone FROM users WHERE id = ?', x.user_id).phone));
+  assert.equal((await api('POST', `/api/v1/specialists/${d.id}/phone`, { token: S.buyer.token })).status, 409);
+  assert.equal((await api('POST', '/api/v1/conversations/direct', { token: S.buyer.token, body: { user_id: d.user_id, body: 'Salom' } })).status, 409);
+  // Bildirishnomalar namunalarga yuborilmaydi
+  assert.ok(!P.specialistsToNotify({ kind: 'driver', country: 'UZ', region: 'tashkent' }).includes(d.user_id));
+  // Haqiqiy haydovchilar DEMO_HIDE_AT taga yetganda namunalar ro'yxatdan yo'qoladi
+  const real = db.get(`SELECT COUNT(*) AS n FROM specialists WHERE kind = 'driver' AND demo = 0 AND status = 'active'`).n;
+  for (let i = real; i < P.DEMO_HIDE_AT; i++) {
+    const uid = db.insert('users', { phone: `+99893600${String(1000 + i)}`, name: `Haydovchi ${i}`, country: 'UZ', lang: 'uz', currency: 'UZS', account_type: 'driver' });
+    P.upsertSpecialist(db.get('SELECT * FROM users WHERE id = ?', uid), 'driver', { headline: `Samosval haydovchisi ${i}`, skills: ['dump_truck'], region: 'tashkent' });
+  }
+  const after = (await api('GET', '/api/v1/specialists?kind=driver&per_page=50')).body.items;
+  assert.ok(after.length >= P.DEMO_HIDE_AT && !after.some((x) => x.demo));
+});

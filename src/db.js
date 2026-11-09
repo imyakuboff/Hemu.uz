@@ -924,6 +924,7 @@ const COLUMNS = [
   ['listings', 'grade', 'TEXT'], // material: marka / sort (M-500, D500, 1-sort)
   ['listings', 'size_text', 'TEXT'], // material: o'lcham (250×120×65 mm, 25×150×6000)
   ['listings', 'pack', 'TEXT'], // material: qadoq (50 kg qop, poddon 1000 dona)
+  ['specialists', 'demo', 'INTEGER NOT NULL DEFAULT 0'], // namuna rezyume: "Namuna" belgisi, telefon/chat yopiq
   ['listings', 'demo', 'INTEGER NOT NULL DEFAULT 0'], // namuna e'lonlar (admin bir tugma bilan o'chiradi)
   ['promos', 'owner_user_id', 'INTEGER'], // sotuvchi/firma aksiyasi (NULL = platforma aksiyasi)
   ['promos', 'company_id', 'INTEGER'],

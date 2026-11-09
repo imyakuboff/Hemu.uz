@@ -1810,3 +1810,4 @@ h1 .vtick, h2 .vtick { width: 22px; height: 22px; vertical-align: -4px; }
 .res-chip input:checked + span::before { content: '✓'; margin-inline-end: 6px; }
 .res-chip input:focus-visible + span { outline: 2px solid var(--blue); outline-offset: 2px; }
 .btn-lg { height: 50px; font-size: 16px; }
+.demo-tag { vertical-align: 2px; font-size: 10px; }

@@ -100,6 +100,7 @@ r.post('/conversations/direct', requireAuth, rateLimit({ name: 'conv', windowMs:
   const v = validate(req.body, { user_id: { type: 'int', required: true }, body: { type: 'string', min: 1, max: 4000, required: true }, context: { type: 'string', max: 160 } });
   if (v.user_id === req.user.id) fail(409, 'err.own_listing');
   if (!db.get('SELECT 1 FROM users WHERE id = ? AND blocked = 0', v.user_id)) notFound();
+  if (db.get('SELECT 1 FROM specialists WHERE user_id = ? AND demo = 1', v.user_id)) fail(409, 'err.demo_profile');
   let conv = db.get('SELECT * FROM conversations WHERE listing_id IS NULL AND buyer_id = ? AND seller_id = ? AND COALESCE(context, \'\') = ?', req.user.id, v.user_id, v.context || '');
   if (!conv) {
     const id = db.insert('conversations', { buyer_id: req.user.id, seller_id: v.user_id, context: v.context });

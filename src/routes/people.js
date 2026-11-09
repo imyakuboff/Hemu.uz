@@ -19,6 +19,7 @@ r.get('/specialists', (req, res) => {
   const where = [`status = 'active'`];
   const params = [];
   if (kind) { where.push('kind = ?'); params.push(kind); }
+  if (!P.demoVisible(kind)) where.push('demo = 0');
   if (req.query.country) { where.push('country = ?'); params.push(String(req.query.country).toUpperCase()); }
   if (req.query.region) { where.push('region = ?'); params.push(String(req.query.region)); }
   if (req.query.skill) { where.push('skills LIKE ?'); params.push(`%"${String(req.query.skill).replace(/[%"]/g, '')}"%`); }
@@ -28,7 +29,7 @@ r.get('/specialists', (req, res) => {
   for (const [w, p] of textFilter(req.query.q)) { where.push(w); params.push(p); }
   const sql = where.join(' AND ');
   const total = db.get(`SELECT COUNT(*) AS n FROM specialists WHERE ${sql}`, ...params).n;
-  const rows = db.all(`SELECT * FROM specialists WHERE ${sql} ORDER BY available DESC, updated_at DESC LIMIT ? OFFSET ?`, ...params, pg.perPage, pg.offset);
+  const rows = db.all(`SELECT * FROM specialists WHERE ${sql} ORDER BY demo ASC, available DESC, updated_at DESC LIMIT ? OFFSET ?`, ...params, pg.perPage, pg.offset);
   res.json(pageResult(rows.map((s) => P.specialistView(s, req)), total, pg));
 });
 
@@ -44,8 +45,9 @@ r.get('/specialists/:id', (req, res) => {
 });
 
 r.post('/specialists/:id/phone', requireAuth, (req, res) => {
-  const s = db.get('SELECT user_id FROM specialists WHERE id = ?', Number(req.params.id));
+  const s = db.get('SELECT user_id, demo FROM specialists WHERE id = ?', Number(req.params.id));
   if (!s) notFound();
+  if (s.demo) fail(409, 'err.demo_profile');
   res.json({ phone: db.get('SELECT phone FROM users WHERE id = ?', s.user_id).phone });
 });
 

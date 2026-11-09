@@ -9,6 +9,7 @@ function boot(dbFile) {
   cats.syncCatalog();
   money.loadRates();
   require('./lib/settings').load();
+  if (process.env.NODE_ENV !== 'test') require('./lib/people').ensureDemoSpecialists();
   require('./lib/metrics').start();
   return createApp();
 }

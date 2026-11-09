@@ -85,7 +85,7 @@ function personCard(p) {
   const tags = [...p.skills.map((k) => t(`sk_${k}`)), ...p.license.map((k) => (k === 'tractor' ? t('lic_tractor') : k === 'special' ? t('lic_special') : k))];
   return `<a class="person" href="/specialist/${p.id}">
     <span class="avatar">${p.avatar ? `<img src="${esc(p.avatar)}" alt="">` : esc(initials(p.name))}</span>
-    <div><h4>${esc(p.headline)}</h4>
+    <div><h4>${p.demo ? `<span class="tag grey demo-tag">${esc(t('demo_tag'))}</span> ` : ''}${esc(p.headline)}</h4>
       <div class="m">${esc([p.name, p.experience_years ? t('years_exp', { n: p.experience_years }) : null, p.location.city || p.location.region_name].filter(Boolean).join(' · '))}</div>
       <div class="chips" style="gap:4px;margin-top:8px">${tags.slice(0, 6).map((x) => `<span class="chip-x">${esc(x)}</span>`).join('')}${p.mobile ? `<span class="tag green">${esc(t('mobile_badge'))}</span>` : ''}${p.available ? `<span class="tag">${esc(t('available_lbl'))}</span>` : ''}</div>
       ${p.reviews_count ? `<div class="rating">★ ${String(p.rating).replace('.', ',')} · ${esc(t('reviews', { n: p.reviews_count }))}</div>` : ''}</div>
@@ -212,7 +212,7 @@ export async function specialist({ params }) {
       <div class="side-card">
         <div class="big-price">${esc(rateText(p) || '—')}</div>
         <div style="margin:10px 0">${p.available ? `<span class="tag green">${esc(t('available_lbl'))}</span>` : ''} ${p.mobile ? `<span class="tag">${esc(t('mobile_badge'))}</span>` : ''}</div>
-        ${p.is_owner ? `<a class="btn btn-primary btn-block" href="/profile#p-specialist">${icon('file')} ${esc(t('edit'))}</a>` : `<div class="stack"><button class="btn btn-primary" data-phone>${icon('phone')} <span>${esc(t('show_phone'))}</span></button><button class="btn btn-soft" data-write>${icon('chat')} ${esc(t('write_seller'))}</button></div>`}
+        ${p.is_owner ? `<a class="btn btn-primary btn-block" href="/resume?kind=${p.kind}">${icon('file')} ${esc(t('edit'))}</a>` : p.demo ? `<div class="note" style="margin:0"><div><b>${esc(t('demo_tag'))}</b><p class="small">${esc(t('demo_note'))}</p><a class="btn btn-primary btn-sm" style="margin-top:8px" href="/resume?kind=${p.kind}">${esc(t('res_title'))}</a></div></div>` : `<div class="stack"><button class="btn btn-primary" data-phone>${icon('phone')} <span>${esc(t('show_phone'))}</span></button><button class="btn btn-soft" data-write>${icon('chat')} ${esc(t('write_seller'))}</button></div>`}
         <p class="tiny muted" style="margin:12px 0 0">${esc(t('on_platform', { y: p.since }))} · ${esc(t('views_n', { n: num(p.views) }))}</p>
       </div>
     </aside>

@@ -30,3 +30,15 @@ test("bildirishnoma havolalari SPA marshrutlariga mos", () => {
   }
   assert.deepEqual(bad, []);
 });
+
+test("frontend JS fayllarida sintaksis xatosi yo'q", () => {
+  const { spawnSync } = require('node:child_process');
+  const dir = path.join(root, 'public/js');
+  const files = [...fs.readdirSync(dir).map((f) => path.join(dir, f)), ...fs.readdirSync(path.join(dir, 'pages')).map((f) => path.join(dir, 'pages', f))].filter((f) => f.endsWith('.js'));
+  const bad = [];
+  for (const f of files) {
+    const r = spawnSync(process.execPath, ['--input-type=module', '--check'], { input: fs.readFileSync(f) });
+    if (r.status !== 0) bad.push(`${path.basename(f)}: ${String(r.stderr).split('\n').find((l) => /Error/.test(l))}`);
+  }
+  assert.deepEqual(bad, []);
+});

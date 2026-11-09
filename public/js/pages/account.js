@@ -468,7 +468,7 @@ export async function notifications() {
 }
 
 // ---------- Xaridor so'rovlari (sotuvchilar uchun) ----------
-const requestRow = (r) => `<div class="order">
+const feedRow = (r) => `<div class="order">
     <div class="hd"><span>${esc(r.title)}</span><span class="tiny muted">${esc(fmtRel(r.created_at))}</span></div>
     <div class="small muted" style="margin-top:6px">${esc([r.category?.name, r.subcategory?.name, r.location.region_name || r.location.country_name, r.quantity, r.needed_by].filter(Boolean).join(' · '))}</div>
     <p class="small" style="margin:8px 0 0">${esc(r.description)}</p>
@@ -501,7 +501,7 @@ export async function requestPage({ params }) {
   }
   const html = `
     ${crumbs([[t('home'), '/'], [t('buyer_requests'), r.want === 'service' ? '/requests?want=service' : '/requests'], [r.title]])}
-    ${requestRow(r)}
+    ${feedRow(r)}
     <a class="link-blue" href="${r.want === 'service' ? '/requests?want=service' : '/requests'}" style="display:inline-flex;margin-top:12px">${icon('arrow-left')} ${esc(t('buyer_requests'))}</a>`;
   return {
     title: r.title,
@@ -517,7 +517,7 @@ export async function requests({ query }) {
   const mine = query.mine === '1';
   const repair = query.want === 'service';
   const res = await api(`/requests${qs({ category: query.category, country: state.country, mine_categories: mine ? '1' : undefined, want: repair ? 'service' : undefined, page: query.page })}`);
-  const row = requestRow;
+  const row = feedRow;
   const html = `
     ${crumbs([[t('home'), '/'], [t('buyer_requests')]])}
     <div class="page-head"><h1 class="page-title">${esc(t('buyer_requests'))}</h1><p class="page-sub">${esc(t('requests_sub'))}</p></div>

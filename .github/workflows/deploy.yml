@@ -58,7 +58,10 @@ jobs:
                 step "SSH: faqat kalit bilan (parol o'chiq)"
               fi
             else
-              echo "::warning::SSH hali parol bilan ($AUTH): GitHub Secrets'ga SSH_KEY qo'shing"
+              # Tashxis: kalit taklif qilindimi, server kalitni qabul qila oladimi
+              SSHD=$(sshd -T 2>/dev/null | grep -E '^(pubkeyauthentication|permitrootlogin|authorizedkeysfile) ' | tr '\n' ' ')
+              TRY=$( (journalctl -u ssh -u sshd --since "-15 min" --no-pager 2>/dev/null; tail -n 300 /var/log/auth.log 2>/dev/null) | grep "$CIP" | grep -iE 'publickey|key' | tail -2 | sed 's/.*sshd\[[0-9]*\]: //' | tr '\n' ' ')
+              echo "::warning::SSH hali parol bilan ($AUTH). Server: $SSHD | kalit urinishlari: ${TRY:-yo'q (SSH_KEY berilmagan)}"
             fi
             mkdir -p /root/hemu-backups && chmod 700 /root/hemu-backups
             # Baza: izchil nusxa (VACUUM INTO — ishlab turgan WAL bazadan ham butun nusxa), 10 tasi saqlanadi

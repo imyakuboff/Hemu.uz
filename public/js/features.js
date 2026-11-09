@@ -202,15 +202,21 @@ export function packageOptions(pk, name, preset, { withFree = false } = {}) {
   const free = withFree ? `<label class="tier-opt free"><input type="radio" name="${name}" value=""><span class="tier-name">${esc(t('tier_free'))}</span><span class="tier-place">${esc(t('tier_free_sub'))}</span></label>` : '';
   const html = `${biz.length ? `<h4 class="tier-group">${esc(t('biz_group'))}</h4><div class="tier-pick">${biz.map((p) => pkgCard(p, name)).join('')}</div>`
     : `<a class="tier-locked" href="/profile#p-company">${icon('building')}<span>${esc(t('company_only_note'))}</span><b>${esc(t('add_company'))} →</b></a>`}
-    <h4 class="tier-group">${esc(t('top_group'))}</h4><div class="tier-pick ${withFree ? 'four' : ''}">${free}${top.map((p) => pkgCard(p, name)).join('')}</div>`;
+    ${top.length ? `<h4 class="tier-group">${esc(t('top_group'))}</h4><div class="tier-pick ${withFree ? 'four' : ''}">${free}${top.map((p) => pkgCard(p, name)).join('')}</div>`
+    : withFree && biz.length ? `<div class="tier-pick" style="margin-top:10px">${free}</div>` : ''}`;
   // Oldindan tanlash: so'ralgan paket, bo'lmasa — kompaniyaga GOLD, boshqalarga TOP (yoki bepul)
   const ids = pk.items.map((p) => p.id);
-  const pick = ids.includes(preset) ? preset : withFree ? '' : (ids.includes('gold') ? 'gold' : 'top');
+  const pick = ids.includes(preset) ? preset : withFree ? '' : (ids.includes('gold') ? 'gold' : ids[0] || '');
   return html.replace(`name="${name}" value="${pick}"`, `name="${name}" value="${pick}" checked`);
 }
 
 export async function promoteModal(listing, preset = '') {
   const pk = await api('/promo/packages');
+  // Kompaniya bo'lmasa va TOP o'chiq bo'lsa — sotib oladigan narsa yo'q: faqat "Kompaniya qo'shish"
+  if (!pk.items.length) {
+    openModal(`<h3>${esc(t('promote_title'))}</h3><p class="small muted">${esc(listing.title)}</p>${packageOptions(pk, 'pk', '')}`);
+    return;
+  }
   // Biznes tarif krediti: kompaniyada — PREMIUM, boshqalarda — TOP
   const creditPkg = pk.is_company ? 'premium' : 'top';
   const credit = pk.credits > 0 ? `<button type="button" data-v="credit" data-credit>${esc(t(pk.is_company ? 'use_credit_premium' : 'use_credit', { n: pk.credits }))}</button>` : '';

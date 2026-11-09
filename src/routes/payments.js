@@ -39,9 +39,10 @@ r.get('/promo/packages', (req, res) => {
     is_company: isCompany(req.user?.id),
     items: [
       ...(isCompany(req.user?.id) || !req.user ? TIERS : []).map((p) => ({ id: p, group: 'business', name: t(req.lang, `promo.${p}`), place: t(req.lang, `promo.${p}_place`), days: config.prices.tierDays[p], price: promoPrice(config.prices.tier[p], req) })),
-      ...TOPS.map((p) => ({ id: p, group: 'top', name: t(req.lang, `promo.${p}`), place: t(req.lang, `promo.${p}_place`), days: config.prices.promoDays, price: promoPrice(config.prices.promo[p], req) })),
+      ...(config.promoTop ? TOPS : []).map((p) => ({ id: p, group: 'top', name: t(req.lang, `promo.${p}`), place: t(req.lang, `promo.${p}_place`), days: config.prices.promoDays, price: promoPrice(config.prices.promo[p], req) })),
     ],
-    credits: req.user ? pay.activePlan(req.user.id).top_credits : 0,
+    // Kreditlar: kompaniyada PREMIUM uchun; TOP o'chiq bo'lsa boshqalarga ishlatib bo'lmaydi
+    credits: req.user && (config.promoTop || isCompany(req.user.id)) ? pay.activePlan(req.user.id).top_credits : 0,
     providers: pay.providers(),
   });
 });
@@ -53,6 +54,7 @@ r.post('/listings/:id/promote', requireAuth, (req, res) => {
   if (l.user_id !== req.user.id) forbidden();
   if (!['active', 'moderation'].includes(l.status)) fail(409, 'err.invalid_status');
   if (TIERS.includes(v.package) && !isCompany(req.user.id)) fail(403, 'err.company_only');
+  if (TOPS.includes(v.package) && !config.promoTop) fail(403, 'err.company_only');
   // Yuqoriroq daraja faol bo'lsa — arzonrog'i bilan almashtirilmaydi (qolgan kunlar yo'qolmasin)
   const rank = { vip: 3, gold: 2, premium: 1 };
   if (TIERS.includes(v.package) && l.tier && l.tier_until > new Date().toISOString().replace('T', ' ') && rank[l.tier] > rank[v.package]) fail(409, 'err.tier_higher', { tier: l.tier, until: l.tier_until });

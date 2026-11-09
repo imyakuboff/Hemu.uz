@@ -72,6 +72,8 @@ module.exports = {
   },
   freeListingLimit: Number(env.FREE_LISTING_LIMIT || 10),
   businessTopCredits: Number(env.BUSINESS_TOP_CREDITS || 3),
+  // OLX'dagi kabi TOP / rang bilan ajratish. O'chiq: faqat kompaniyalar uchun VIP/GOLD/PREMIUM karusellari
+  promoTop: env.PROMO_TOP === '1',
   escrowFeePct: Number(env.ESCROW_FEE_PCT || 1.5),
 
   // ---------- Telegram ----------

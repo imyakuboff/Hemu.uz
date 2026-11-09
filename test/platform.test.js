@@ -8,6 +8,7 @@ const path = require('node:path');
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hemu-plat-'));
 process.env.NODE_ENV = 'test';
+process.env.PROMO_TOP = '1'; // TOP paketlari ham sinovdan o'tadi
 process.env.DB_FILE = path.join(tmp, 'test.db');
 process.env.UPLOAD_DIR = path.join(tmp, 'uploads');
 process.env.OTP_DEV_ECHO = '1';
@@ -313,4 +314,19 @@ test("banner statistikasi, texnika narxlari, sotuvchilar reytingi", async () => 
   assert.ok(sl.body.length > 0);
   assert.equal(sl.body[0].place, 1);
   assert.ok(sl.body[0].rating >= sl.body[sl.body.length - 1].rating);
+});
+
+test("TOP o'chiq: faqat kompaniya karusellari; kompaniyasizga paket yo'q, TOP so'rovi rad etiladi", async () => {
+  const config = require('../src/config');
+  const prev = config.promoTop;
+  try {
+    config.promoTop = false;
+    const guest = (await api('GET', '/api/v1/promo/packages', { token: S.buyer.token, currency: 'USD' })).body;
+    assert.equal(guest.items.some((x) => x.group === 'top'), false);
+    if (!guest.is_company) { assert.equal(guest.items.length, 0); assert.equal(guest.credits, 0); }
+    const comp = (await api('GET', '/api/v1/promo/packages', { token: S.seller.token, currency: 'USD' })).body;
+    assert.deepEqual(comp.items.map((x) => x.id), ['vip', 'gold', 'premium']);
+    const lid = db.get(`SELECT id FROM listings WHERE user_id = ? AND status = 'active' LIMIT 1`, S.seller.user.id).id;
+    assert.equal((await api('POST', `/api/v1/listings/${lid}/promote`, { token: S.seller.token, body: { package: 'top', provider: 'balance' } })).status, 403);
+  } finally { config.promoTop = prev; }
 });

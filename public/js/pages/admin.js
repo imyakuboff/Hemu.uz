@@ -187,6 +187,7 @@ const D = {
   freeListingLimit: ["Bepul tarifda e'lonlar soni", 'Объявлений на бесплатном тарифе', 'Free plan listing limit'],
   businessTopCredits: ['Biznes tarifda TOP kreditlar', 'ТОП-кредитов в бизнес-тарифе', 'Business plan TOP credits'],
   escrowFeePct: ['Xavfsiz bitim komissiyasi, %', 'Комиссия безопасной сделки, %', 'Escrow fee, %'],
+  promoTop: ["TOP va «rang bilan ajratish» (OLX kabi) — o'chiq bo'lsa faqat kompaniya karusellari", 'ТОП и «выделение цветом» (как OLX) — выкл.: только карусели компаний', 'TOP & highlight (OLX-style) — off: company carousels only'],
   listingModeration: ["E'lonlarni moderatsiyadan o'tkazish (o'chiq — darhol joylanadi)", 'Модерация объявлений (выкл. — публикуются сразу)', 'Listing moderation (off — publish instantly)'],
   autoApproveVerified: ["Tasdiqlangan kompaniyalar e'lonlari moderatsiyasiz", 'Объявления проверенных компаний без модерации', 'Auto-approve verified companies'],
   registrationOpen: ["Ro'yxatdan o'tish ochiq", 'Регистрация открыта', 'Registration open'],
@@ -1297,7 +1298,7 @@ async function settings() {
     // VIP / GOLD / PREMIUM narxlari — alohida bo'limda (/admin/tiers)
     ['g_prices', ['prices.plan.business', 'prices.inspection', 'prices.badge', 'prices.store', 'manualPay.card', 'manualPay.holder', 'manualPay.info']],
     ['g_limits', ['freeListingLimit', 'businessTopCredits', 'escrowFeePct']],
-    ['g_platform', ['registrationOpen', 'listingModeration', 'autoApproveVerified', 'requireCompanyDocs', 'supportPhone', 'supportTelegram', 'announcementType', 'announcement']],
+    ['g_platform', ['registrationOpen', 'listingModeration', 'promoTop', 'autoApproveVerified', 'requireCompanyDocs', 'supportPhone', 'supportTelegram', 'announcementType', 'announcement']],
     ['g_bonus', ['welcomeBonus.enabled', 'welcomeBonus.amount', 'welcomeBonus.currency']],
   ];
   const ctl = (x) => {

@@ -135,7 +135,7 @@ crm_write|Yozish|Написать|Message
 crm_call_n|Raqamni ochdi: {n}|Открыл номер: {n}|Opened phone: {n}
 crm_msg_n|Xabar: {n}|Сообщений: {n}|Messages: {n}
 crm_lead_n|Ariza: {n}|Заявок: {n}|Requests: {n}
-crm_empty|Hozircha murojaat yo'q. E'lonlaringizni TOPga chiqaring — mijozlar shu yerda paydo bo'ladi.|Пока обращений нет. Поднимите объявления в ТОП — клиенты появятся здесь.|No contacts yet. Boost your listings — customers will show up here.
+crm_empty|Hozircha murojaat yo'q. E'lonlaringizni VIP karuselga chiqaring — mijozlar shu yerda paydo bo'ladi.|Пока обращений нет. Поднимите объявления в VIP-карусель — клиенты появятся здесь.|No contacts yet. Put your listings in the VIP carousel — customers will show up here.
 crm_locked_title|So'nggi {d} kunda sizga {n} kishi murojaat qildi|За последние {d} дн. к вам обратились: {n}|{n} people contacted you in the last {d} days
 crm_locked_sub|Ular kimligini ko'rish, har biri bilan ishni bosqichma-bosqich kuzatish va eslatma qo'yish uchun «Do'kon» tarifini ulang.|Чтобы видеть, кто это, вести каждого клиента по этапам и ставить напоминания, подключите тариф «Магазин».|Get the Store plan to see who they are, track each customer by stage and set reminders.
 crm_need_company|Do'kon tarifi kompaniya uchun ulanadi — avval kompaniya qo'shing.|Тариф «Магазин» подключается для компании — сначала добавьте компанию.|The Store plan is for companies — add your company first.
@@ -792,7 +792,7 @@ current_plan|Joriy tarif|Текущий тариф|Current plan|Ағымдағы
 until|{d} gacha|до {d}|until {d}|{d} дейін|{d} чейин|то {d}|{d} çenli|{d} qədər|تا {d}|تر {d}
 listings_limit|{n} tagacha faol e'lon|До {n} активных объявлений|Up to {n} active listings|{n} белсенді хабарландыруға дейін|{n} активдүү жарнамага чейин|То {n} эълони фаъол|{n} işjeň bildirişe çenli|{n} aktiv elana qədər|تا {n} آگهی فعال|تر {n} فعالو اعلانونو
 unlimited_listings|E'lonlar soni cheklanmagan|Без ограничений по объявлениям|Unlimited listings|Хабарландыру саны шексіз|Жарнамалар чексиз|Эълонҳо бемаҳдуд|Bildirişler çäksiz|Limitsiz elan|آگهی نامحدود|بې حده اعلانونه
-top_credits|Oyiga {n} ta bepul TOP|{n} бесплатных TOP в месяц|{n} free TOPs per month|Айына {n} тегін TOP|Айына {n} акысыз TOP|{n} TOP-и ройгон дар моҳ|Aýda {n} mugt TOP|Ayda {n} pulsuz TOP|{n} TOP رایگان در ماه|په میاشت کې {n} وړیا TOP
+top_credits|Oyiga {n} ta bepul PREMIUM (kompaniya uchun)|{n} бесплатных PREMIUM в месяц (для компаний)|{n} free PREMIUM per month (companies)
 priority_mod|Ustuvor moderatsiya va statistika|Приоритетная модерация и статистика|Priority moderation and analytics|Басым модерация және статистика|Артыкчылыктуу модерация жана статистика|Модератсияи афзалиятнок ва омор|Ileri tutulýan moderasiýa we statistika|Prioritet moderasiya və statistika|بررسی اولویت‌دار و آمار|لومړیتوب لرونکې څارنه او احصایه
 choose_plan|Ulash|Подключить|Subscribe|Қосу|Туташтыруу|Пайваст кардан|Birikdirmek|Qoşul|اشتراک|ګډون
 months_n|{n} oy|{n} мес.|{n} mo.|{n} ай|{n} ай|{n} моҳ|{n} aý|{n} ay|{n} ماه|{n} میاشتې
@@ -1117,8 +1117,8 @@ download_pdf|Hisobni yuklab olish (PDF)|Скачать счёт (PDF)|Download i
 specialist_profile|Mutaxassis profili|Профиль специалиста|Specialist profile|Маман профилі|Адис профили|Профили мутахассис|Hünärmen profili|Mütəxəssis profili|پروفایل متخصص|د متخصص پروفایل
 hide_profile|Rezyumeni yashirish|Скрыть резюме|Hide resume|Түйіндемені жасыру|Резюмени жашыруу|Пинҳон кардани резюме|Rezýumäni gizlemek|Rezyumeni gizlət|پنهان کردن رزومه|رزومه پټه کړئ
 confirm_q|Ishonchingiz komilmi?|Вы уверены?|Are you sure?|Сенімдісіз бе?|Ишенесизби?|Шумо боварӣ доред?|Ynamyňyz kämilmi?|Əminsiniz?|مطمئن هستید؟|ډاډه یاست؟
-ban1_t|E'loningizni TOPga chiqaring|Поднимите объявление в ТОП|Boost your listing to the TOP|Хабарландыруыңызды ТОП-қа шығарыңыз|Жарнамаңызды ТОПко чыгарыңыз|Эълони худро ба ТОП бароред|Bildirişiňizi TOP-a çykaryň|Elanınızı TOP-a qaldırın|آگهی خود را به صدر برسانید|خپل اعلان سر ته ورسوئ
-ban1_s|Biznes tarif: cheksiz e'lonlar, TOP kreditlar va statistika|Бизнес-тариф: безлимит объявлений, ТОП-кредиты и статистика|Business plan: unlimited listings, TOP credits and analytics|Бизнес-тариф: шексіз хабарландыру, ТОП-кредиттер және статистика|Бизнес-тариф: чексиз жарнама, ТОП-кредиттер жана статистика|Тарифи бизнес: эълонҳои беҳад, кредитҳои ТОП ва омор|Biznes tarif: çäksiz bildirişler, TOP kreditleri we statistika|Biznes tarif: limitsiz elanlar, TOP kreditləri və statistika|تعرفه تجاری: آگهی نامحدود، اعتبار صدر و آمار|سوداګریز پلان: نامحدود اعلانونه، د سر کریډیټونه او احصایې
+ban1_t|VIP karuselda chiqing|Попадите в VIP-карусель|Get into the VIP carousel
+ban1_s|Kompaniyalar uchun: VIP, GOLD va PREMIUM karusellari, statistika va mijozlar CRM|Для компаний: карусели VIP, GOLD и PREMIUM, статистика и CRM клиентов|For companies: VIP, GOLD and PREMIUM carousels, analytics and customer CRM
 ban1_c|Tariflar|Тарифы|See plans|Тарифтер|Тарифтер|Тарифҳо|Tarifler|Tariflər|تعرفه‌ها|پلانونه
 ban2_t|Xavfsiz bitim|Безопасная сделка|Safe deal|Қауіпсіз мәміле|Коопсуз бүтүм|Аҳдномаи бехатар|Howpsuz söwda|Təhlükəsiz sövdələşmə|معامله امن|خوندي معامله
 ban2_s|Pul sotuvchiga texnikani qabul qilganingizdan keyingina o'tadi|Деньги поступят продавцу только после того, как вы получите технику|The seller gets paid only after you receive the equipment|Ақша сатушыға техниканы қабылдағаннан кейін ғана түседі|Акча сатуучуга техниканы алгандан кийин гана түшөт|Пул ба фурӯшанда танҳо пас аз гирифтани техника мегузарад|Pul satyja diňe tehnikany kabul edeniňizden soň geçýär|Pul satıcıya yalnız texnikanı aldıqdan sonra keçir|پول فقط پس از دریافت ماشین‌آلات به فروشنده می‌رسد|پیسې پلورونکي ته یوازې هغه وخت ورکول کیږي چې تاسو ماشین ترلاسه کړئ

@@ -7,6 +7,7 @@ const path = require('node:path');
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hemu-feat-'));
 process.env.NODE_ENV = 'test';
+process.env.PROMO_TOP = '1'; // TOP paketlari ham sinovdan o'tadi
 process.env.LISTING_MODERATION = '1'; // moderatsiya oqimi sinovdan o'tadi
 process.env.DB_FILE = path.join(tmp, 'test.db');
 process.env.UPLOAD_DIR = path.join(tmp, 'uploads');

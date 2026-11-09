@@ -35,9 +35,9 @@ db.run(`UPDATE users SET role = 'admin', blocked = 0, username = ?, password_has
 if (changed) db.run('DELETE FROM sessions WHERE user_id = ?', u.id);
 
 // Seed admin — ochiq parol bilan yaratilgan, endi kerak emas
-const seedAdmin = db.get('SELECT id FROM users WHERE phone = ? AND id != ?', SEED_ADMIN_PHONE, u.id);
+const seedAdmin = db.get('SELECT id FROM users WHERE phone = ? AND id != ? AND username IS NULL', SEED_ADMIN_PHONE, u.id);
 if (seedAdmin) {
   db.run(`UPDATE users SET role = 'user', blocked = 1, password_hash = NULL WHERE id = ?`, seedAdmin.id);
   db.run('DELETE FROM sessions WHERE user_id = ?', seedAdmin.id);
 }
-console.log(`OK admin=${login} (id ${u.id})${changed ? ', parol yangilandi' : ''}${seedAdmin ? ', seed admin bloklandi' : ''}`);
+console.log(`OK admin=${login} (id ${u.id}${u.blocked ? ', blokdan chiqarildi' : ''})${changed ? ', parol yangilandi' : ''}${seedAdmin ? ', seed admin bloklandi' : ''}`);

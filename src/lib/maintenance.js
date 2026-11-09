@@ -26,7 +26,8 @@ function bootMigrations() {
       db.run('DELETE FROM sessions WHERE user_id = ?', u.id);
       n += 1;
     }
-    const seedAdmin = db.get(`SELECT id FROM users WHERE phone = ? AND role IN ('admin', 'moderator')`, SEED_ADMIN_PHONE);
+    // Login (username) qo'yilgan bo'lsa — bu egasining haqiqiy admin akkaunti, unga tegilmaydi
+    const seedAdmin = db.get(`SELECT id FROM users WHERE phone = ? AND role IN ('admin', 'moderator') AND username IS NULL`, SEED_ADMIN_PHONE);
     if (seedAdmin) {
       db.run(`UPDATE users SET role = 'user', blocked = 1 WHERE id = ?`, seedAdmin.id);
       db.run('DELETE FROM sessions WHERE user_id = ?', seedAdmin.id);

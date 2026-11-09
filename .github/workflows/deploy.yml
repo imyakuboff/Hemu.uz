@@ -61,16 +61,22 @@ jobs:
               # Tashxis: kalit taklif qilindimi, server kalitni qabul qila oladimi
               SSHD=$(sshd -T 2>/dev/null | grep -E '^(pubkeyauthentication|permitrootlogin|authorizedkeysfile) ' | tr '\n' ' ')
               TRY=$( (journalctl -u ssh -u sshd --since "-15 min" --no-pager 2>/dev/null; tail -n 300 /var/log/auth.log 2>/dev/null) | grep "$CIP" | grep -iE 'publickey|key' | tail -2 | sed 's/.*sshd\[[0-9]*\]: //' | tr '\n' ' ')
-              echo "::warning::SSH hali parol bilan ($AUTH). Server: $SSHD | kalit urinishlari: ${TRY:-yo'q (SSH_KEY berilmagan)}"
+              [ -n "$TRY" ] || TRY="yo'q - SSH_KEY berilmagan yoki bo'sh"
+              echo "::warning::SSH hali parol bilan ($AUTH). Server: $SSHD | kalit urinishlari: $TRY"
             fi
             mkdir -p /root/hemu-backups && chmod 700 /root/hemu-backups
             # Baza: izchil nusxa (VACUUM INTO — ishlab turgan WAL bazadan ham butun nusxa), 10 tasi saqlanadi
             DBF0=$(grep -E '^DB_FILE=' /opt/hemu/.env 2>/dev/null | cut -d= -f2 | tr -d '"\r '); DBF0=${DBF0:-data/movexgo.db}
             case "$DBF0" in /*) ;; *) DBF0="/opt/hemu/$DBF0";; esac
-            BK=/root/hemu-backups/db-$(date +%F-%H%M).db
+            BK=/root/hemu-backups/db-$(date +%F-%H%M%S).db
+            step "Disk: $(df -h / | awk 'NR==2{print $4" free, "$5" used"}') | zaxiralar: $(du -sh /root/hemu-backups 2>/dev/null | cut -f1)"
             if [ -f "$DBF0" ]; then
-              node --disable-warning=ExperimentalWarning -e "const {DatabaseSync}=require('node:sqlite'); new DatabaseSync(process.argv[1]).exec(\"VACUUM INTO '\"+process.argv[2]+\"'\")" "$DBF0" "$BK" && gzip -f "$BK"
-              ls -1t /root/hemu-backups/db-*.db.gz 2>/dev/null | tail -n +11 | xargs -r rm -f
+              rm -f "$BK" "$BK.gz"
+              if node --disable-warning=ExperimentalWarning -e "const {DatabaseSync}=require('node:sqlite'); new DatabaseSync(process.argv[1]).exec(\"VACUUM INTO '\"+process.argv[2]+\"'\")" "$DBF0" "$BK" 2>/tmp/hemu-bk.log && gzip -f "$BK" 2>>/tmp/hemu-bk.log; then
+                ls -1t /root/hemu-backups/db-*.db.gz 2>/dev/null | tail -n +11 | xargs -r rm -f
+              else
+                rm -f "$BK"; echo "::warning::Baza zaxirasi olinmadi: $(tail -c 300 /tmp/hemu-bk.log | tr '\n' ' ')"
+              fi
             fi
             # Kod va rasmlar (baza fayllarisiz — ular yuqorida izchil saqlandi), 5 tasi saqlanadi
             tar czf /root/hemu-backups/hemu-$(date +%F-%H%M).tgz --exclude=node_modules --exclude='*.db' --exclude='*.db-wal' --exclude='*.db-shm' --exclude=data/backups -C /opt hemu

@@ -18,6 +18,23 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      # SSH_KEY telefondan nusxalanganda qatorlari qo'shilib ketishi mumkin — kalit qayta tiklanadi.
+      # Bitta qatorli base64 ko'rinishda berilsa ham ishlaydi.
+      - name: SSH kalitini tayyorlash
+        env:
+          RAW_KEY: ${{ secrets.SSH_KEY }}
+        run: |
+          [ -n "$RAW_KEY" ] || { echo "SSH_KEY yo'q"; exit 0; }
+          K=$(printf '%s' "$RAW_KEY" | tr -d '\r')
+          if ! printf '%s' "$K" | grep -q 'BEGIN OPENSSH PRIVATE KEY'; then K=$(printf '%s' "$K" | tr -d ' \n\t' | base64 -d 2>/dev/null || true); fi
+          BODY=$(printf '%s' "$K" | sed -e 's/.*-----BEGIN OPENSSH PRIVATE KEY-----//' -e 's/-----END OPENSSH PRIVATE KEY-----.*//' | tr -d ' \n\t\r')
+          [ -n "$BODY" ] || { echo "::warning::SSH_KEY o'qilmadi"; exit 0; }
+          FIXED=$(printf -- '-----BEGIN OPENSSH PRIVATE KEY-----\n%s\n-----END OPENSSH PRIVATE KEY-----\n' "$(printf '%s' "$BODY" | fold -w 70)")
+          printf '%s\n' "$FIXED" > /tmp/k && chmod 600 /tmp/k
+          if ssh-keygen -y -f /tmp/k >/tmp/k.pub 2>/tmp/k.err; then echo "Kalit to'g'ri: $(cut -c1-40 /tmp/k.pub)…"; else echo "::warning::SSH_KEY buzilgan: $(cat /tmp/k.err)"; rm -f /tmp/k; exit 0; fi
+          rm -f /tmp/k /tmp/k.pub
+          { echo 'DEPLOY_KEY<<KEYEOF'; printf '%s\n' "$FIXED"; echo 'KEYEOF'; } >> "$GITHUB_ENV"
+
       - name: Serverda yangilash
         uses: appleboy/ssh-action@v1.2.0
         env:
@@ -29,7 +46,7 @@ jobs:
         with:
           host: 189.74.98.45
           username: root
-          key: ${{ secrets.SSH_KEY }}
+          key: ${{ env.DEPLOY_KEY }}
           password: ${{ secrets.SSH_PASSWORD }}
           port: 22
           command_timeout: 15m

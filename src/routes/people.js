@@ -7,6 +7,7 @@ const { requireAuth, rateLimit } = require('../lib/auth');
 const { fail, notFound, forbidden, validate, paging, pageResult, parseJson } = require('../lib/http');
 const { COUNTRY, CURRENCY_CODES, isValidRegion, countryName, regionName } = require('../geo');
 const { normalizeSearch } = require('../i18n');
+const { notify } = require('../lib/notify');
 
 const r = Router();
 const textFilter = (q, col = 'search_text') => normalizeSearch(q || '').split(' ').filter(Boolean).slice(0, 6).map((tok) => [`${col} LIKE ?`, `%${tok}%`]);
@@ -118,7 +119,11 @@ r.post('/jobs', requireAuth, rateLimit({ name: 'jobs', windowMs: 3600000, max: 2
     search_text: normalizeSearch([v.title, v.description, (v.requirements || []).join(' '), v.city, company?.name].filter(Boolean).join(' ')),
     expires_at: db.get(`SELECT datetime('now', '+30 days') AS d`).d,
   });
-  res.status(201).json(jobView(db.get('SELECT * FROM jobs WHERE id = ?', id), req));
+  // Mos mutaxassislarga (mexanik yoki haydovchi) "Yangi ish" xabari
+  const city = v.city || (v.region ? regionName(v.country, v.region, 'uz') : '');
+  const to = P.specialistsToNotify({ kind: v.kind, country: v.country, region: v.region, excludeUserId: req.user.id });
+  for (const uid of to) notify(uid, 'job_new', { title: v.title, city_txt: city ? ` · ${city}` : '', job_id: id }, `/${v.kind}`);
+  res.status(201).json({ ...jobView(db.get('SELECT * FROM jobs WHERE id = ?', id), req), notified: to.length });
 });
 
 r.post('/jobs/:id/close', requireAuth, (req, res) => {

@@ -1,6 +1,6 @@
 import { state, t, esc, api, qs, num, debounce, applyDir, setLang, setCurrency, setToken, icon, toast, $, closeModal, toggleTheme, applyTheme } from './core.js';
 import { header, footer, bottomNav, loginModal, locationModal, mobileMenu, requireLogin } from './ui.js';
-import { toggleCompare, startVoice } from './features.js';
+import { toggleCompare, startVoice, initPushCards } from './features.js';
 
 const routes = [
   [/^\/$/, () => import('./pages/home.js')],
@@ -118,6 +118,7 @@ export async function render({ keepScroll = false } = {}) {
     else window.scrollTo(0, 0);
     const main = $('main.page', app);
     cleanup = (await res.mount?.(main)) || null;
+    initPushCards(main).catch(() => {});
     // /about#safe kabi havolalar — sahifa chizilgach kerakli bo'limga o'tish
     if (!keepScroll && location.hash.length > 1) document.getElementById(decodeURIComponent(location.hash.slice(1)))?.scrollIntoView();
   } catch (e) {

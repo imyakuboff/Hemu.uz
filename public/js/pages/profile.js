@@ -1,6 +1,7 @@
 import { state, t, esc, api, icon, num, fmtRel, fmtDate, fmtTime, initials, toast, markErrors, ApiErr, setLang, setCurrency, $, $$ } from '../core.js';
 import { crumbs, accountLayout, imgOf, priceText, regionsOf, shortCat, verifiedTick } from '../ui.js';
 import { go, render, onAuthChanged } from '../app.js';
+import { pushCard, pushSupported, pushSubscribed, enablePush } from '../features.js';
 import { legalSpec, legalBlock, bindLegal, readRequisites, checkRequisites, uploadDocs, markLegalErrors } from '../legal.js';
 
 const needLogin = () => ({ title: t('login'), html: `<div class="box empty"><h3>${esc(t('login_required'))}</h3><button class="btn btn-primary" data-login style="margin-top:14px">${esc(t('login'))}</button></div>` });
@@ -94,6 +95,7 @@ export async function profile() {
       <div style="display:flex;gap:8px;margin-top:8px"><input class="input" data-tpl-new maxlength="1000" placeholder="${esc(t('add_template'))}"><button class="btn btn-soft" data-tpl-add>${icon('plus')}</button></div>
     </div>
 
+    ${isSpec ? pushCard('push_card_mech') : ''}
     ${isSpec ? `<form class="box" id="p-specialist" data-sf novalidate><div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap"><h3 style="margin:0">${esc(t('specialist_profile'))}</h3>${spec ? `<a class="link-blue small" href="/specialist/${spec.id}">${esc(t('details'))} ${icon('arrow', 'arrow-flip')}</a>` : ''}</div>
       <div class="seg" data-kind style="margin:12px 0"><button type="button" data-v="mechanic" class="${kind === 'mechanic' ? 'on' : ''}">${esc(t('type_mechanic'))}</button><button type="button" data-v="driver" class="${kind === 'driver' ? 'on' : ''}">${esc(t('type_driver'))}</button></div>
       <div class="form-grid">
@@ -253,20 +255,15 @@ export async function profile() {
       // Brauzer push-obunasi
       const pushBox = $('[data-push]', main);
       const pushMsg = $('[data-push-msg]', main);
-      const pushOk = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
-      const b64 = (s) => { const p = '='.repeat((4 - (s.length % 4)) % 4); const raw = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from([...raw].map((ch) => ch.charCodeAt(0))); };
+      const pushOk = pushSupported();
       if (!pushOk) { pushBox.disabled = true; pushMsg.textContent = t('push_unsupported'); } else {
-        navigator.serviceWorker.ready.then((reg) => reg.pushManager.getSubscription()).then((s) => { pushBox.checked = Boolean(s) && Notification.permission === 'granted'; }).catch(() => {});
+        pushSubscribed().then((on) => { pushBox.checked = on; });
         if (Notification.permission === 'denied') pushMsg.textContent = t('push_denied');
         pushBox.addEventListener('change', async () => {
           try {
             const reg = await navigator.serviceWorker.ready;
             if (pushBox.checked) {
-              const perm = await Notification.requestPermission();
-              if (perm !== 'granted') { pushBox.checked = false; pushMsg.textContent = t('push_denied'); return; }
-              const { public_key: key } = await api('/push/key');
-              const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64(key) });
-              await api('/me/push', { method: 'POST', body: { subscription: sub.toJSON() } });
+              if (!(await enablePush())) { pushBox.checked = false; pushMsg.textContent = t('push_denied'); return; }
               pushMsg.textContent = '';
               toast(t('saved'), 'ok');
             } else {
@@ -303,6 +300,7 @@ export async function dashboard() {
     ${d.company ? `<div class="banner-navy"><div><h2>${esc(d.company.name)}</h2><p>${esc([d.company.activity, d.company.city].filter(Boolean).join(' · '))}</p>${d.company.verified ? `<span class="tag green">${esc(t('verified_seller'))}</span>` : `<span class="tag orange">${esc(t(`ver_${d.company.verification}`))}</span>`}</div>
       <a href="/create" class="btn btn-primary">${icon('plus')} ${esc(t('post_listing'))}</a></div>`
     : `<div class="banner-navy"><div><h2>${esc(state.user.name || state.user.phone)}</h2><p>${esc(t('no_company_dash'))}</p></div><a href="/profile#p-company" class="btn btn-white">${esc(t('create_company'))}</a></div>`}
+    ${pushCard()}
     <div class="tool-row" style="margin:12px 0 0"><a class="btn btn-soft btn-sm" href="/crm">${icon('user')} ${esc(t('crm'))}</a><a class="btn btn-soft btn-sm" href="/analytics">${icon('chart')} ${esc(t('analytics'))}</a><a class="btn btn-soft btn-sm" href="/plans">${icon('rocket')} ${esc(t('plans_link'))}${state.user.plan?.plan === 'business' ? ' · PRO' : ''}</a><a class="btn btn-soft btn-sm" href="/my/import">${icon('upload')} ${esc(t('import'))}</a><a class="btn btn-soft btn-sm" href="/verified">${verifiedTick(state.user.badge_until ? 'paid' : 'docs')} ${esc(t(d.company?.verified || state.user.badge_until ? 'tick_have' : 'tick_get'))}</a><a class="btn btn-soft btn-sm" href="/my/orders?tab=bookings">${icon('calendar')} ${esc(t('bookings_tab'))}</a></div>
     <div class="stats">
       <div class="stat"><span>${esc(t('active_listings'))}</span><b>${num(s.active_listings.value)}</b><small>${esc(t('per_month', { n: s.active_listings.delta_month }))}</small></div>

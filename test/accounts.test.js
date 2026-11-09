@@ -278,3 +278,32 @@ test("ro'yxatdan o'tish: Gmail majburiy, kod emailga bog'lanadi", async () => {
   const dup = await api('POST', '/api/v1/auth/register/start', { body: { phone: '+998935550102', email: 'mail.test@gmail.com' } });
   assert.equal(dup.status, 409);
 });
+
+test("ta'mirlash buyurtmasi mexaniklarga, ish e'loni mutaxassislarga «Yangi buyurtma» bo'lib boradi", async () => {
+  const m = (await register('+998977771122', { account_type: 'mechanic', name: 'Akmal usta', password: 'Mechanic22', specialist: { headline: 'Gidravlika ustasi, joyiga chiqaman', skills: ['hydraulics'], region: 'tashkent' } })).body;
+  const far = (await register('+998977771133', { account_type: 'mechanic', name: 'Uzoq usta', password: 'Mechanic33', specialist: { headline: 'Dvigatel ustasi Andijonda', skills: ['engine'], region: 'andijan' } })).body;
+  const notes = async (tk) => (await api('GET', '/api/v1/notifications?lang=uz', { token: tk })).body.items;
+  const r = await api('POST', '/api/v1/requests', {
+    token: S.buyer.token,
+    body: { want: 'service', deal_type: 'service', category: 'special', subcategory: 'excavators', title: 'Ekskavator gidravlikasi buzildi', description: "JCB JS220 gidravlika shlangi yorildi, Chirchiqda turibdi.", region: 'tashkent', currency: 'UZS' },
+  });
+  assert.equal(r.status, 201, JSON.stringify(r.body));
+  const got = (await notes(m.token)).find((x) => x.type === 'request_repair');
+  assert.ok(got, "mexanikka xabar bormadi");
+  assert.match(got.text, /^🔧 Yangi buyurtma: Ekskavator gidravlikasi buzildi/);
+  assert.equal(got.link, `/requests/${r.body.id}`);
+  // Toshkentda mexanik yetarli bo'lmasa butun mamlakat qamrab olinadi (bu yerda 5 tadan kam)
+  assert.ok((await notes(far.token)).some((x) => x.type === 'request_repair'));
+  // Lentada ta'mirlash filtri
+  const feed = await api('GET', '/api/v1/requests?want=service');
+  assert.ok(feed.body.items.length && feed.body.items.every((x) => x.want === 'service'));
+  // Texnika so'rovi mexaniklarga bormaydi
+  const before = (await notes(m.token)).length;
+  await api('POST', '/api/v1/requests', { token: S.buyer.token, body: { want: 'equipment', deal_type: 'rent', category: 'special', subcategory: 'excavators', title: 'Ekskavator ijaraga kerak', description: 'Bir haftaga Chirchiqda ekskavator kerak.', region: 'tashkent', currency: 'UZS' } });
+  assert.equal((await notes(m.token)).length, before);
+  // Ish e'loni — o'sha turdagi mutaxassislarga
+  const j = await api('POST', '/api/v1/jobs', { token: S.seller.token, body: { kind: 'mechanic', title: 'Doimiy mexanik kerak', description: "Toshkentdagi parkimizga tajribali mexanik kerak, 5/2.", region: 'tashkent' } });
+  assert.equal(j.status, 201, JSON.stringify(j.body));
+  assert.ok(j.body.notified >= 1);
+  assert.ok((await notes(m.token)).some((x) => x.type === 'job_new' && x.text.includes('Doimiy mexanik kerak')));
+});

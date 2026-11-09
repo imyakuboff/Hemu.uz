@@ -81,4 +81,15 @@ function specialistView(s, req, { full = false } = {}) {
   return v;
 }
 
-module.exports = { MECHANIC_SKILLS, DRIVER_SKILLS, LICENSES, RATE_UNITS, upsertSpecialist, specialistView, normalizePhone };
+// Yangi buyurtma/ish chiqqanda xabar oladigan mutaxassislar: avval o'sha viloyat
+// (va viloyati ko'rsatilmaganlar); viloyatda kam bo'lsa — butun mamlakat
+function specialistsToNotify({ kind, country, region, excludeUserId, limit = 150 }) {
+  const base = `SELECT user_id FROM specialists WHERE kind = ? AND status = 'active' AND available = 1 AND country = ? AND user_id != ?`;
+  let rows = region
+    ? db.all(`${base} AND (region = ? OR region IS NULL) ORDER BY (region = ?) DESC, mobile DESC, updated_at DESC LIMIT ?`, kind, country, excludeUserId || 0, region, region, limit)
+    : [];
+  if (rows.length < 5) rows = db.all(`${base} ORDER BY (region = ?) DESC, mobile DESC, updated_at DESC LIMIT ?`, kind, country, excludeUserId || 0, region || '', limit);
+  return rows.map((r) => r.user_id);
+}
+
+module.exports = { specialistsToNotify, MECHANIC_SKILLS, DRIVER_SKILLS, LICENSES, RATE_UNITS, upsertSpecialist, specialistView, normalizePhone };

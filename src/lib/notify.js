@@ -38,6 +38,8 @@ const PREF = {
   escrow: 'notify_orders',
   payment_paid: 'notify_orders',
   inspection_status: 'notify_orders',
+  request_repair: 'notify_orders',
+  job_new: 'notify_orders',
 };
 
 function notify(userId, type, params = {}, link = null) {

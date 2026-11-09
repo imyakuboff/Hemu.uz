@@ -1,5 +1,45 @@
 import { state, t, esc, api, icon, money, num, locale, openModal, closeModal, toast, $, $$ } from './core.js';
 
+// ---------- Brauzer push-bildirishnomalari ----------
+// Yangi buyurtma/xabar telefon yopiq bo'lsa ham kelsin. Sahifaga pushCard() qo'yiladi,
+// app.js har chizishdan keyin initPushCards() bilan kerak bo'lsa ko'rsatadi.
+export const pushSupported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+const b64u = (s) => { const p = '='.repeat((4 - (s.length % 4)) % 4); const raw = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from([...raw].map((ch) => ch.charCodeAt(0))); };
+export async function pushSubscribed() {
+  if (!pushSupported() || Notification.permission !== 'granted') return false;
+  try { return Boolean(await (await navigator.serviceWorker.ready).pushManager.getSubscription()); } catch { return false; }
+}
+// true — yoqildi; false — ruxsat berilmadi
+export async function enablePush() {
+  const perm = await Notification.requestPermission();
+  if (perm !== 'granted') return false;
+  const reg = await navigator.serviceWorker.ready;
+  const { public_key: key } = await api('/push/key');
+  const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64u(key) });
+  await api('/me/push', { method: 'POST', body: { subscription: sub.toJSON() } });
+  return true;
+}
+export const pushCard = (textKey = 'push_card_text') => `<div class="push-card" data-pushcard hidden>
+  <span class="push-ic">${icon('bell')}</span>
+  <div><b>${esc(t('push_card_title'))}</b><p>${esc(t(textKey))}</p></div>
+  <button type="button" class="btn btn-primary btn-sm" data-push-on>${esc(t('push_enable'))}</button>
+</div>`;
+export async function initPushCards(root) {
+  const cards = [...root.querySelectorAll('[data-pushcard]')];
+  if (!cards.length || !state.user || !pushSupported() || Notification.permission === 'denied') return;
+  if (await pushSubscribed()) return;
+  for (const c of cards) {
+    c.hidden = false;
+    c.querySelector('[data-push-on]').addEventListener('click', async (e) => {
+      e.currentTarget.disabled = true;
+      try {
+        if (await enablePush()) { toast(t('push_on_ok'), 'ok'); cards.forEach((x) => { x.hidden = true; }); }
+        else toast(t('push_denied'), 'err');
+      } catch (err) { toast(err.message || t('error'), 'err'); } finally { e.currentTarget.disabled = false; }
+    });
+  }
+}
+
 // ---------- Xarita (Leaflet, OpenStreetMap) ----------
 let leafletP = null;
 export function loadLeaflet() {

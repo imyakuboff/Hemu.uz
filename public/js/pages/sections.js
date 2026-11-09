@@ -2,6 +2,7 @@ import { state, t, esc, api, icon, num, qs, fmtRel, initials, openModal, closeMo
 import { crumbs, cards, pager, emptyBox, shortCat, regionsOf, requireLogin } from '../ui.js';
 import { go, render, onAuthChanged } from '../app.js';
 import { ART } from '../art.js';
+import { pushCard } from '../features.js';
 
 // Bo'limlar ro'yxati (bosh sahifa, katalog, mobil menyu uchun)
 export const SECTIONS = [
@@ -110,7 +111,8 @@ async function peopleSection(kind, query) {
     : await api(`/specialists${qs({ kind, country, q: query.q, skill: query.skill, license: query.license, mobile: query.mobile, page: query.page })}`);
   const path = `/${kind}`;
   const html = `
-  ${head(kind, `<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-soft" data-post-job>${icon('plus')} ${esc(t('post_vacancy'))}</button><a href="/profile#p-specialist" class="btn btn-primary" data-post-resume>${icon('user')} ${esc(t('post_resume'))}</a></div>`)}
+  ${head(kind, `<div style="display:flex;gap:8px;flex-wrap:wrap">${kind === 'mechanic' ? `<a href="/request/new?want=service" class="btn btn-primary">${icon('gear')} ${esc(t('call_mechanic'))}</a>` : ''}<button class="btn btn-soft" data-post-job>${icon('plus')} ${esc(t('post_vacancy'))}</button><a href="/profile#p-specialist" class="btn btn-soft" data-post-resume>${icon('user')} ${esc(t('post_resume'))}</a></div>`)}
+  ${['mechanic', 'driver'].includes(state.user?.account_type) || state.user?.specialist ? pushCard('push_card_mech') : ''}
   <div class="tabs"><a class="tab ${tab === 'people' ? 'on' : ''}" href="${path}">${esc(t('resumes_tab'))}</a><a class="tab ${tab === 'jobs' ? 'on' : ''}" href="${path}?tab=jobs">${esc(t('vacancies_tab'))}</a></div>
   <form class="search" data-sq style="margin-bottom:12px">${icon('search')}<input name="q" value="${esc(query.q || '')}" placeholder="${esc(t(tab === 'people' ? 'search_resumes' : 'search_jobs'))}"><button class="btn btn-primary">${esc(t('find'))}</button></form>
   ${tab === 'people' ? `<div class="lbl" style="margin-bottom:6px">${esc(t(kind === 'driver' ? 'skills_driver' : 'skills_mechanic'))}</div><div class="chips" style="margin-bottom:12px">${skills.map((k) => `<a class="chip ${query.skill === k ? 'on' : ''}" href="${path}${qs({ ...query, skill: query.skill === k ? undefined : k, page: undefined })}">${esc(t(`sk_${k}`))}</a>`).join('')}</div>

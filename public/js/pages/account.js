@@ -1,7 +1,7 @@
 import { state, t, esc, api, icon, num, money, qs, fmtRel, fmtDate, openModal, closeModal, toast, confirmBox, $, $$ } from '../core.js';
 import { crumbs, cards, card, accountLayout, pager, imgOf, priceText, emptyBox, factsLine, locLine, ratingHtml } from '../ui.js';
 import { go, render } from '../app.js';
-import { promoteModal, providerOptions, bindSeg, goPay } from '../features.js';
+import { promoteModal, providerOptions, bindSeg, goPay, pushCard } from '../features.js';
 import { promoJoinModal } from './promos.js';
 import { escrowPayModal } from './listing.js';
 
@@ -455,6 +455,7 @@ export async function notifications() {
   const res = await api('/notifications?limit=100');
   const html = accountLayout('', `
     ${head(t('notifications'))}
+    ${pushCard()}
     <div style="margin-bottom:12px"><button class="btn btn-soft btn-sm" data-read-all>${esc(t('mark_all_read'))}</button></div>
     <div class="box">${res.items.length ? res.items.map((n) => `<a class="lead" style="grid-template-columns:1fr auto" href="${esc(n.link || '#')}"><div><b style="${n.read ? 'font-weight:500' : ''}">${n.read ? '' : '● '}${esc(n.text)}</b></div><span>${esc(fmtRel(n.created_at))}</span></a>`).join('') : `<div class="empty">${esc(t('empty'))}</div>`}</div>`);
   return {
@@ -469,7 +470,8 @@ export async function notifications() {
 // ---------- Xaridor so'rovlari (sotuvchilar uchun) ----------
 export async function requests({ query }) {
   const mine = query.mine === '1';
-  const res = await api(`/requests${qs({ category: query.category, country: state.country, mine_categories: mine ? '1' : undefined, page: query.page })}`);
+  const repair = query.want === 'service';
+  const res = await api(`/requests${qs({ category: query.category, country: state.country, mine_categories: mine ? '1' : undefined, want: repair ? 'service' : undefined, page: query.page })}`);
   const row = (r) => `<div class="order">
     <div class="hd"><span>${esc(r.title)}</span><span class="tiny muted">${esc(fmtRel(r.created_at))}</span></div>
     <div class="small muted" style="margin-top:6px">${esc([r.category?.name, r.subcategory?.name, r.location.region_name || r.location.country_name, r.quantity, r.needed_by].filter(Boolean).join(' · '))}</div>
@@ -482,9 +484,10 @@ export async function requests({ query }) {
     ${crumbs([[t('home'), '/'], [t('buyer_requests')]])}
     <div class="page-head"><h1 class="page-title">${esc(t('buyer_requests'))}</h1><p class="page-sub">${esc(t('requests_sub'))}</p></div>
     <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px">
-      <div class="chips"><a class="chip ${mine ? '' : 'on'}" href="/requests">${esc(t('all'))}</a>${state.user ? `<a class="chip ${mine ? 'on' : ''}" href="/requests?mine=1">${esc(t('my_categories_only'))}</a>` : ''}</div>
+      <div class="chips"><a class="chip ${mine || repair ? '' : 'on'}" href="/requests">${esc(t('all'))}</a><a class="chip ${repair ? 'on' : ''}" href="/requests?want=service">🔧 ${esc(t('want_repair'))}</a>${state.user ? `<a class="chip ${mine ? 'on' : ''}" href="/requests?mine=1">${esc(t('my_categories_only'))}</a>` : ''}</div>
       <a href="/request/new" class="btn btn-primary">${icon('plus')} ${esc(t('create_request'))}</a>
     </div>
+    ${pushCard()}
     ${res.items.length ? res.items.map(row).join('') : emptyBox(t('empty'))}
     ${pager(res.page, res.pages, (p) => `/requests${qs({ ...query, page: p })}`)}`;
   return {

@@ -318,11 +318,11 @@ export async function request() {
   const u = state.user;
   const country = state.country || u.country;
   const cur = state.meta.countries.find((c) => c.code === country)?.currency || 'USD';
-  const wantRoot = { equipment: 'special', part: 'parts' };
+  const wantRoot = { equipment: 'special', part: 'parts', service: 'special' };
   const pre = new URLSearchParams(location.search);
   const root = state.cats.find((c) => c.slug === pre.get('category')) || state.cats.find((c) => c.slug === 'special');
   const preSub = pre.get('subcategory');
-  const preWant = root.slug === 'parts' ? 'part' : 'equipment';
+  const preWant = pre.get('want') === 'service' ? 'service' : root.slug === 'parts' ? 'part' : 'equipment';
   const conds = [['any', t('any_cond')], ...state.meta.conditions.map((c) => [c.value, c.label])];
   const html = `
   ${crumbs([[t('home'), '/'], [t('create_request')]])}
@@ -330,7 +330,8 @@ export async function request() {
   <div class="detail side-340">
     <form data-rf novalidate>
       <div class="box"><h3>${esc(t('what_looking'))}</h3>
-        <div class="seg" data-want>${[['equipment', t('want_equipment')], ['part', t('want_part')]].map(([v, l]) => `<button type="button" data-v="${v}" class="${v === preWant ? 'on' : ''}">${esc(l)}</button>`).join('')}</div>
+        <div class="seg seg-want" data-want>${[['equipment', t('want_equipment')], ['part', t('want_part')], ['service', t('want_repair')]].map(([v, l]) => `<button type="button" data-v="${v}" class="${v === preWant ? 'on' : ''}">${esc(l)}</button>`).join('')}</div>
+        <p class="tiny muted" data-want-hint style="margin:-4px 0 12px" ${preWant === 'service' ? '' : 'hidden'}>${icon('bell')} ${esc(t('want_repair_hint'))}</p>
         <div class="form-grid">
           ${field(t('category'), sel('category', state.cats.map((c) => [c.slug, shortCat(c)]), root.slug), { req: true })}
           ${field(t('subcategory'), `<select class="input" name="subcategory">${root.children.map((s) => `<option value="${s.slug}" ${s.slug === preSub ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select>`, { req: true })}
@@ -379,12 +380,13 @@ export async function request() {
     html,
     mount(main) {
       const form = $('[data-rf]', main);
-      let want = 'equipment';
+      let want = preWant;
       $('[data-want]', main).addEventListener('click', (ev) => {
         const b = ev.target.closest('[data-v]');
         if (!b) return;
         want = b.dataset.v;
         $$('[data-want] [data-v]', main).forEach((x) => x.classList.toggle('on', x === b));
+        $('[data-want-hint]', main).hidden = want !== 'service';
         form.category.value = wantRoot[want];
         form.category.dispatchEvent(new Event('change'));
       });

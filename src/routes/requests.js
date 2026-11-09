@@ -7,6 +7,7 @@ const { requireAuth, rateLimit } = require('../lib/auth');
 const { fail, notFound, forbidden, validate, paging, pageResult } = require('../lib/http');
 const { COUNTRY, CURRENCY_CODES, isValidRegion, regionName, countryName, normalizePhone } = require('../geo');
 const upload = require('../lib/upload');
+const { specialistsToNotify } = require('../lib/people');
 
 const r = Router();
 
@@ -119,6 +120,8 @@ r.get('/requests', (req, res) => {
     where.push('country = ?');
     params.push(String(req.query.country).toUpperCase());
   }
+  // Ta'mirlash buyurtmalari (mexaniklar uchun)
+  if (['equipment', 'part', 'service'].includes(req.query.want)) { where.push('want = ?'); params.push(req.query.want); }
   // Matn bo'yicha qidiruv (sarlavha, tavsif, shahar)
   const q = String(req.query.q || '').trim().toLowerCase().slice(0, 80);
   if (q) {
@@ -171,7 +174,15 @@ function openRequest(id, userId) {
     x.country, userId, x.subcategory_id ?? -1, x.category_id, x.subcategory_id ?? -1, x.region ?? '',
   );
   for (const s of sellers) notify(s.user_id, 'request_match', { title: x.title, request_id: x.id }, `/requests/${x.id}`);
-  return sellers.length;
+  // Ta'mirlash buyurtmasi — mexaniklarga "Yangi buyurtma" (push, Telegram, sayt)
+  let mechanics = [];
+  if (x.want === 'service') {
+    const sent = new Set(sellers.map((s) => s.user_id));
+    mechanics = specialistsToNotify({ kind: 'mechanic', country: x.country, region: x.region, excludeUserId: userId }).filter((id) => !sent.has(id));
+    const city = x.city || (x.region ? regionName(x.country, x.region, 'uz') : '');
+    for (const uid of mechanics) notify(uid, 'request_repair', { title: x.title, city_txt: city ? ` · ${city}` : '', request_id: x.id }, `/requests/${x.id}`);
+  }
+  return sellers.length + mechanics.length;
 }
 
 r.post('/requests/:id/publish', requireAuth, (req, res) => {

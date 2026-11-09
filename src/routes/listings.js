@@ -393,6 +393,15 @@ function activate(id) {
   notify(l.user_id, 'listing_approved', { title: l.title, listing_id: l.id }, `/listing/${l.id}`);
   // Yandex va Bing'ga darhol xabar (IndexNow)
   require('../lib/indexnow').listing(l.id);
+  // Obunachilar, qiziqishlar va saqlangan qidiruvlar — javobdan keyin, fonda (e'lon joylash sekinlashmasin)
+  deferFanOut(() => fanOut(l));
+}
+
+const deferFanOut = process.env.NODE_ENV === 'test'
+  ? (f) => f()
+  : (f) => setImmediate(() => { try { f(); } catch (e) { console.warn('[fanout]', e.message); } });
+
+function fanOut(l) {
   // Kompaniya obunachilariga
   const notified = new Set([l.user_id]);
   if (l.company_id) {
@@ -554,7 +563,7 @@ r.post('/listings/:id/leads', requireAuth, (req, res) => {
   const conv = ensureConversation(l, req.user.id);
   const text = v.message || `[${kind}] ${l.title}`;
   postMessage(conv, req.user, text, null, { silent: true });
-  notify(l.user_id, 'lead', { name: req.user.name || req.user.phone, title: l.title, lead_id: id, kind }, `/seller/leads/${id}`);
+  notify(l.user_id, 'lead', { name: req.user.name || req.user.phone, title: l.title, lead_id: id, kind }, `/messages/${conv.id}`);
   res.status(201).json({ id, kind, status: 'new', conversation_id: conv.id });
 });
 

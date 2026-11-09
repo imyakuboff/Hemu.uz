@@ -7,6 +7,18 @@ const ls = {
 };
 
 // ?lang=uz — qidiruv tizimlaridan kelgan til sahifasi (hreflang); tanlov eslab qolinadi
+// Birinchi tashrif: brauzer tili qo'llab-quvvatlansa — o'sha, aks holda o'zbekcha (asosiy auditoriya)
+function browserLang() {
+  try {
+    for (const l of navigator.languages || [navigator.language]) {
+      const c = String(l || '').toLowerCase().split('-')[0];
+      const m = c === 'fa' ? 'prs' : c;
+      // Ingliz tilidagi telefonlar O'zbekistonda ko'p — ular uchun ham o'zbekcha (tilni keyin almashtirish mumkin)
+      if (m !== 'en' && LANGS.includes(m)) return m;
+    }
+  } catch { /* yo'q */ }
+  return 'uz';
+}
 const urlLang = (() => { try { const l = new URLSearchParams(location.search).get('lang'); return LANGS.includes(l) ? l : null; } catch { return null; } })();
 if (urlLang) ls.set('mx_lang', urlLang);
 
@@ -14,7 +26,7 @@ export const state = {
   token: ls.get('mx_token'),
   user: null,
   meta: null,
-  lang: urlLang || ls.get('mx_lang') || 'ru', // dizayn rus tilida
+  lang: urlLang || ls.get('mx_lang') || browserLang(),
   currency: ls.get('mx_currency') || null,
   country: ls.get('mx_country') || '', // '' = butun mintaqa
   region: ls.get('mx_region') || '',

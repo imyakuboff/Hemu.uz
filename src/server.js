@@ -9,7 +9,10 @@ function boot(dbFile) {
   cats.syncCatalog();
   money.loadRates();
   require('./lib/settings').load();
-  if (process.env.NODE_ENV !== 'test') require('./lib/people').ensureDemoSpecialists();
+  if (process.env.NODE_ENV !== 'test') {
+    require('./lib/people').ensureDemoSpecialists();
+    require('./lib/maintenance').bootMigrations();
+  }
   require('./lib/metrics').start();
   return createApp();
 }
@@ -41,6 +44,17 @@ function startJobs() {
   };
   cleanup();
   timers.push(setInterval(cleanup, 3600000));
+  // Xavfsiz bitim avto-yakunlash va muddat tugashi eslatmalari (soatda bir)
+  const care = () => {
+    const m = require('./lib/maintenance');
+    try { m.escrowAutoComplete(); m.expiryReminders(); } catch (e) { console.warn('[jobs]', e.message); }
+  };
+  timers.push(setTimeout(care, 3 * 60000), setInterval(care, 3600000));
+  // Kunlik izchil zaxira nusxa (14 kun saqlanadi; xohlansa adminlarga Telegram orqali)
+  if (process.env.BACKUP_DISABLED !== '1') {
+    const backup = () => require('./lib/backup').daily().catch((e) => console.warn('[backup]', e.message));
+    timers.push(setTimeout(backup, 10 * 60000), setInterval(backup, 24 * 3600000));
+  }
   require('./lib/telegram').start();
   // Diler fidlari: soatda bir tekshiriladi, har biri kuniga bir marta sinxronlanadi
   const feeds = () => require('./lib/feeds').runDue().catch((e) => console.warn('[feeds]', e.message));

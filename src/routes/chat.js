@@ -191,7 +191,10 @@ r.get('/badges', requireAuth, (req, res) => {
   });
 });
 
-// Real vaqt: Server-Sent Events. Klient: new EventSource('/api/v1/stream?token=...')
+// SSE kaliti (asosiy token URL'ga, demak loglarga tushmasligi uchun)
+r.post('/stream/key', requireAuth, (req, res) => res.json({ key: require('../lib/auth').streamKey(req.sessionId) }));
+
+// Real vaqt: Server-Sent Events. Klient: POST /stream/key → new EventSource('/api/v1/stream?key=...')
 r.get('/stream', requireAuth, (req, res) => {
   res.set({ 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive', 'X-Accel-Buffering': 'no' });
   res.flushHeaders();

@@ -52,6 +52,7 @@ const DEFS = [
   ['otpDevEcho', 'bool'],
   ['otpTestRegistration', 'bool'],
   ['adminTwoFactor', 'bool'],
+  ['backupTelegram', 'bool'],
   ['smsProvider', 'enum', ['log', 'eskiz']],
   ['eskiz.email', 'string', 0, 120],
   ['eskiz.password', 'secret', 0, 300],
@@ -99,6 +100,7 @@ config.welcomeBonus ??= { enabled: process.env.WELCOME_BONUS !== '0', amount: Nu
 config.legalTin ??= '';
 config.legalAddress ??= '';
 config.adminTwoFactor ??= false;
+config.backupTelegram ??= process.env.BACKUP_TELEGRAM === '1';
 config.mailProvider ??= process.env.MAIL_PROVIDER || (process.env.SMTP_USER ? 'smtp' : 'off');
 config.smtp ??= { host: process.env.SMTP_HOST || 'smtp.gmail.com', port: Number(process.env.SMTP_PORT || 465), user: process.env.SMTP_USER || '', pass: process.env.SMTP_PASS || '', from: process.env.SMTP_FROM || 'HEMU.UZ' };
 config.eskiz ??= { email: process.env.ESKIZ_EMAIL || '', password: process.env.ESKIZ_PASSWORD || '', from: process.env.ESKIZ_FROM || '4546' };

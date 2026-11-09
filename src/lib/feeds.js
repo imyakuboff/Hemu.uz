@@ -30,6 +30,9 @@ function privateIp(ip) {
       || (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127) || a >= 224;
   }
   const x = ip.toLowerCase();
+  // IPv4 manzil IPv6 ko'rinishida (::ffff:a.b.c.d) — IPv4 qoidalari bilan tekshiriladi
+  const mapped = x.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
+  if (mapped) return privateIp(mapped[1]);
   return x === '::1' || x === '::' || x.startsWith('fc') || x.startsWith('fd') || x.startsWith('fe80') || x.startsWith('::ffff:127.') || x.startsWith('::ffff:10.') || x.startsWith('::ffff:192.168.');
 }
 
@@ -46,26 +49,49 @@ async function assertPublic(url) {
   return u;
 }
 
+// Ulanish paytidagi DNS tekshiruvi: tekshiruv va ulanish orasida manzil almashtirilsa ham (DNS rebinding)
+// faqat tekshirilgan ommaviy IP manzilga ulanadi
+function safeLookup(hostname, opts, cb) {
+  require('node:dns').lookup(hostname, { ...opts, all: true }, (err, addrs) => {
+    if (err) return cb(err);
+    const allowLocal = process.env.NODE_ENV === 'test' && process.env.FEED_ALLOW_PRIVATE === '1';
+    const list = (addrs || []).filter((a) => allowLocal || !privateIp(a.address));
+    if (!list.length) return cb(new Error('Ichki tarmoq manziliga ruxsat yo\'q'));
+    return opts.all ? cb(null, list) : cb(null, list[0].address, list[0].family);
+  });
+}
+
+function httpGet(url, headers) {
+  const u = new URL(url);
+  const mod = u.protocol === 'https:' ? require('node:https') : require('node:http');
+  return new Promise((resolve, reject) => {
+    const req = mod.get(u, { headers, lookup: safeLookup, timeout: 30000 }, resolve);
+    req.on('timeout', () => req.destroy(new Error('Vaqt tugadi')));
+    req.on('error', reject);
+  });
+}
+
 // Yo'naltirishlar qo'lda kuzatiladi — har bir qadam qayta tekshiriladi
 async function safeFetch(url, maxBytes, { accept } = {}) {
   let current = url;
   for (let hop = 0; hop < 4; hop += 1) {
     await assertPublic(current);
-    const r = await fetch(current, { redirect: 'manual', signal: AbortSignal.timeout(30000), headers: { 'User-Agent': 'HEMU.UZ feed bot', ...(accept ? { Accept: accept } : {}) } });
-    if (r.status >= 300 && r.status < 400 && r.headers.get('location')) {
-      current = new URL(r.headers.get('location'), current).href;
+    const r = await httpGet(current, { 'User-Agent': 'HEMU.UZ feed bot', ...(accept ? { Accept: accept } : {}) });
+    if (r.statusCode >= 300 && r.statusCode < 400 && r.headers.location) {
+      r.resume();
+      current = new URL(r.headers.location, current).href;
       continue;
     }
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    if (Number(r.headers.get('content-length') || 0) > maxBytes) throw new Error('Fayl juda katta');
+    if (r.statusCode < 200 || r.statusCode >= 300) { r.resume(); throw new Error(`HTTP ${r.statusCode}`); }
+    if (Number(r.headers['content-length'] || 0) > maxBytes) { r.destroy(); throw new Error('Fayl juda katta'); }
     const chunks = [];
     let size = 0;
-    for await (const c of r.body) {
+    for await (const c of r) {
       size += c.length;
-      if (size > maxBytes) throw new Error('Fayl juda katta');
+      if (size > maxBytes) { r.destroy(); throw new Error('Fayl juda katta'); }
       chunks.push(c);
     }
-    return { buf: Buffer.concat(chunks), type: r.headers.get('content-type') || '' };
+    return { buf: Buffer.concat(chunks), type: r.headers['content-type'] || '' };
   }
   throw new Error("Juda ko'p yo'naltirish");
 }

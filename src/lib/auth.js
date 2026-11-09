@@ -7,6 +7,15 @@ const { CURRENCY_CODES, COUNTRY } = require('../geo');
 
 const sha = (s) => crypto.createHmac('sha256', config.secret).update(String(s)).digest('hex');
 
+// APP_SECRET almashtirilgach eski sessiya topilsa — xeshi yangi kalit bilan qayta yoziladi (bir marta)
+function legacySession(token) {
+  if (!config.legacySecret || config.legacySecret === config.secret) return null;
+  const old = crypto.createHmac('sha256', config.legacySecret).update(String(token)).digest('hex');
+  const s = db.get(`SELECT s.id AS sid, s.expires_at, u.* FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = ?`, old);
+  if (s) db.run('UPDATE sessions SET token_hash = ? WHERE id = ?', sha(token), s.sid);
+  return s;
+}
+
 function createSession(userId, req) {
   const token = crypto.randomBytes(32).toString('base64url');
   const expires = new Date(Date.now() + config.sessionTtlDays * 86400000).toISOString();
@@ -23,21 +32,34 @@ function createSession(userId, req) {
 function tokenFrom(req) {
   const h = req.get('authorization');
   if (h && h.startsWith('Bearer ')) return h.slice(7).trim();
-  // EventSource sarlavha yubora olmaydi — faqat SSE uchun query parametr
-  if (req.path.endsWith('/stream') && req.query.token) return String(req.query.token);
   return null;
+}
+
+// SSE kaliti: EventSource sarlavha yubora olmaydi, shuning uchun URL'da asosiy token emas,
+// faqat oqimni o'qishga yaraydigan, sessiyaga bog'langan imzoli kalit yuboriladi
+const streamKey = (sessionId) => `${sessionId}.${sha(`sse:${sessionId}`).slice(0, 32)}`;
+function sessionFromStreamKey(key) {
+  const [sid, sig] = String(key || '').split('.');
+  if (!/^\d+$/.test(sid || '') || !sig) return null;
+  const want = Buffer.from(streamKey(Number(sid)));
+  const got = Buffer.from(String(key));
+  if (want.length !== got.length || !crypto.timingSafeEqual(want, got)) return null;
+  return db.get(`SELECT s.id AS sid, s.expires_at, u.* FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.id = ?`, Number(sid));
 }
 
 // Har bir so'rov uchun: foydalanuvchi, til, valyuta
 function context(req, _res, next) {
   const token = tokenFrom(req);
   req.user = null;
-  if (token) {
+  const streamSession = !token && req.path.endsWith('/stream') && req.query.key ? sessionFromStreamKey(req.query.key) : null;
+  if (streamSession) {
+    if (streamSession.expires_at > new Date().toISOString() && !streamSession.blocked) { req.sessionId = streamSession.sid; req.user = streamSession; }
+  } else if (token) {
     const s = db.get(
       `SELECT s.id AS sid, s.expires_at, u.* FROM sessions s JOIN users u ON u.id = s.user_id
        WHERE s.token_hash = ?`,
       sha(token),
-    );
+    ) || legacySession(token);
     if (s && s.expires_at > new Date().toISOString() && !s.blocked) {
       req.sessionId = s.sid;
       req.user = s;
@@ -102,4 +124,4 @@ function resetRateLimits() {
   buckets.clear();
 }
 
-module.exports = { sha, createSession, context, requireAuth, requireAdmin, requireStaff, isStaff, rateLimit, resetRateLimits };
+module.exports = { sha, streamKey, createSession, context, requireAuth, requireAdmin, requireStaff, isStaff, rateLimit, resetRateLimits };

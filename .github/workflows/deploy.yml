@@ -1,6 +1,8 @@
 # Har bir push'dan keyin saytni serverda avtomatik yangilaydi.
 # Bir marta sozlash: GitHub → Settings → Secrets and variables → Actions → New repository secret
-#   Nomi: SSH_PASSWORD   Qiymati: serverning root paroli
+#   SSH_KEY        — serverga kirish uchun maxfiy SSH kalit (tavsiya; bo'lsa parol ishlatilmaydi)
+#   SSH_PASSWORD   — kalit bo'lmasa: serverning root paroli
+#   ADMIN_LOGIN, ADMIN_PASSWORD — admin panelga kirish (login + parol); parol repoda saqlanmaydi
 name: Serverga yuklash
 
 on:
@@ -22,24 +24,35 @@ jobs:
           # Gmail: GitHub → Settings → Secrets → SMTP_USER (Gmail manzil) va SMTP_PASS (16 harfli ilova paroli)
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          ADMIN_LOGIN: ${{ secrets.ADMIN_LOGIN }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
         with:
           host: 189.74.98.45
           username: root
+          key: ${{ secrets.SSH_KEY }}
           password: ${{ secrets.SSH_PASSWORD }}
           port: 22
           command_timeout: 15m
-          envs: SMTP_USER,SMTP_PASS
+          envs: SMTP_USER,SMTP_PASS,ADMIN_LOGIN,ADMIN_PASSWORD
           script: |
             # Natijalar ::notice:: / ::error:: ko'rinishida chiqadi — GitHub'da "Annotations" bo'limida ko'rinadi
             step() { echo "::notice::$1"; }
             trap 'echo "::error::Xato: $BASH_COMMAND (qator $LINENO)"' ERR
             set -eE
-            fail2ban-client unban --all >/dev/null 2>&1 || true
             step "SSH: kirildi ($(hostname))"
-            mkdir -p /root/hemu-backups
-            tar czf /root/hemu-backups/hemu-$(date +%F-%H%M).tgz --exclude=node_modules -C /opt hemu
-            ls -1t /root/hemu-backups/*.tgz | tail -n +6 | xargs -r rm -f
-            step "Zaxira olindi"
+            mkdir -p /root/hemu-backups && chmod 700 /root/hemu-backups
+            # Baza: izchil nusxa (VACUUM INTO — ishlab turgan WAL bazadan ham butun nusxa), 10 tasi saqlanadi
+            DBF0=$(grep -E '^DB_FILE=' /opt/hemu/.env 2>/dev/null | cut -d= -f2 | tr -d '"\r '); DBF0=${DBF0:-data/movexgo.db}
+            case "$DBF0" in /*) ;; *) DBF0="/opt/hemu/$DBF0";; esac
+            BK=/root/hemu-backups/db-$(date +%F-%H%M).db
+            if [ -f "$DBF0" ]; then
+              node --disable-warning=ExperimentalWarning -e "const {DatabaseSync}=require('node:sqlite'); new DatabaseSync(process.argv[1]).exec(\"VACUUM INTO '\"+process.argv[2]+\"'\")" "$DBF0" "$BK" && gzip -f "$BK"
+              ls -1t /root/hemu-backups/db-*.db.gz 2>/dev/null | tail -n +11 | xargs -r rm -f
+            fi
+            # Kod va rasmlar (baza fayllarisiz — ular yuqorida izchil saqlandi), 5 tasi saqlanadi
+            tar czf /root/hemu-backups/hemu-$(date +%F-%H%M).tgz --exclude=node_modules --exclude='*.db' --exclude='*.db-wal' --exclude='*.db-shm' --exclude=data/backups -C /opt hemu
+            ls -1t /root/hemu-backups/hemu-*.tgz | tail -n +6 | xargs -r rm -f
+            step "Zaxira olindi: $(ls -1t /root/hemu-backups/db-*.db.gz 2>/dev/null | head -1 | xargs -r du -h | cut -f1) baza"
             U=$(stat -c %U /opt/hemu/package.json)
             rm -rf /tmp/hemu-new
             git clone -q --depth 1 https://github.com/imyakuboff/Hemu.uz /tmp/hemu-new
@@ -69,6 +82,15 @@ jobs:
             touch .env
             [ -s .env ] && [ -n "$(tail -c1 .env)" ] && echo >> .env
             sed -i '/^SITE_URL=/d' .env && echo "SITE_URL=$SITE" >> .env && chown "$U": .env
+            # Maxfiy kalit (sessiya, SMS-kod, ro'yxatdan o'tish chiptasi imzosi): yo'q yoki qisqa bo'lsa yaratiladi.
+            # Eski sessiyalar birinchi kirishda yangi kalitga o'tkaziladi — hech kim tizimdan chiqib ketmaydi
+            if grep -qE '^APP_SECRET=.{32,}$' .env && ! grep -q '^APP_SECRET=dev-secret-change-me' .env; then
+              step "APP_SECRET: bor"
+            else
+              sed -i '/^APP_SECRET=/d' .env && echo "APP_SECRET=$(openssl rand -hex 32)" >> .env
+              step "APP_SECRET: yangi yaratildi"
+            fi
+            chown "$U": .env && chmod 600 .env
             DBF=$(grep -E '^DB_FILE=' .env | cut -d= -f2 | tr -d '"\r '); DBF=${DBF:-data/movexgo.db}
             sudo -u "$U" node --disable-warning=ExperimentalWarning -e "
               const {DatabaseSync}=require('node:sqlite'); const d=new DatabaseSync(process.argv[1]);
@@ -88,6 +110,14 @@ jobs:
                 d.prepare(\"DELETE FROM settings WHERE key IN ('mailProvider','smtp.host','smtp.port','smtp.user','smtp.pass')\").run();" "$DB"
               step "Gmail sozlandi (.env)"
             fi
+            # Admin akkaunti (login + parol GitHub Secrets'dan; parol hech qayerda ochiq saqlanmaydi)
+            if [ -n "$ADMIN_LOGIN" ] && [ -n "$ADMIN_PASSWORD" ]; then
+              AD=$(sudo -u "$U" env ADMIN_LOGIN="$ADMIN_LOGIN" ADMIN_PASSWORD="$ADMIN_PASSWORD" node --disable-warning=ExperimentalWarning scripts/set-admin.js 2>&1 | tail -1)
+              case "$AD" in OK*) step "Admin: $AD";; *) echo "::error::Admin o'rnatilmadi: $AD";; esac
+            else
+              echo "::warning::Admin login sozlanmagan: GitHub Secrets'ga ADMIN_LOGIN va ADMIN_PASSWORD qo'shing"
+            fi
+            command -v vipsthumbnail >/dev/null || sudo -u "$U" node -e "require('sharp')" >/dev/null 2>&1 || echo "::warning::Rasm dvigateli yo'q — faqat EXIF o'chiriladi, rasmlar siqilmaydi"
             systemctl restart hemu
             trap - ERR
             set +e
@@ -116,13 +146,16 @@ jobs:
               const l=d.prepare('SELECT created_at,provider,ok,error FROM sms_log ORDER BY id DESC LIMIT 3').all().map(r=>[r.created_at,r.provider,r.ok,r.error||''].join(' ')).join(' | ');
               console.log('Sozlamalar: '+(s||'(yo\'q)')+' || Oxirgi yuborishlar: '+(l||'(yo\'q)'));" "$DB" 2>&1 | tail -1)
             step "$INFO"
-            # Gmail sinov xati (o'zingizga): HEMU.UZ tasdiqlash kodi ko'rinishida
-            if [ -n "$SMTP_USER" ] && [ -n "$SMTP_PASS" ]; then
+            # Gmail sinov xati (o'zingizga): faqat birinchi marta yoki manzil/parol o'zgarganda
+            MAILSIG=$(printf %s "$SMTP_USER:$SMTP_PASS" | sha256sum | cut -c1-16)
+            if [ -n "$SMTP_USER" ] && [ -n "$SMTP_PASS" ] && [ "$(cat /root/hemu-backups/.mail-tested 2>/dev/null)" != "$MAILSIG" ]; then
               M=$(sudo -u "$U" node --disable-warning=ExperimentalWarning -e "
                 require('./src/lib/settings'); const m=require('./src/lib/mail'); const to=process.argv[1];
                 m.sendMail({to, ...m.codeEmail('uz', String(Math.floor(100000+Math.random()*900000)))})
                  .then(r=>console.log('OK '+r.provider)).catch(e=>console.log('XATO '+e.message));" "$SMTP_USER" 2>&1 | tail -1)
-              case "$M" in "OK smtp"*) step "Gmail sinov xati yuborildi ✅ ($M)";; *) echo "::error::Gmail xat yubormadi: $M";; esac
+              case "$M" in "OK smtp"*) step "Gmail sinov xati yuborildi ✅ ($M)"; echo "$MAILSIG" > /root/hemu-backups/.mail-tested;; *) echo "::error::Gmail xat yubormadi: $M";; esac
+            elif [ -n "$SMTP_USER" ] && [ -n "$SMTP_PASS" ]; then
+              step "Gmail sozlangan (sinov xati avval yuborilgan)"
             else
               echo "::warning::Gmail sozlanmagan: GitHub Secrets'ga SMTP_USER va SMTP_PASS qo'shing"
             fi

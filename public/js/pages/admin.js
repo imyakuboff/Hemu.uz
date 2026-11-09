@@ -322,6 +322,9 @@ const D = {
   'eskiz.from': ["Jo'natuvchi nomi (nickname)", 'Имя отправителя (nickname)', 'Sender name (nickname)'],
   otpDevEcho: ["Sinov rejimi: SMS-kod ekranga chiqsin", 'Тестовый режим: показывать SMS-код на экране', 'Test mode: show SMS code on screen'],
   otp_warn: ["Serverda bu rejim yoqilgan bo'lsa, istalgan kishi istalgan hisobga SMS-kod bilan kira oladi. Haqiqiy saytda o'chiring!", 'Если это включено на сервере, кто угодно войдёт в любой аккаунт по SMS-коду. На боевом сайте выключите!', 'If enabled on a live server, anyone can sign in to any account with the SMS code. Turn it off in production!'],
+  warn_no_payment: ["To'lov qabul qilinmayapti: Click/Payme ulanmagan va karta raqami (Narxlar → «Galochka to'lovi: karta raqami») bo'sh", 'Оплата не принимается: Click/Payme не подключены и номер карты пуст (Цены → «Оплата галочки: номер карты»)', 'Payments are off: Click/Payme not connected and the card number is empty (Prices → card number)'],
+  warn_no_mail: ["Email ulanmagan: parolni tiklash va xatlar ketmaydi (Integratsiyalar → Email)", 'Email не подключён: письма не отправляются (Интеграции → Email)', 'Email is not configured: no emails are sent (Integrations → Email)'],
+  backupTelegram: ["Kunlik baza zaxirasi Telegram'ga bog'langan adminlarga yuborilsin", 'Отправлять ежедневную копию базы админам в Telegram', 'Send the daily database backup to admins on Telegram'],
   adminTwoFactor: ["Admin va moderator kirishida SMS-kod so'ralsin", 'Запрашивать SMS-код при входе админа и модератора', 'Require an SMS code for admin and moderator sign-in'],
   int_pay: ["To'lov tizimlari", 'Платёжные системы', 'Payment systems'],
   paymentsDev: ["Sinov to'lovi (pulsiz \"To'lash\" tugmasi)", 'Тестовая оплата (кнопка «Оплатить» без денег)', 'Test payment ("Pay" button without money)'],
@@ -369,7 +372,6 @@ const D = {
   promo_days_all: ['TOP muddati (kun)', 'Срок ТОП (дней)', 'TOP period (days)'],
   otpTestRegistration: ["Test ro'yxatdan o'tish: yangi raqamga SMS-kod ekranda ko'rsatilsin", 'Тестовая регистрация: показывать SMS-код на экране для новых номеров', 'Test sign-up: show the SMS code on screen for new numbers'],
   otp_reg_hint: ["Eskiz ulanmaguncha shu yoqiq tursin. Mavjud hisoblarga kirishda kod ko'rsatilmaydi — xavfsiz.", 'Держите включённым, пока не подключён Eskiz. Для входа в существующие аккаунты код не показывается — безопасно.', 'Keep on until Eskiz is connected. Codes are never shown for existing accounts, so it is safe.'],
-  nav_freight: ['Fura logistika', 'Грузоперевозки фурами', 'Truck freight'],
   fr_open: ['Ochiq', 'Открытые', 'Open'],
   fr_closed: ['Yopilgan', 'Закрытые', 'Closed'],
   fr_del_q: ["E'lonni o'chirasizmi?", 'Удалить объявление?', 'Delete this post?'],
@@ -550,6 +552,7 @@ async function overview() {
       <a class="adm-qa" href="/admin/tiers">${icon('star')}<b>${esc(a('q_tiers'))}</b></a>
       <a class="adm-qa" href="/admin/support">${icon('inbox')}<b>${esc(a('q_support'))} · ${num(o.queue.support || 0)}</b></a>`;
   const html = shell('overview', a('nav_overview'), esc(fmtDate(new Date().toISOString(), true)), `
+    ${(o.warnings || []).map((w) => `<a class="box adm-warn" href="${w === 'no_mail' ? '/admin/integrations' : '/admin/settings'}">⚠️ ${esc(a(`warn_${w}`))}</a>`).join('')}
     <div class="adm-quick">${quick}</div>
     <div class="adm-stats">
       ${stat(a('users_total'), num(o.users.total), `+${num(o.users.new_7d)} · ${esc(a('new_7d'))}`, '/admin/users')}
@@ -1589,6 +1592,7 @@ async function integrationsPage() {
           <div class="full">${tog('otpTestRegistration', 'otp_reg_hint')}</div>
           <div class="full">${tog('otpDevEcho', 'otp_warn')}</div>
           <div class="full">${tog('adminTwoFactor')}</div>
+          <div class="full">${tog('backupTelegram')}</div>
         </div>
         <div class="int-test"><input class="input" data-test-phone type="tel" placeholder="+998 90 123 45 67"><button type="button" class="btn btn-soft" data-test-sms>${icon('send')} ${esc(a('test_sms'))}</button><button type="button" class="btn btn-ghost" data-balance>${esc(a('sms_balance'))}</button><span class="small" data-int-out></span></div>
       </div>

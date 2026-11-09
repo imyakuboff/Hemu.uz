@@ -89,6 +89,25 @@ function emailOf(raw) {
   return e;
 }
 
+// SMS xarajatini himoya qilish: raqamga kuniga 5, IP manzilga kuniga 20, butun saytga soatiga 300 ta SMS
+const SMS_LIMITS = process.env.NODE_ENV === 'test'
+  ? { phone: 1e6, ip: 1e6, hour: 1e6 }
+  : { phone: Number(process.env.SMS_DAILY_PHONE || 5), ip: Number(process.env.SMS_DAILY_IP || 20), hour: Number(process.env.SMS_HOURLY_TOTAL || 300) };
+function smsQuota(req, phone) {
+  const day = Date.now() - 86400000;
+  db.run('DELETE FROM otp_sends WHERE at < ?', day);
+  const c = db.get(
+    `SELECT SUM(phone = ?) AS byPhone, SUM(ip = ?) AS byIp, SUM(at > ?) AS lastHour FROM otp_sends`,
+    phone, String(req.ip || ''), Date.now() - 3600000,
+  );
+  if ((c.byPhone || 0) >= SMS_LIMITS.phone || (c.byIp || 0) >= SMS_LIMITS.ip) fail(429, 'err.too_many', { retry_after: 3600 });
+  if ((c.lastHour || 0) >= SMS_LIMITS.hour) {
+    console.warn('[sms] soatlik umumiy limit tugadi — SMS hujumi bo\'lishi mumkin');
+    fail(429, 'err.too_many', { retry_after: 600 });
+  }
+  db.run('INSERT INTO otp_sends (phone, ip, at) VALUES (?, ?, ?)', phone, String(req.ip || ''), Date.now());
+}
+
 // isNew — raqam hali ro'yxatdan o'tmagan: "test ro'yxatdan o'tish" rejimida kod faqat shunda ekranga chiqadi
 // email — kod shu manzilga bog'lanadi; via = 'email' bo'lsa kod SMS o'rniga shu manzilga (Gmail) yuboriladi
 async function sendCode(req, phoneE164, smsKey = 'sms.otp', { isNew = false, email = null, via = email ? 'email' : 'sms' } = {}) {
@@ -103,6 +122,7 @@ async function sendCode(req, phoneE164, smsKey = 'sms.otp', { isNew = false, ema
     }
     fail(429, 'err.too_many', { retry_after: Math.ceil((60000 - (now - prev.sent_at)) / 1000) });
   }
+  if (via !== 'email' && !echo) smsQuota(req, phoneE164);
   const code = String(crypto.randomInt(100000, 1000000));
   const boundEmail = via === 'email' ? email : null;
   db.run(
@@ -191,7 +211,7 @@ r.post('/auth/otp/verify', authLimit, (req, res) => {
     const id = db.insert('users', { phone: p.e164, name, country: p.country, lang: req.lang, currency: COUNTRY[p.country].currency });
     user = db.get('SELECT * FROM users WHERE id = ?', id);
   }
-  const bonus = isNew ? require('../lib/wallet').welcomeBonus(user.id) : null;
+  const bonus = isNew ? require('../lib/wallet').welcomeBonus(user.id, req.ip) : null;
   signIn(req, res, user, { is_new: isNew, welcome_bonus: bonus });
 });
 
@@ -280,7 +300,7 @@ r.post('/auth/register', authLimit, (req, res) => {
     return uid;
   });
   res.status(201);
-  const bonus = require('../lib/wallet').welcomeBonus(id);
+  const bonus = require('../lib/wallet').welcomeBonus(id, req.ip);
   signIn(req, res, db.get('SELECT * FROM users WHERE id = ?', id), { is_new: true, welcome_bonus: bonus });
 });
 
@@ -309,7 +329,8 @@ r.post('/auth/login', loginLimit, async (req, res) => {
 
 r.post('/auth/password/forgot', authLimit, async (req, res) => {
   const p = phoneOf(req);
-  if (!db.get('SELECT 1 FROM users WHERE phone = ?', p.e164)) fail(404, 'err.no_account');
+  // Hisob bor-yo'qligi oshkor qilinmaydi: noma'lum raqamga ham bir xil javob (SMS yuborilmaydi)
+  if (!db.get('SELECT 1 FROM users WHERE phone = ?', p.e164)) return res.json({ phone: p.e164, expires_in: config.otpTtlSec });
   res.json({ phone: p.e164, expires_in: config.otpTtlSec, ...(await sendCode(req, p.e164, 'sms.reset')) });
 });
 

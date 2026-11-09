@@ -107,8 +107,20 @@ async function sendSms(phone, text) {
     return r;
   } catch (e) {
     logSms(phone, provider, false, e.message);
+    alertAdmins(e.message);
     throw e;
   }
+}
+
+// SMS ketmayapti (shablon, balans, login) — adminlarga 6 soatda bir marta xabar
+let lastAlert = 0;
+function alertAdmins(error) {
+  if (Date.now() - lastAlert < 6 * 3600000) return;
+  lastAlert = Date.now();
+  try {
+    const { notify } = require('./notify');
+    for (const a of require('../db').all(`SELECT id FROM users WHERE role = 'admin' AND blocked = 0`)) notify(a.id, 'system_alert', { text: `SMS: ${String(error).slice(0, 200)}` }, '/admin/integrations');
+  } catch { /* xabar yuborilmasa ham SMS xatosi qaytariladi */ }
 }
 
 // Login/parol o'zgarganda tokenni unutish

@@ -468,18 +468,56 @@ export async function notifications() {
 }
 
 // ---------- Xaridor so'rovlari (sotuvchilar uchun) ----------
-export async function requests({ query }) {
-  const mine = query.mine === '1';
-  const repair = query.want === 'service';
-  const res = await api(`/requests${qs({ category: query.category, country: state.country, mine_categories: mine ? '1' : undefined, want: repair ? 'service' : undefined, page: query.page })}`);
-  const row = (r) => `<div class="order">
+const requestRow = (r) => `<div class="order">
     <div class="hd"><span>${esc(r.title)}</span><span class="tiny muted">${esc(fmtRel(r.created_at))}</span></div>
     <div class="small muted" style="margin-top:6px">${esc([r.category?.name, r.subcategory?.name, r.location.region_name || r.location.country_name, r.quantity, r.needed_by].filter(Boolean).join(' · '))}</div>
     <p class="small" style="margin:8px 0 0">${esc(r.description)}</p>
     <div class="actions">${r.budget.formatted ? `<span class="tag">${esc(t('budget'))}: ${esc(r.budget.formatted)}</span>` : ''}<span class="tag grey">${esc(t('offers_n', { n: r.offers_count }))}</span>
       ${r.attachment && state.user ? `<a class="btn btn-ghost btn-sm" data-att="${esc(r.attachment)}">${icon('clip')}</a>` : ''}
-      ${r.is_owner ? '' : r.my_offer ? `<span class="tag green">${esc(t('your_offer'))}: ${esc(r.my_offer.message.slice(0, 40))}</span>` : `<button class="btn btn-primary btn-sm" data-offer="${r.id}">${esc(t('make_offer'))}</button>`}</div>
+      ${r.is_owner ? `<button class="btn btn-primary btn-sm" data-offers="${r.id}">${esc(t('offers_n', { n: r.offers_count }))}</button>` : r.my_offer ? `<span class="tag green">${esc(t('your_offer'))}: ${esc(r.my_offer.message.slice(0, 40))}</span>` : `<button class="btn btn-primary btn-sm" data-offer="${r.id}">${esc(t('make_offer'))}</button>`}</div>
   </div>`;
+
+// So'rovlar ro'yxati va bitta so'rov uchun umumiy tugmalar (fayl, taklif berish, takliflar)
+function bindRequestActions(main) {
+  main.addEventListener('click', async (e) => {
+    const att = e.target.closest('[data-att]');
+    if (att) {
+      const r = await fetch(att.dataset.att, { headers: { Authorization: `Bearer ${state.token}` } });
+      if (r.ok) window.open(URL.createObjectURL(await r.blob()), '_blank');
+      return;
+    }
+    const of = e.target.closest('[data-offers]');
+    if (of) return offersModal(of.dataset.offers);
+    const b = e.target.closest('[data-offer]');
+    if (b) offerModal(b.dataset.offer, refresh);
+  });
+}
+
+// Bildirishnomadagi /requests/:id havolasi (mos so'rov, yangi taklif, ta'mirlash buyurtmasi)
+export async function requestPage({ params }) {
+  let r;
+  try { r = await api(`/requests/${params[0]}`); } catch {
+    return { title: t('buyer_requests'), html: `${crumbs([[t('home'), '/'], [t('buyer_requests'), '/requests']])}<div class="box empty"><h3>${esc(t('empty'))}</h3><a class="btn btn-primary" href="/requests" style="margin-top:14px">${esc(t('buyer_requests'))}</a></div>` };
+  }
+  const html = `
+    ${crumbs([[t('home'), '/'], [t('buyer_requests'), r.want === 'service' ? '/requests?want=service' : '/requests'], [r.title]])}
+    ${requestRow(r)}
+    <a class="link-blue" href="${r.want === 'service' ? '/requests?want=service' : '/requests'}" style="display:inline-flex;margin-top:12px">${icon('arrow-left')} ${esc(t('buyer_requests'))}</a>`;
+  return {
+    title: r.title,
+    html,
+    mount(main) {
+      bindRequestActions(main);
+      if (r.is_owner && r.offers?.length) offersModal(r.id);
+    },
+  };
+}
+
+export async function requests({ query }) {
+  const mine = query.mine === '1';
+  const repair = query.want === 'service';
+  const res = await api(`/requests${qs({ category: query.category, country: state.country, mine_categories: mine ? '1' : undefined, want: repair ? 'service' : undefined, page: query.page })}`);
+  const row = requestRow;
   const html = `
     ${crumbs([[t('home'), '/'], [t('buyer_requests')]])}
     <div class="page-head"><h1 class="page-title">${esc(t('buyer_requests'))}</h1><p class="page-sub">${esc(t('requests_sub'))}</p></div>
@@ -493,18 +531,7 @@ export async function requests({ query }) {
   return {
     title: t('buyer_requests'),
     html,
-    mount(main) {
-      main.addEventListener('click', async (e) => {
-        const att = e.target.closest('[data-att]');
-        if (att) {
-          const r = await fetch(att.dataset.att, { headers: { Authorization: `Bearer ${state.token}` } });
-          if (r.ok) window.open(URL.createObjectURL(await r.blob()), '_blank');
-          return;
-        }
-        const b = e.target.closest('[data-offer]');
-        if (b) offerModal(b.dataset.offer, refresh);
-      });
-    },
+    mount(main) { bindRequestActions(main); },
   };
 }
 

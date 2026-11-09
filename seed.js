@@ -12,6 +12,8 @@ function reset(file) {
 }
 
 function seed(file = config.dbFile) {
+  // Productionda bazani o'chirib, ochiq paroli bor demo akkauntlar yaratadi — taqiqlangan
+  if (config.isProd && process.env.SEED_FORCE !== '1') throw new Error("seed productionda ishlamaydi (bazani o'chiradi). Majbur: SEED_FORCE=1");
   if (file !== ':memory:') reset(file);
   db.open(file);
   cats.syncCatalog();

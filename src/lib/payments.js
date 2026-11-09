@@ -20,7 +20,8 @@ function providers(opts = {}) {
   // Ichki hamyon — har doim mavjud (to'ldirish uchun emas)
   if (!opts.topup) out.unshift({ id: 'balance', name: 'Balance', currencies: ['*'] });
   // Onlayn to'lov ulanmagan bo'lsa — kartaga o'tkazma birinchi taklif qilinadi
-  if (opts.manual) out[clickReady() || paymeReady() ? 'push' : 'unshift']({ id: 'admin', name: 'Admin', currencies: ['*'] });
+  // Karta raqami kiritilmagan bo'lsa "kartaga o'tkazma" ko'rsatilmaydi (aks holda to'lov yo'li yo'q sahifa chiqadi)
+  if (opts.manual && config.manualPay?.card) out[clickReady() || paymeReady() ? 'push' : 'unshift']({ id: 'admin', name: 'Admin', currencies: ['*'] });
   return out;
 }
 
@@ -170,6 +171,13 @@ function activePlan(userId) {
 
 // ---------- Click SHOP API ----------
 // Hujjat: https://docs.click.uz/click-api-request/
+// Vaqtga bog'liq bo'lmagan taqqoslash (imzo/parolni harfma-harf taxmin qilishga qarshi)
+function safeEqual(a, b) {
+  const x = Buffer.from(String(a ?? ''));
+  const y = Buffer.from(String(b ?? ''));
+  return x.length === y.length && crypto.timingSafeEqual(x, y);
+}
+
 function clickSign(b, prepareId = '') {
   const s = `${b.click_trans_id}${b.service_id}${config.click.secretKey}${b.merchant_trans_id}${prepareId}${b.amount}${b.action}${b.sign_time}`;
   return crypto.createHash('md5').update(s).digest('hex');
@@ -182,9 +190,13 @@ function clickHandler(action) {
     const reply = (error, note, extra = {}) => res.json({ ...base, ...extra, error, error_note: note });
     if (!clickReady()) return reply(-8, 'Not configured');
     const prepareId = action === 'complete' ? b.merchant_prepare_id : '';
-    if (clickSign(b, prepareId) !== b.sign_string) return reply(-1, 'SIGN CHECK FAILED');
+    if (!safeEqual(clickSign(b, prepareId), b.sign_string)) return reply(-1, 'SIGN CHECK FAILED');
     const p = db.get('SELECT * FROM payments WHERE id = ?', Number(b.merchant_trans_id));
     if (!p || p.provider !== 'click') return reply(-5, 'Payment not found');
+    // complete: prepare bosqichida berilgan id va o'sha Click tranzaksiyasi bo'lishi shart
+    if (action === 'complete' && (Number(b.merchant_prepare_id) !== p.id || (p.provider_tx && p.provider_tx !== String(b.click_trans_id)))) {
+      return reply(-6, 'Transaction does not exist');
+    }
     if (Math.abs(Number(b.amount) - p.amount) > 0.01) return reply(-2, 'Incorrect amount');
     if (p.status === 'paid') return reply(-4, 'Already paid');
     if (p.status === 'cancelled') return reply(-9, 'Transaction cancelled');
@@ -221,7 +233,7 @@ function paymeHandler(req, res) {
   const err = (e) => res.json({ jsonrpc: '2.0', id, error: e });
   const auth = req.get('authorization') || '';
   const expected = `Basic ${Buffer.from(`Paycom:${config.payme.key}`).toString('base64')}`;
-  if (!paymeReady() || auth !== expected) return err(PE.auth);
+  if (!paymeReady() || !safeEqual(auth, expected)) return err(PE.auth);
 
   const txView = (t) => ({ create_time: t.create_time, perform_time: t.perform_time, cancel_time: t.cancel_time, transaction: String(t.payment_id), state: t.state, reason: t.reason ?? null });
   const findPayment = () => db.get(`SELECT * FROM payments WHERE id = ? AND provider = 'payme'`, Number(params.account?.payment_id));

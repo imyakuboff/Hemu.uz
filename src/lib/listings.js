@@ -236,7 +236,11 @@ function buildWhere(q, currency, exclude = null) {
   };
 
   if (q.q) {
-    for (const tok of normalizeSearch(q.q).split(' ').filter(Boolean).slice(0, 8)) add('l.search_text LIKE ?', `%${tok}%`);
+    for (const tok of normalizeSearch(q.q).split(' ').filter(Boolean).slice(0, 8)) {
+      // 3+ harfli so'zlar trigram indeksi orqali (natija bir xil, tezroq)
+      if (tok.length >= 3) add('l.id IN (SELECT rowid FROM listings_fts WHERE search_text LIKE ?)', `%${tok}%`);
+      else add('l.search_text LIKE ?', `%${tok}%`);
+    }
   }
   const cat = cats.find(q.category);
   if (cat) add(cat.parent_id ? 'l.subcategory_id = ?' : 'l.category_id = ?', cat.id);

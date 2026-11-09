@@ -271,7 +271,7 @@ r.post('/orders/:id/review', requireAuth, (req, res) => {
   const company = db.get('SELECT id FROM companies WHERE owner_id = ?', o.seller_id);
   const id = db.insert('reviews', { seller_id: o.seller_id, company_id: company?.id, author_id: req.user.id, order_id: o.id, rating: v.rating, text: v.text });
   refreshRating(o.seller_id);
-  notify(o.seller_id, 'review', { rating: v.rating, name: req.user.name || '—', review_id: id }, '/seller/reviews');
+  notify(o.seller_id, 'review', { rating: v.rating, name: req.user.name || '—', review_id: id }, '/dashboard');
   res.status(201).json({ id, rating: v.rating, text: v.text });
 });
 

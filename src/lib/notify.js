@@ -40,6 +40,7 @@ const PREF = {
   inspection_status: 'notify_orders',
   request_repair: 'notify_orders',
   job_new: 'notify_orders',
+  expiring: 'notify_orders',
 };
 
 // Push sarlavhasi: yangi e'lon turidagi xabarlar telefonda darhol ajralib tursin
@@ -84,6 +85,7 @@ function render(row, lang) {
   if (params.price_amount !== undefined) params.price = params.amount = formatAmount(params.price_amount, params.price_currency, lang);
   if (params.purpose_key) params.purpose = t(lang, params.purpose_key);
   if (params.reason_key) params.reason = t(lang, params.reason_key);
+  if (params.what_key) params.what = t(lang, params.what_key);
   if (params.category_slug) {
     const c = require('./categories').bySlug(params.category_slug);
     if (c) params.category = require('../i18n').pick(c.names, lang);

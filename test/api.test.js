@@ -421,8 +421,12 @@ test('valyuta kurslari: admin yangilaydi, narxlar qayta hisoblanadi', async () =
 });
 
 test('SSE oqimi xabarni real vaqtda yetkazadi', async () => {
+  // Asosiy token URL'da qabul qilinmaydi — faqat sessiyaga bog'langan oqim kaliti
+  assert.equal((await fetch(`${base}/api/v1/stream?token=${S.buyer.token}`)).status, 401);
+  assert.equal((await fetch(`${base}/api/v1/stream?key=1.deadbeef`)).status, 401);
+  const { key } = (await api('POST', '/api/v1/stream/key', { token: S.buyer.token })).body;
   const ctrl = new AbortController();
-  const res = await fetch(`${base}/api/v1/stream?token=${S.buyer.token}`, { signal: ctrl.signal });
+  const res = await fetch(`${base}/api/v1/stream?key=${encodeURIComponent(key)}`, { signal: ctrl.signal });
   assert.equal(res.status, 200);
   const reader = res.body.getReader();
   const dec = new TextDecoder();

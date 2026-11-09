@@ -13,6 +13,11 @@ if (fs.existsSync(envFile)) {
 const env = process.env;
 const root = path.join(__dirname, '..');
 const isDev = env.NODE_ENV !== 'production';
+// Ochiq repodagi standart kalit — faqat lokal ishlab chiqish uchun. Productionda APP_SECRET majburiy.
+const DEV_SECRET = 'dev-secret-change-me';
+if (env.NODE_ENV === 'production' && (!env.APP_SECRET || env.APP_SECRET === DEV_SECRET || env.APP_SECRET.length < 32)) {
+  throw new Error('APP_SECRET .env faylida kamida 32 belgili tasodifiy qiymat bo\'lishi shart (masalan: openssl rand -hex 32)');
+}
 
 module.exports = {
   port: Number(env.PORT || 4700),
@@ -21,7 +26,9 @@ module.exports = {
   dbFile: env.DB_FILE || path.join(root, 'data', 'movexgo.db'),
   uploadDir: env.UPLOAD_DIR || path.join(root, 'data', 'uploads'),
   publicUrl: (env.PUBLIC_URL || '').replace(/\/$/, ''),
-  secret: env.APP_SECRET || 'dev-secret-change-me',
+  secret: env.APP_SECRET || DEV_SECRET,
+  // Eski (standart kalit bilan yaratilgan) sessiyalar bir marta yangi kalitga ko'chiriladi — foydalanuvchilar chiqib ketmaydi
+  legacySecret: DEV_SECRET,
   isProd: env.NODE_ENV === 'production',
   // Dev rejimida OTP kodi javobda qaytariladi (SMS provayder ulanmaguncha)
   otpDevEcho: env.OTP_DEV_ECHO ? env.OTP_DEV_ECHO === '1' : env.NODE_ENV !== 'production',

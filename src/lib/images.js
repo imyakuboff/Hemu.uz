@@ -102,9 +102,36 @@ async function optimizeFile(fullPath, presetName) {
 
 // Multer fayllari (verifyFiles'dan keyin). Fayl obyektlarining filename/path/size maydonlari yangilanadi.
 // O'girib bo'lmagan rasm (masalan, chala yuklangan) asl holida qoladi — yuklash to'xtamaydi.
+// Siqish dvigateli bo'lmasa: JPEG'dan EXIF/XMP (APP1) bloklari olib tashlanadi — GPS koordinatalari saqlanmaydi
+function stripJpegMeta(file) {
+  const b = fs.readFileSync(file);
+  if (b[0] !== 0xff || b[1] !== 0xd8) return false;
+  const parts = [b.subarray(0, 2)];
+  let i = 2;
+  let changed = false;
+  while (i + 4 <= b.length && b[i] === 0xff) {
+    const marker = b[i + 1];
+    if (marker === 0xda) break; // rasm ma'lumotlari boshlandi
+    const len = b.readUInt16BE(i + 2);
+    if (marker === 0xe1) changed = true; else parts.push(b.subarray(i, i + 2 + len));
+    i += 2 + len;
+  }
+  if (!changed) return false;
+  parts.push(b.subarray(i));
+  fs.writeFileSync(file, Buffer.concat(parts));
+  return true;
+}
+
 async function optimize(files, presetName) {
   const list = (files || []).filter((f) => /\.(jpe?g|png|webp)$/i.test(f.filename));
-  if (!list.length || !lib()) return files;
+  if (!list.length) return files;
+  if (!lib()) {
+    for (const f of list) {
+      if (!/\.jpe?g$/i.test(f.filename)) continue;
+      try { if (stripJpegMeta(f.path)) f.size = fs.statSync(f.path).size; } catch { /* buzuq fayl — o'zgarishsiz */ }
+    }
+    return files;
+  }
   for (const f of list) {
     try {
       const r = await optimizeFile(f.path, presetName);
@@ -116,4 +143,4 @@ async function optimize(files, presetName) {
   return files;
 }
 
-module.exports = { PRESETS, available, engine, optimize, optimizeFile, thumbOf };
+module.exports = { PRESETS, available, engine, optimize, optimizeFile, thumbOf, stripJpegMeta };

@@ -30,10 +30,20 @@ function change(userId, amountUsd, kind, { note = null, paymentId = null, adminI
 }
 
 // Ro'yxatdan o'tgan foydalanuvchiga avtomatik bonus (bir marta). Berilgan summani qaytaradi.
-function welcomeBonus(userId) {
+// Bitta IP manzildan 30 kunda shundan ortiq bonus berilmaydi (ko'p SIM-karta bilan bonus yig'ishga qarshi)
+const BONUS_PER_IP = 3;
+function welcomeBonus(userId, ip = null) {
   const cfg = require('../config').welcomeBonus;
   if (!cfg?.enabled || !(cfg.amount > 0)) return null;
   if (db.get(`SELECT 1 FROM wallet_tx WHERE user_id = ? AND kind = 'welcome'`, userId)) return null;
+  if (ip && process.env.NODE_ENV !== 'test') {
+    const n = db.get(
+      `SELECT COUNT(DISTINCT w.user_id) AS n FROM wallet_tx w
+       WHERE w.kind = 'welcome' AND w.created_at > datetime('now', '-30 days')
+         AND w.user_id IN (SELECT user_id FROM sessions WHERE ip = ?)`, ip,
+    ).n;
+    if (n >= BONUS_PER_IP) return null;
+  }
   change(userId, money.toUsd(cfg.amount, cfg.currency), 'welcome', { amount: cfg.amount, currency: cfg.currency });
   return { amount: cfg.amount, currency: cfg.currency };
 }

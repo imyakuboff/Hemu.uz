@@ -120,6 +120,11 @@ admin.get('/overview', (req, res) => {
   out.tiers = Object.fromEntries(db.all(`SELECT tier AS k, COUNT(*) AS n FROM listings WHERE status = 'active' AND tier_until > datetime('now') GROUP BY tier`).map((x) => [x.k, x.n]));
   out.queue.support = n(`SELECT COUNT(*) AS n FROM support_tickets WHERE status = 'new'`);
   out.role = req.user.role;
+  // Daromadni to'xtatib qo'yadigan sozlamalar haqida ogohlantirish
+  const pay = require('../lib/payments');
+  out.warnings = [];
+  if (!config.manualPay?.card && !pay.providers({ manual: true }).some((p) => p.id === 'click' || p.id === 'payme')) out.warnings.push('no_payment');
+  if (!require('../lib/mail').enabled()) out.warnings.push('no_mail');
   if (req.user.role !== 'admin') { delete out.money; delete out.system; delete out.charts.revenue; }
   res.json(out);
 });
@@ -872,7 +877,7 @@ admin.patch('/support/:id', async (req, res) => {
 });
 
 // ---------- Integratsiyalar: SMS (Eskiz.uz), Click, Payme ----------
-const INTEGRATION_KEYS = /^(siteUrl|otpDevEcho|otpTestRegistration|adminTwoFactor|smsProvider|eskiz\.|mailProvider|smtp\.|paymentsDev|click\.|payme\.|mapProvider|yandexMapsKey|googleVerification|yandexVerification)/;
+const INTEGRATION_KEYS = /^(siteUrl|otpDevEcho|otpTestRegistration|adminTwoFactor|backupTelegram|smsProvider|eskiz\.|mailProvider|smtp\.|paymentsDev|click\.|payme\.|mapProvider|yandexMapsKey|googleVerification|yandexVerification)/;
 function integrationsView() {
   const base = `${config.siteUrl}/api/v1`;
   return {

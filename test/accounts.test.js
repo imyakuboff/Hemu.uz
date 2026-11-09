@@ -126,7 +126,10 @@ test("oddiy foydalanuvchi (mijoz) texnika va ehtiyot qism sotuvga e'lon joylaydi
 });
 
 test("parolni tiklash SMS orqali", async () => {
-  assert.equal((await api('POST', '/api/v1/auth/password/forgot', { body: { phone: '+998999999999' } })).body.error.code, 'no_account');
+  // Noma'lum raqam: mavjud raqam bilan bir xil javob (hisob borligi oshkor qilinmaydi), kod yuborilmaydi
+  const unknown = await api('POST', '/api/v1/auth/password/forgot', { body: { phone: '+998999999999' } });
+  assert.equal(unknown.status, 200);
+  assert.ok(!unknown.body.dev_code);
   const f = await api('POST', '/api/v1/auth/password/forgot', { body: { phone: '+998944445566' } });
   assert.ok(f.body.dev_code);
   const weak = await api('POST', '/api/v1/auth/password/reset', { body: { phone: '+998944445566', code: f.body.dev_code, password: 'short' } });

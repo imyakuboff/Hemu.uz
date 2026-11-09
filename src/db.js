@@ -335,6 +335,21 @@ CREATE TABLE IF NOT EXISTS reviews (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS otp_sends (
+  phone TEXT NOT NULL,
+  ip TEXT,
+  at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ix_otp_sends_at ON otp_sends(at);
+
+CREATE TABLE IF NOT EXISTS reminders_sent (
+  kind TEXT NOT NULL,
+  ref_id INTEGER NOT NULL,
+  until TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (kind, ref_id, until)
+);
+
 CREATE TABLE IF NOT EXISTS notifications (
   id INTEGER PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -945,6 +960,34 @@ const COLUMNS = [
   }
   db.exec('CREATE UNIQUE INDEX IF NOT EXISTS ux_companies_store_slug ON companies(store_slug COLLATE NOCASE) WHERE store_slug IS NOT NULL');
   db.exec('CREATE UNIQUE INDEX IF NOT EXISTS ux_users_username ON users(username COLLATE NOCASE) WHERE username IS NOT NULL');
+  // Matn qidiruvi: FTS5 trigram indeksi — '%so'z%' qidiruvi butun jadvalni ko'rib chiqmaydi
+  const hadFts = db.prepare(`SELECT 1 FROM sqlite_master WHERE name = 'listings_fts'`).get();
+  db.exec(`
+    CREATE VIRTUAL TABLE IF NOT EXISTS listings_fts USING fts5(search_text, content='listings', content_rowid='id', tokenize='trigram');
+    CREATE TRIGGER IF NOT EXISTS tr_listings_fts_ai AFTER INSERT ON listings BEGIN
+      INSERT INTO listings_fts(rowid, search_text) VALUES (new.id, COALESCE(new.search_text, ''));
+    END;
+    CREATE TRIGGER IF NOT EXISTS tr_listings_fts_ad AFTER DELETE ON listings BEGIN
+      INSERT INTO listings_fts(listings_fts, rowid, search_text) VALUES ('delete', old.id, COALESCE(old.search_text, ''));
+    END;
+    CREATE TRIGGER IF NOT EXISTS tr_listings_fts_au AFTER UPDATE OF search_text ON listings BEGIN
+      INSERT INTO listings_fts(listings_fts, rowid, search_text) VALUES ('delete', old.id, COALESCE(old.search_text, ''));
+      INSERT INTO listings_fts(rowid, search_text) VALUES (new.id, COALESCE(new.search_text, ''));
+    END;
+  `);
+  if (!hadFts) db.exec(`INSERT INTO listings_fts(listings_fts) VALUES ('rebuild')`);
+  // Tez-tez ishlatiladigan qidiruvlar uchun indekslar (bildirishnomalar, chat ro'yxati, bo'limlar)
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS ix_interests_cat ON user_interests(category_id);
+    CREATE INDEX IF NOT EXISTS ix_conv_seller ON conversations(seller_id, last_message_at);
+    CREATE INDEX IF NOT EXISTS ix_conv_buyer ON conversations(buyer_id, last_message_at);
+    CREATE INDEX IF NOT EXISTS ix_spec_kind ON specialists(kind, status, country);
+    CREATE INDEX IF NOT EXISTS ix_jobs_kind ON jobs(kind, status, country);
+    CREATE INDEX IF NOT EXISTS ix_saved_user ON saved_searches(user_id);
+    CREATE INDEX IF NOT EXISTS ix_reviews_seller ON reviews(seller_id, created_at);
+    CREATE INDEX IF NOT EXISTS ix_follows_company ON company_follows(company_id);
+    CREATE INDEX IF NOT EXISTS ix_reveal_listing ON phone_reveal_log(listing_id, buyer_id);
+  `);
   db.exec('CREATE INDEX IF NOT EXISTS ix_listings_external ON listings(user_id, external_id) WHERE external_id IS NOT NULL');
   // urgent_calls.category_id endi ixtiyoriy (mijoz o'z so'zi bilan yozishi mumkin) — eski jadvalni qayta qurish
   if (db.prepare('PRAGMA table_info(urgent_calls)').all().some((c) => c.name === 'category_id' && c.notnull)) {

@@ -12,6 +12,7 @@ const routes = [
   [/^\/create(?:\/(\d+))?$/, () => import('./pages/create.js'), 'listing'],
   [/^\/request\/new$/, () => import('./pages/create.js'), 'request'],
   [/^\/requests$/, () => import('./pages/account.js'), 'requests'],
+  [/^\/requests\/(\d+)$/, () => import('./pages/account.js'), 'requestPage'],
   [/^\/my\/listings$/, () => import('./pages/account.js'), 'myListings'],
   [/^\/my\/orders$/, () => import('./pages/account.js'), 'myOrders'],
   [/^\/orders\/(\d+)$/, () => import('./pages/account.js'), 'orderPage'],
@@ -158,11 +159,14 @@ async function loadMe() {
 
 // ---------- Real vaqt ----------
 let es = null;
-function connectStream() {
+async function connectStream() {
   es?.close();
   es = null;
   if (!state.token || !window.EventSource) return;
-  es = new EventSource(`/api/v1/stream?token=${encodeURIComponent(state.token)}`);
+  let key;
+  try { ({ key } = await api('/stream/key', { method: 'POST' })); } catch { return; }
+  if (es || !state.token) return;
+  es = new EventSource(`/api/v1/stream?key=${encodeURIComponent(key)}`);
   es.addEventListener('message', (e) => {
     const msg = JSON.parse(e.data);
     window.dispatchEvent(new CustomEvent('mx:message', { detail: msg }));

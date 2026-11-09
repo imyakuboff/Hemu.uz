@@ -1,7 +1,7 @@
 import { state, t, esc, api, icon, num, fmtRel, fmtDate, fmtTime, initials, toast, markErrors, ApiErr, setLang, setCurrency, $, $$ } from '../core.js';
 import { crumbs, accountLayout, imgOf, priceText, regionsOf, shortCat, verifiedTick } from '../ui.js';
 import { go, render, onAuthChanged } from '../app.js';
-import { pushCard, pushSupported, pushSubscribed, enablePush } from '../features.js';
+import { pushCard, pushSupported, pushSubscribed, enablePush, soundOn, setSound, playChime, interestsModal } from '../features.js';
 import { legalSpec, legalBlock, bindLegal, readRequisites, checkRequisites, uploadDocs, markLegalErrors } from '../legal.js';
 
 const needLogin = () => ({ title: t('login'), html: `<div class="box empty"><h3>${esc(t('login_required'))}</h3><button class="btn btn-primary" data-login style="margin-top:14px">${esc(t('login'))}</button></div>` });
@@ -79,6 +79,8 @@ export async function profile() {
         <div class="set-row">${esc(t('n_news'))}${toggle('news', u.notifications.news)}</div>
       </div>
       <div class="set-row" style="border-top:1px solid var(--line);margin-top:6px;padding-top:12px"><span>${icon('bell')} ${esc(t('push_browser'))}<br><span class="tiny muted" data-push-msg></span></span><label class="toggle"><input type="checkbox" data-push><span></span></label></div>
+      <div class="set-row"><span>🔔 ${esc(t('sound_lbl'))}<br><span class="tiny muted">${esc(t('sound_sub'))}</span></span><span style="display:flex;gap:8px;align-items:center"><button type="button" class="btn btn-soft btn-sm" data-sound-test>▶ ${esc(t('sound_test'))}</button><label class="toggle"><input type="checkbox" data-sound ${soundOn() ? 'checked' : ''}><span></span></label></span></div>
+      <div class="set-row"><span>${esc(t('int_pick_title'))}</span><button type="button" class="btn btn-soft btn-sm" data-int-pick>${esc(t('choose'))}</button></div>
     </div>
 
     <div class="box" id="p-telegram"><h3>${icon('telegram')} ${esc(t('telegram'))}</h3>
@@ -252,6 +254,9 @@ export async function profile() {
           render({ keepScroll: true });
         } catch (err) { if (err instanceof ApiErr) markErrors(f, { password: 1, ...(err.details || {}) }); }
       });
+      $('[data-sound]', main).addEventListener('change', (e) => { setSound(e.target.checked); if (e.target.checked) playChime({ force: true }); });
+      $('[data-sound-test]', main).addEventListener('click', () => playChime({ force: true }));
+      $('[data-int-pick]', main).addEventListener('click', () => interestsModal({ always: true }));
       // Brauzer push-obunasi
       const pushBox = $('[data-push]', main);
       const pushMsg = $('[data-push-msg]', main);
@@ -264,6 +269,7 @@ export async function profile() {
             const reg = await navigator.serviceWorker.ready;
             if (pushBox.checked) {
               if (!(await enablePush())) { pushBox.checked = false; pushMsg.textContent = t('push_denied'); return; }
+              playChime({ force: true });
               pushMsg.textContent = '';
               toast(t('saved'), 'ok');
             } else {

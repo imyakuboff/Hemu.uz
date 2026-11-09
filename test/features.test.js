@@ -626,3 +626,14 @@ test("CRM: raqamni ochgan va yozgan xaridorlar; Do'kon tarifisiz faqat sonlar; b
   const kz = (await api('GET', '/api/v1/crm', { token: S.kz.token })).body;
   assert.ok(!kz.items?.some((x) => x.buyer_id === b.user.id));
 });
+
+test("push: yangi e'lon xabarida rasm, teg va o'qilmaganlar soni; saqlangan qidiruv havolasi to'g'ri", async () => {
+  const { pushExtras } = require('../src/lib/notify');
+  const l = db.get(`SELECT l.id FROM listings l JOIN listing_photos p ON p.listing_id = l.id WHERE l.status = 'active' LIMIT 1`);
+  const x = pushExtras(S.buyer.user.id, 'interest', { listing_id: l.id });
+  assert.equal(x.tag, `interest-${l.id}`);
+  assert.match(x.image, /^https?:\/\//);
+  assert.equal(typeof x.count, 'number');
+  const src = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'src', 'routes', 'listings.js'), 'utf8');
+  assert.ok(!src.includes('`/listings/${l.id}`'), "saqlangan qidiruv havolasi /listing/ bo'lishi kerak");
+});

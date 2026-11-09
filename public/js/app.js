@@ -1,6 +1,6 @@
 import { state, t, esc, api, qs, num, debounce, applyDir, setLang, setCurrency, setToken, icon, toast, $, closeModal, toggleTheme, applyTheme } from './core.js';
 import { header, footer, bottomNav, loginModal, locationModal, mobileMenu, requireLogin } from './ui.js';
-import { toggleCompare, startVoice, initPushCards } from './features.js';
+import { toggleCompare, startVoice, initPushCards, playChime, unlockSound, setAppBadge } from './features.js';
 
 const routes = [
   [/^\/$/, () => import('./pages/home.js')],
@@ -168,14 +168,18 @@ function connectStream() {
     if (msg.sender_id !== state.user?.id && !location.pathname.startsWith(`/messages/${msg.conversation_id}`)) {
       state.badges.messages = (state.badges.messages || 0) + 1;
       updateDots();
+      playChime();
     }
   });
   es.addEventListener('notification', () => {
     state.badges.notifications = (state.badges.notifications || 0) + 1;
     updateDots();
+    playChime();
+    setAppBadge(state.badges.notifications);
   });
 }
 function updateDots() {
+  setAppBadge(state.badges.notifications || 0);
   // Sarlavhani qayta chizmasdan belgilarni yangilash
   const hdr = document.createElement('div');
   hdr.innerHTML = header(location.pathname);
@@ -338,6 +342,23 @@ window.addEventListener('mx:refresh', () => render({ keepScroll: true }));
 // ---------- PWA: o'rnatish va oflayn ----------
 function setupPwa() {
   if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('/sw.js').catch(() => {});
+  unlockSound();
+  // Push kelganda sahifa ochiq bo'lsa (SW xabar beradi) — HEMU ohangi
+  navigator.serviceWorker?.addEventListener('message', (e) => { if (e.data?.type === 'mx-push') playChime(); });
+  // iPhone (Safari): push faqat "Bosh ekranga qo'shish" orqali o'rnatilgan ilovada ishlaydi — yo'l-yo'riq
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+  const standalone = window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone;
+  let iosSeen = null;
+  try { iosSeen = localStorage.getItem('mx_ios_hint'); } catch { /* */ }
+  if (ios && !standalone && !iosSeen) {
+    setTimeout(() => {
+      const bar = document.createElement('div');
+      bar.className = 'install-bar ios-hint';
+      bar.innerHTML = `<span style="display:flex;gap:10px;align-items:center"><img src="/img/icon-192.png" width="32" height="32" alt="" style="border-radius:7px"><span><b>${esc(t('ios_install_t'))}</b><br><small>${esc(t('ios_install_s'))}</small></span></span><button class="btn btn-ghost btn-sm" data-x aria-label="×">✕</button>`;
+      document.body.appendChild(bar);
+      bar.querySelector('[data-x]').onclick = () => { bar.remove(); try { localStorage.setItem('mx_ios_hint', '1'); } catch { /* */ } };
+    }, 4000);
+  }
   let deferred = null;
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();

@@ -43,11 +43,11 @@ function unsubscribe(userId, endpoint) {
 }
 
 // Foydalanuvchining barcha qurilmalariga yuborish. Yuborilganlar sonini qaytaradi.
-async function sendToUser(userId, { title, body, link }) {
+async function sendToUser(userId, { title, body, link, image, tag, count }) {
   const subs = db.all('SELECT * FROM push_subscriptions WHERE user_id = ?', userId);
   if (!subs.length || process.env.NODE_ENV === 'test') return 0;
   init();
-  const payload = JSON.stringify({ title: String(title || 'HEMU.UZ').slice(0, 120), body: String(body || '').slice(0, 400), link: link || '/' });
+  const payload = JSON.stringify({ title: String(title || 'HEMU.UZ').slice(0, 120), body: String(body || '').slice(0, 400), link: link || '/', image: image || undefined, tag: tag || undefined, count: count ?? undefined });
   let sent = 0;
   await Promise.all(subs.map(async (s) => {
     try {

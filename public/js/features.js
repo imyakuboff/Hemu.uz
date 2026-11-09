@@ -1,5 +1,44 @@
 import { state, t, esc, api, icon, money, num, locale, openModal, closeModal, toast, $, $$ } from './core.js';
 
+// ---------- HEMU ohangi (bildirishnoma ovozi) ----------
+// Sahifa/ilova ochiq bo'lganda chalinadi. Yopiq bo'lsa telefon tizim ovozini chaladi —
+// brauzer push o'z ovozini qo'ya olmaydi (Android/iOS cheklovi).
+const lsGet = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
+export const soundOn = () => lsGet('mx_sound') !== '0';
+export function setSound(on) { try { localStorage.setItem('mx_sound', on ? '1' : '0'); } catch { /* */ } }
+let chime = null;
+let lastChime = 0;
+function chimeEl() {
+  if (!chime) {
+    chime = new Audio(new Audio().canPlayType('audio/ogg; codecs=opus') ? '/sounds/hemu.ogg' : '/sounds/hemu.mp3');
+    chime.preload = 'auto';
+  }
+  return chime;
+}
+// Brauzerlar ovozni faqat foydalanuvchi bir marta bosgandan keyin ruxsat beradi — birinchi bosishda "ochib qo'yamiz"
+export function unlockSound() {
+  const once = () => {
+    const a = chimeEl();
+    a.muted = true;
+    a.play().then(() => { a.pause(); a.currentTime = 0; a.muted = false; }).catch(() => { a.muted = false; });
+    window.removeEventListener('pointerdown', once);
+  };
+  window.addEventListener('pointerdown', once, { once: true });
+}
+export function playChime({ force = false } = {}) {
+  if (!force && !soundOn()) return;
+  const now = Date.now();
+  if (!force && now - lastChime < 2500) return; // ketma-ket kelsa bir marta
+  lastChime = now;
+  const a = chimeEl();
+  a.currentTime = 0;
+  a.play().catch(() => {});
+  if (navigator.vibrate) try { navigator.vibrate([90, 60, 90, 60, 260]); } catch { /* */ }
+}
+export function setAppBadge(n) {
+  try { if (navigator.setAppBadge) (n ? navigator.setAppBadge(n) : navigator.clearAppBadge()).catch(() => {}); } catch { /* */ }
+}
+
 // ---------- Brauzer push-bildirishnomalari ----------
 // Yangi buyurtma/xabar telefon yopiq bo'lsa ham kelsin. Sahifaga pushCard() qo'yiladi,
 // app.js har chizishdan keyin initPushCards() bilan kerak bo'lsa ko'rsatadi.
@@ -24,6 +63,21 @@ export const pushCard = (textKey = 'push_card_text') => `<div class="push-card" 
   <div><b>${esc(t('push_card_title'))}</b><p>${esc(t(textKey))}</p></div>
   <button type="button" class="btn btn-primary btn-sm" data-push-on>${esc(t('push_enable'))}</button>
 </div>`;
+// Push yoqilgach: qaysi yangi e'lonlar haqida xabar olishni tanlash (qiziqishlar bo'sh bo'lsa)
+export async function interestsModal({ always = false } = {}) {
+  const me = await api('/me', { silent: true }).catch(() => null);
+  if (!me || (!always && me.interests?.length)) return;
+  const has = new Set(me.interests || []);
+  const m = openModal(`<h3>${esc(t('int_pick_title'))}</h3><p class="small muted">${esc(t('int_pick_sub'))}</p>
+    ${state.cats.map((c) => `<div style="margin:12px 0 6px"><b class="small">${esc(c.name)}</b></div><div class="res-chips">${c.children.map((x) => `<label class="res-chip"><input type="checkbox" name="int" value="${x.slug}" ${has.has(x.slug) ? 'checked' : ''}><span>${esc(x.name)}</span></label>`).join('')}</div>`).join('')}
+    <button class="btn btn-primary btn-block" style="margin-top:16px" data-int-ok>${esc(t('save_changes'))}</button>`, { wide: true });
+  m.querySelector('[data-int-ok]').onclick = async () => {
+    await api('/me/interests', { method: 'PUT', body: { categories: [...m.querySelectorAll('[name=int]:checked')].map((x) => x.value) } });
+    closeModal();
+    toast(t('int_pick_ok'), 'ok');
+  };
+}
+
 export async function initPushCards(root) {
   const cards = [...root.querySelectorAll('[data-pushcard]')];
   if (!cards.length || !state.user || !pushSupported() || Notification.permission === 'denied') return;
@@ -33,7 +87,7 @@ export async function initPushCards(root) {
     c.querySelector('[data-push-on]').addEventListener('click', async (e) => {
       e.currentTarget.disabled = true;
       try {
-        if (await enablePush()) { toast(t('push_on_ok'), 'ok'); cards.forEach((x) => { x.hidden = true; }); }
+        if (await enablePush()) { toast(t('push_on_ok'), 'ok'); playChime({ force: true }); cards.forEach((x) => { x.hidden = true; }); interestsModal(); }
         else toast(t('push_denied'), 'err');
       } catch (err) { toast(err.message || t('error'), 'err'); } finally { e.currentTarget.disabled = false; }
     });

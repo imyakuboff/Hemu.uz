@@ -42,6 +42,27 @@ const PREF = {
   job_new: 'notify_orders',
 };
 
+// Push sarlavhasi: yangi e'lon turidagi xabarlar telefonda darhol ajralib tursin
+const NEW_LISTING = { uz: "🚜 Yangi e'lon", ru: '🚜 Новое объявление', en: '🚜 New listing' };
+const PUSH_TITLE = {
+  interest: NEW_LISTING, saved_search: NEW_LISTING, company_new_listing: NEW_LISTING,
+  request_repair: { uz: '🔧 Yangi buyurtma', ru: '🔧 Новый заказ', en: '🔧 New job' },
+  request_match: { uz: '📋 Yangi so\'rov', ru: '📋 Новая заявка', en: '📋 New request' },
+  urgent_call: { uz: '⚡ Shoshilinch', ru: '⚡ Срочно', en: '⚡ Urgent' },
+  message: { uz: '💬 Yangi xabar', ru: '💬 Новое сообщение', en: '💬 New message' },
+};
+// Rasm (e'lon muqovasi), guruhlash tegi va ikonkadagi son
+function pushExtras(userId, type, params) {
+  const out = { tag: `${type}-${params.listing_id || params.request_id || params.conversation_id || params.call_id || ''}` };
+  if (params.listing_id) {
+    const ph = db.get('SELECT path FROM listing_photos WHERE listing_id = ? ORDER BY sort, id LIMIT 1', params.listing_id);
+    const url = ph && require('./listings').fileUrl(ph.path);
+    if (url) out.image = /^https?:/.test(url) ? url : `${require('../config').siteUrl}${url}`;
+  }
+  out.count = db.get('SELECT COUNT(*) AS n FROM notifications WHERE user_id = ? AND read_at IS NULL', userId).n;
+  return out;
+}
+
 function notify(userId, type, params = {}, link = null) {
   const u = db.get('SELECT id, notify_messages, notify_orders, notify_prices, notify_news FROM users WHERE id = ?', userId);
   if (!u) return;
@@ -53,7 +74,7 @@ function notify(userId, type, params = {}, link = null) {
   const text = render(db.get('SELECT * FROM notifications WHERE id = ?', id), lang).text;
   require('./telegram').sendToUser(userId, text, link);
   // Brauzer push (yopiq sahifada ham keladi)
-  require('./webpush').sendToUser(userId, { title: type === 'broadcast' ? params.title : 'HEMU.UZ', body: type === 'broadcast' ? params.body : text, link }).catch(() => {});
+  require('./webpush').sendToUser(userId, { ...pushExtras(userId, type, params), title: type === 'broadcast' ? params.title : (PUSH_TITLE[type] && (PUSH_TITLE[type][lang] || PUSH_TITLE[type].ru)) || 'HEMU.UZ', body: type === 'broadcast' ? params.body : text, link }).catch(() => {});
 }
 
 function render(row, lang) {
@@ -78,4 +99,4 @@ function render(row, lang) {
   };
 }
 
-module.exports = { subscribe, push, notify, render };
+module.exports = { subscribe, push, notify, render, pushExtras };

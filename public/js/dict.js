@@ -19,6 +19,14 @@ topup_btn|Balansni to'ldirish|Пополнить баланс|Top up balance|Б�
 wallet_history|Balans tarixi|История баланса|Balance history|Баланс тарихы|Баланс тарыхы|Таърихи тавозун|Balans taryhy|Balans tarixçəsi|تاریخچه موجودی|د بیلانس تاریخ
 pay_balance|Balansdan|С баланса|From balance|Баланстан|Баланстан|Аз тавозун|Balansdan|Balansdan|از موجودی|له بیلانس
 push_browser|Brauzer bildirishnomalari (sayt yopiq bo'lsa ham)|Push-уведомления в браузере (даже если сайт закрыт)|Browser push notifications (even when the site is closed)|Браузердегі хабарландырулар (сайт жабық болса да)|Браузердеги билдирүүлөр (сайт жабык болсо да)|Огоҳиномаҳои браузер (ҳатто агар сайт баста бошад)|Brauzer habarnamalary (saýt ýapyk bolsa-da)|Brauzer bildirişləri (sayt bağlı olsa belə)|اعلان‌های مرورگر (حتی وقتی سایت بسته است)|د براوزر خبرتیاوې (حتی کله چې سایټ بند وي)
+sound_lbl|HEMU ohangi va tebranish|Мелодия HEMU и вибрация|HEMU tone & vibration
+sound_sub|Sayt yoki ilova ochiq bo'lganda yangi xabarda chalinadi|Звучит при новом уведомлении, когда сайт или приложение открыто|Plays on new alerts while the site or app is open
+sound_test|Eshitish|Прослушать|Play
+int_pick_title|Qaysi yangi e'lonlar haqida xabar olasiz?|О каких новых объявлениях сообщать?|Which new listings should we alert you about?
+int_pick_sub|Tanlangan bo'limlarda yangi e'lon chiqsa telefoningizga push keladi (kuniga 5 tagacha).|Когда в выбранных разделах появится объявление — придёт push (до 5 в день).|You'll get a push when a listing appears in these sections (up to 5 a day).
+int_pick_ok|Saqlandi — yangi e'lonlar haqida xabar beramiz|Сохранено — сообщим о новых объявлениях|Saved — we'll alert you about new listings
+ios_install_t|iPhone'da ilova qilib o'rnating|Установите как приложение на iPhone|Install as an app on iPhone
+ios_install_s|Safari'da «Ulashish» ⬆ → «Bosh ekranga qo'shish». Shunda bildirishnomalar keladi.|В Safari: «Поделиться» ⬆ → «На экран «Домой»». Тогда будут приходить уведомления.|In Safari: Share ⬆ → “Add to Home Screen” to get notifications.
 push_card_title|Yangi buyurtmalar telefoningizga kelsin|Получайте новые заказы на телефон|Get new jobs on your phone|Жаңа тапсырыстар телефоныңызға келсін|Жаңы буйрутмалар телефонуңузга келсин|Фармоишҳои нав ба телефонатон оянд|Täze sargytlar telefonyňyza gelsin|Yeni sifarişlər telefonunuza gəlsin|سفارش‌های جدید روی گوشی شما|نوي فرمایشونه ستاسو تلیفون ته
 push_card_text|Xabar, so'rov va buyurtma kelganda sayt yopiq bo'lsa ham bildirishnoma keladi.|Сообщения, заявки и заказы придут уведомлением, даже если сайт закрыт.|Messages, requests and orders arrive as notifications even when the site is closed.
 push_card_mech|Ta'mirlash buyurtmasi yoki ish e'loni chiqqan zahoti telefoningizga «Yangi buyurtma» keladi — birinchi bo'lib javob bering.|Как только появится заказ на ремонт или вакансия — на телефон придёт «Новый заказ». Откликнитесь первым.|As soon as a repair job or vacancy appears you get a “New job” alert — be the first to reply.

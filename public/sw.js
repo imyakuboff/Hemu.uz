@@ -1,6 +1,6 @@
 // HEMU.UZ Service Worker: ilova qobig'ini keshlaydi, internet yo'qolsa ham ochiladi
-const VERSION = 'mxg-v69';
-const SHELL = ['/', '/css/app.css', '/js/app.js', '/js/core.js', '/js/ui.js', '/js/art.js', '/js/dict.js', '/js/features.js', '/js/theme-init.js', '/favicon.svg', '/img/icon-192.png', '/offline.html', '/vendor/inter/inter.css', '/vendor/inter/inter-latin-wght-normal.woff2', '/vendor/inter/inter-cyrillic-wght-normal.woff2'];
+const VERSION = 'mxg-v70';
+const SHELL = ['/', '/sounds/hemu.mp3', '/img/badge-96.png', '/css/app.css', '/js/app.js', '/js/core.js', '/js/ui.js', '/js/art.js', '/js/dict.js', '/js/features.js', '/js/theme-init.js', '/favicon.svg', '/img/icon-192.png', '/offline.html', '/vendor/inter/inter.css', '/vendor/inter/inter-latin-wght-normal.woff2', '/vendor/inter/inter-cyrillic-wght-normal.woff2'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -49,16 +49,35 @@ self.addEventListener('fetch', (e) => {
 });
 
 // ---------- Push-bildirishnomalar ----------
+// Tebranish "HEMU ohangi" ritmida (Android). Brauzer push o'z ovozini o'ynata olmaydi —
+// tizim ovozi chalinadi; sayt ochiq bo'lsa sahifaning o'zi HEMU ohangini chaladi.
+const VIBRATE = [90, 60, 90, 60, 260];
 self.addEventListener('push', (e) => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch { d = { body: e.data && e.data.text() }; }
-  e.waitUntil(self.registration.showNotification(d.title || 'HEMU.UZ', {
-    body: d.body || '',
-    icon: '/img/icon-192.png',
-    badge: '/img/icon-192.png',
-    data: { link: d.link || '/' },
-    tag: d.tag || undefined,
-  }));
+  e.waitUntil((async () => {
+    const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const focused = wins.some((c) => c.focused || c.visibilityState === 'visible');
+    // Ilova ikonkasidagi son
+    if (typeof d.count === 'number' && self.navigator.setAppBadge) {
+      try { d.count ? await self.navigator.setAppBadge(d.count) : await self.navigator.clearAppBadge(); } catch { /* qo'llanmaydi */ }
+    }
+    // Sahifa ochiq — ohangni sahifa chaladi, bildirishnoma jim chiqadi
+    for (const c of wins) c.postMessage({ type: 'mx-push', title: d.title, body: d.body, link: d.link });
+    return self.registration.showNotification(d.title || 'HEMU.UZ', {
+      body: d.body || '',
+      icon: '/img/icon-192.png',
+      badge: '/img/badge-96.png',
+      image: d.image || undefined,
+      data: { link: d.link || '/' },
+      tag: d.tag || undefined,
+      renotify: Boolean(d.tag),
+      silent: focused,
+      vibrate: focused ? undefined : VIBRATE,
+      timestamp: Date.now(),
+      actions: [{ action: 'open', title: "Ko'rish / Открыть" }],
+    });
+  })());
 });
 
 self.addEventListener('notificationclick', (e) => {

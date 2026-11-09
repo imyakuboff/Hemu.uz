@@ -1811,3 +1811,6 @@ h1 .vtick, h2 .vtick { width: 22px; height: 22px; vertical-align: -4px; }
 .res-chip input:focus-visible + span { outline: 2px solid var(--blue); outline-offset: 2px; }
 .btn-lg { height: 50px; font-size: 16px; }
 .demo-tag { vertical-align: 2px; font-size: 10px; }
+.install-bar.ios-hint small { font-size: 11px; opacity: .85; line-height: 1.35; }
+.install-bar.ios-hint { width: max-content; max-width: calc(100% - 24px); }
+.install-bar.ios-hint .btn-ghost { color: #fff; }

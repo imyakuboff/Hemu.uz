@@ -349,7 +349,7 @@ r.patch('/listings/:id', requireAuth, (req, res) => {
 
   if (priceChanged && l.status === 'active' && fresh.price !== null) {
     for (const f of db.all('SELECT user_id FROM favorites WHERE listing_id = ? AND user_id != ?', l.id, l.user_id)) {
-      notify(f.user_id, 'price_changed', { title: fresh.title, price_amount: fresh.price, price_currency: fresh.currency, listing_id: l.id }, `/listings/${l.id}`);
+      notify(f.user_id, 'price_changed', { title: fresh.title, price_amount: fresh.price, price_currency: fresh.currency, listing_id: l.id }, `/listing/${l.id}`);
     }
   }
   if (req.body?.publish && l.status === 'draft') submit(req, loadListing(l.id));
@@ -390,7 +390,7 @@ function activate(id) {
     id,
   );
   const l = loadListing(id);
-  notify(l.user_id, 'listing_approved', { title: l.title, listing_id: l.id }, `/listings/${l.id}`);
+  notify(l.user_id, 'listing_approved', { title: l.title, listing_id: l.id }, `/listing/${l.id}`);
   // Yandex va Bing'ga darhol xabar (IndexNow)
   require('../lib/indexnow').listing(l.id);
   // Kompaniya obunachilariga
@@ -416,7 +416,7 @@ function activate(id) {
   for (const s of db.all('SELECT * FROM saved_searches WHERE notify = 1 AND user_id != ?', l.user_id)) {
     if (L.matchesQuery(l.id, parseJson(s.query, {}))) {
       db.run('UPDATE saved_searches SET new_count = new_count + 1 WHERE id = ?', s.id);
-      notify(s.user_id, 'saved_search', { title: s.title, listing: l.title, listing_id: l.id, search_id: s.id }, `/listings/${l.id}`);
+      notify(s.user_id, 'saved_search', { title: s.title, listing: l.title, listing_id: l.id, search_id: s.id }, `/listing/${l.id}`);
     }
   }
 }

@@ -1484,3 +1484,18 @@ h1 .vtick, h2 .vtick { width: 22px; height: 22px; vertical-align: -4px; }
 /* Admin: daromad/aloqa sozlamalari haqida ogohlantirish */
 .adm-warn { display: block; margin-bottom: 12px; padding: 12px 16px; border: 1px solid #f5c2c0; background: #fdecea; color: #a12622; font-weight: 600; font-size: 14px; border-radius: 12px; }
 .adm-warn:hover { background: #fbdedb; }
+
+/* ---------- Mobil menyu: ixcham plitkalar ---------- */
+.mmenu { margin-top: 10px; }
+.mm-cta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mm-cta .btn { justify-content: center; padding: 11px 8px; font-size: 13px; white-space: nowrap; }
+.mm-h { margin: 16px 0 8px; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+.mm-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.mm-tile { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 76px; padding: 10px 4px; border-radius: 14px; background: var(--bg); color: var(--ink); text-align: center; font-size: 12px; font-weight: 600; line-height: 1.2; }
+.mm-tile:active { background: var(--blue-soft); }
+.mm-tile svg.i { width: 22px; height: 22px; color: var(--blue); }
+.mm-tile span { overflow-wrap: break-word; hyphens: auto; max-width: 100%; }
+.mm-dot { position: absolute; top: 6px; right: 8px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--red); color: #fff; font-size: 11px; line-height: 18px; }
+.mm-login { width: 100%; justify-content: center; margin-top: 16px; }
+.mm-more { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
+.mm-more a { padding: 7px 12px; border: 1px solid var(--line); border-radius: 999px; font-size: 13px; color: var(--ink-2); }

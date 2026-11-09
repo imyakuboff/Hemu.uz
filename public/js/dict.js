@@ -1,5 +1,10 @@
 // Interfeys matnlari. Har qator: kalit|uz|ru|en|kk|ky|tg|tk|az|prs|ps
 const RAW = `
+menu_mine|Mening kabinetim|Мой кабинет|My account|Менің кабинетім|Менин кабинетим|Кабинети ман|Meniň kabinetim|Mənim kabinetim|حساب من|زما حساب
+menu_cabinet|Kabinet|Кабинет|Dashboard|Кабинет|Кабинет|Кабинет|Kabinet|Kabinet|داشبورد|ډشبورډ
+menu_resume|Rezyumem|Моё резюме|My resume|Түйіндемем|Резюмем|Резюмеи ман|Rezýumäm|Rezümem|رزومهٔ من|زما سوانح
+menu_notif|Xabarnomalar|Уведомления|Alerts|Хабарламалар|Билдирүүлөр|Огоҳиҳо|Habarnamalar|Bildirişlər|اعلان‌ها|خبرتیاوې
+menu_app|Ilova|Приложение|App|Қосымша|Тиркеме|Барнома|Programma|Tətbiq|برنامه|اپ
 loc_all|Butun mintaqa|Весь регион|Whole region|Бүкіл аймақ|Бүт аймак|Тамоми минтақа|Ähli sebit|Bütün region|تمام منطقه|ټوله سیمه
 for_business|Biznes uchun|Для бизнеса|For business|Бизнес үшін|Бизнес үчүн|Барои тиҷорат|Biznes üçin|Biznes üçün|برای کسب‌وکار|د سوداګرۍ لپاره
 help|Yordam|Помощь|Help|Көмек|Жардам|Кӯмак|Kömek|Kömək|کمک|مرسته

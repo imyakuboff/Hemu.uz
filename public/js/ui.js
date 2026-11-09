@@ -376,20 +376,33 @@ export async function regionsOf(cc) {
 export function mobileMenu() {
   const m = state.meta;
   const u = state.user;
-  const links = [
-    ['/categories', 'grid', t('categories_title')], ['/feed', 'list', t('feed_title')], ['/create', 'plus', t('post_listing')],
-    ['/request/new', 'clipboard', t('create_request')], ['/requests', 'inbox', t('buyer_requests')],
-    ['/compare', 'scale', `${t('compare_title')}${compareList().length ? ` (${compareList().length})` : ''}`], ['/plans', 'rocket', t('plans_link')],
+  // Pastki panelda bor bo'limlar (Bosh sahifa, Katalog, E'lon joylash, Sevimlilar, Xabarlar, Profil) bu yerda takrorlanmaydi
+  const tile = ([h, i, l, dot]) => `<a class="mm-tile" href="${h}" data-close-link>${icon(i)}<span>${esc(l)}</span>${dot ? `<b class="mm-dot">${dot}</b>` : ''}</a>`;
+  const secs = [
+    ['/transportsale', 'excavator', t('sec_transportsale')], ['/transportrental', 'calendar', t('sec_transportrental')], ['/sparepart', 'gear', t('sec_sparepart')],
+    ['/mechanic', 'wrench', t('sec_mechanic')], ['/driver', 'user', t('sec_driver')], ['/requests', 'inbox', t('buyer_requests')],
   ];
-  if (u) links.push(['/dashboard', 'dash', t('dashboard')], ['/my/listings', 'list', t('my_listings')], ['/my/orders', 'box', t('my_orders')], ['/profile', 'user', t('nav_profile')]);
-  if (u?.company) links.push(['/business', 'building', t('business')]);
-  if (u?.role === 'admin' || u?.role === 'moderator') links.push(['/admin', 'shield', t('admin')]);
-  links.push(['/app', 'phone', `📲 ${t('app_get')}`], ['/prices', 'chart', t('prices_title')], ['/sellers', 'star', t('sellers_title')], ['/contact', 'phone', t('contact_title')]);
-  const secs = [['transportsale', 'excavator'], ['transportrental', 'calendar'], ['sparepart', 'gear'], ['mechanic', 'gear'], ['driver', 'user'], ['application', 'clipboard']];
-  const el = openModal(`<div class="sheet-menu" style="margin-top:14px">${links.map(([h, i, l]) => `<a href="${h}" data-close-link>${icon(i)} ${esc(l)}</a>`).join('')}
-    <p class="tiny muted" style="margin:12px 0 4px;font-weight:600;text-transform:uppercase">${esc(t('sec_title'))}</p>
-    ${secs.map(([s, i, k]) => `<a href="/${s}" data-close-link>${icon(i)} ${esc(t(`sec_${k || s}`))}</a>`).join('')}
-    ${u ? '' : `<button data-login-m>${icon('user')} ${esc(t('login'))}</button>`}
+  const mine = [];
+  if (u) {
+    mine.push(['/dashboard', 'dash', t('menu_cabinet')], ['/my/listings', 'list', t('my_listings')], ['/my/orders', 'box', t('my_orders')],
+      ['/notifications', 'bell', t('menu_notif'), state.badges?.notifications || 0]);
+    if (u.company) mine.push(['/crm', 'chart', t('crm')], ['/business', 'building', t('business')]);
+    if (['driver', 'mechanic'].includes(u.account_type)) mine.push(['/resume', 'file', t('menu_resume')]);
+    if (u.role === 'admin' || u.role === 'moderator') mine.push(['/admin', 'shield', t('admin')]);
+  }
+  const more = [
+    ['/plans', t('plans_link')], ['/prices', t('prices_title')], ['/sellers', t('sellers_title')],
+    ['/compare', `${t('compare_title')}${compareList().length ? ` (${compareList().length})` : ''}`], ['/app', `📲 ${t('menu_app')}`], ['/contact', t('contact_title')],
+  ];
+  const el = openModal(`<div class="mmenu">
+    <div class="mm-cta">
+      <a class="btn btn-primary" href="/request/new" data-close-link>${icon('clipboard')} ${esc(t('create_request'))}</a>
+      <a class="btn btn-soft" href="/request/new?want=service" data-close-link>${icon('wrench')} ${esc(t('call_mechanic'))}</a>
+    </div>
+    <p class="mm-h">${esc(t('sec_title'))}</p>
+    <div class="mm-grid">${secs.map(tile).join('')}</div>
+    ${mine.length ? `<p class="mm-h">${esc(t('menu_mine'))}</p><div class="mm-grid">${mine.map(tile).join('')}</div>` : `<button class="btn btn-primary mm-login" data-login-m>${icon('user')} ${esc(t('login'))}</button>`}
+    <div class="mm-more">${more.map(([h, l]) => `<a href="${h}" data-close-link>${esc(l)}</a>`).join('')}</div>
     <div class="row2i" style="margin-top:14px"><select class="input" data-lang>${m.languages.map((l) => `<option value="${l.code}" ${l.code === state.lang ? 'selected' : ''}>${esc(l.name)}</option>`).join('')}</select>
     <select class="input" data-currency>${m.currencies.map((c) => `<option value="${c.code}" ${c.code === state.currency ? 'selected' : ''}>${c.code}</option>`).join('')}</select></div></div>`);
   el.querySelectorAll('[data-close-link]').forEach((a) => a.addEventListener('click', closeModal));

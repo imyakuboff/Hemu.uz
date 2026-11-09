@@ -1814,3 +1814,6 @@ h1 .vtick, h2 .vtick { width: 22px; height: 22px; vertical-align: -4px; }
 .install-bar.ios-hint small { font-size: 11px; opacity: .85; line-height: 1.35; }
 .install-bar.ios-hint { width: max-content; max-width: calc(100% - 24px); }
 .install-bar.ios-hint .btn-ghost { color: #fff; }
+.tone-pick { display: flex; flex-direction: column; gap: 8px; padding: 4px 0 12px; }
+.tone-pick .res-chip span { min-height: 34px; font-size: 13px; padding: 0 12px; }
+.tone-pick .res-chip input:checked + span::before { content: none; }

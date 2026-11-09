@@ -1,7 +1,7 @@
 import { state, t, esc, api, icon, num, fmtRel, fmtDate, fmtTime, initials, toast, markErrors, ApiErr, setLang, setCurrency, $, $$ } from '../core.js';
 import { crumbs, accountLayout, imgOf, priceText, regionsOf, shortCat, verifiedTick } from '../ui.js';
 import { go, render, onAuthChanged } from '../app.js';
-import { pushCard, pushSupported, pushSubscribed, enablePush, soundOn, setSound, playChime, interestsModal } from '../features.js';
+import { pushCard, pushSupported, pushSubscribed, enablePush, soundOn, setSound, playChime, interestsModal, TONES, toneName, setTone } from '../features.js';
 import { legalSpec, legalBlock, bindLegal, readRequisites, checkRequisites, uploadDocs, markLegalErrors } from '../legal.js';
 
 const needLogin = () => ({ title: t('login'), html: `<div class="box empty"><h3>${esc(t('login_required'))}</h3><button class="btn btn-primary" data-login style="margin-top:14px">${esc(t('login'))}</button></div>` });
@@ -80,6 +80,7 @@ export async function profile() {
       </div>
       <div class="set-row" style="border-top:1px solid var(--line);margin-top:6px;padding-top:12px"><span>${icon('bell')} ${esc(t('push_browser'))}<br><span class="tiny muted" data-push-msg></span></span><label class="toggle"><input type="checkbox" data-push><span></span></label></div>
       <div class="set-row"><span>🔔 ${esc(t('sound_lbl'))}<br><span class="tiny muted">${esc(t('sound_sub'))}</span></span><span style="display:flex;gap:8px;align-items:center"><button type="button" class="btn btn-soft btn-sm" data-sound-test>▶ ${esc(t('sound_test'))}</button><label class="toggle"><input type="checkbox" data-sound ${soundOn() ? 'checked' : ''}><span></span></label></span></div>
+      <div class="tone-pick" role="radiogroup" aria-label="${esc(t('tone_lbl'))}"><span class="tiny muted">${esc(t('tone_lbl'))}</span><div class="res-chips">${TONES.map(([k, key]) => `<label class="res-chip"><input type="radio" name="tone" value="${k}" ${toneName() === k ? 'checked' : ''}><span>▶ ${esc(t(key))}</span></label>`).join('')}</div></div>
       <div class="set-row"><span>${esc(t('int_pick_title'))}</span><button type="button" class="btn btn-soft btn-sm" data-int-pick>${esc(t('choose'))}</button></div>
     </div>
 
@@ -256,6 +257,9 @@ export async function profile() {
       });
       $('[data-sound]', main).addEventListener('change', (e) => { setSound(e.target.checked); if (e.target.checked) playChime({ force: true }); });
       $('[data-sound-test]', main).addEventListener('click', () => playChime({ force: true }));
+      // Ohang tanlash: bosilganda darhol chalinadi va saqlanadi
+      $$('[name=tone]', main).forEach((r) => r.addEventListener('change', () => setTone(r.value)));
+      $$('.tone-pick .res-chip', main).forEach((l) => l.addEventListener('click', (e) => { if (l.querySelector('input').checked && e.target.tagName !== 'INPUT') setTone(l.querySelector('input').value); }));
       $('[data-int-pick]', main).addEventListener('click', () => interestsModal({ always: true }));
       // Brauzer push-obunasi
       const pushBox = $('[data-push]', main);

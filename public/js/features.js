@@ -6,14 +6,23 @@ import { state, t, esc, api, icon, money, num, locale, openModal, closeModal, to
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
 export const soundOn = () => lsGet('mx_sound') !== '0';
 export function setSound(on) { try { localStorage.setItem('mx_sound', on ? '1' : '0'); } catch { /* */ } }
+// Tanlanadigan ohanglar (fayl nomi → tarjima kaliti)
+export const TONES = [['hemu', 'tone_marimba'], ['signal', 'tone_signal'], ['pop', 'tone_pop'], ['bell', 'tone_bell']];
+export const toneName = () => { const v = lsGet('mx_tone'); return TONES.some(([k]) => k === v) ? v : 'hemu'; };
 let chime = null;
 let lastChime = 0;
+const toneUrl = (name) => `/sounds/${name}.${new Audio().canPlayType('audio/ogg; codecs=opus') ? 'ogg' : 'mp3'}`;
 function chimeEl() {
   if (!chime) {
-    chime = new Audio(new Audio().canPlayType('audio/ogg; codecs=opus') ? '/sounds/hemu.ogg' : '/sounds/hemu.mp3');
+    chime = new Audio(toneUrl(toneName()));
     chime.preload = 'auto';
   }
   return chime;
+}
+export function setTone(name) {
+  try { localStorage.setItem('mx_tone', name); } catch { /* */ }
+  chime = null;
+  playChime({ force: true });
 }
 // Brauzerlar ovozni faqat foydalanuvchi bir marta bosgandan keyin ruxsat beradi — birinchi bosishda "ochib qo'yamiz"
 export function unlockSound() {

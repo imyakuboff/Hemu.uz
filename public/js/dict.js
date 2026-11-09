@@ -21,6 +21,11 @@ pay_balance|Balansdan|С баланса|From balance|Баланстан|Бала
 push_browser|Brauzer bildirishnomalari (sayt yopiq bo'lsa ham)|Push-уведомления в браузере (даже если сайт закрыт)|Browser push notifications (even when the site is closed)|Браузердегі хабарландырулар (сайт жабық болса да)|Браузердеги билдирүүлөр (сайт жабык болсо да)|Огоҳиномаҳои браузер (ҳатто агар сайт баста бошад)|Brauzer habarnamalary (saýt ýapyk bolsa-da)|Brauzer bildirişləri (sayt bağlı olsa belə)|اعلان‌های مرورگر (حتی وقتی سایت بسته است)|د براوزر خبرتیاوې (حتی کله چې سایټ بند وي)
 sound_lbl|HEMU ohangi va tebranish|Мелодия HEMU и вибрация|HEMU tone & vibration
 sound_sub|Sayt yoki ilova ochiq bo'lganda yangi xabarda chalinadi|Звучит при новом уведомлении, когда сайт или приложение открыто|Plays on new alerts while the site or app is open
+tone_lbl|Ohangni tanlang|Выберите мелодию|Choose a tone
+tone_marimba|Marimba|Маримба|Marimba
+tone_signal|Signal|Сигнал|Horn
+tone_pop|Tomchi|Капля|Pop
+tone_bell|Qo'ng'iroq|Колокольчик|Bell
 sound_test|Eshitish|Прослушать|Play
 int_pick_title|Qaysi yangi e'lonlar haqida xabar olasiz?|О каких новых объявлениях сообщать?|Which new listings should we alert you about?
 int_pick_sub|Tanlangan bo'limlarda yangi e'lon chiqsa telefoningizga push keladi (kuniga 5 tagacha).|Когда в выбранных разделах появится объявление — придёт push (до 5 в день).|You'll get a push when a listing appears in these sections (up to 5 a day).

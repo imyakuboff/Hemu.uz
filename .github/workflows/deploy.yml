@@ -96,19 +96,57 @@ jobs:
                 rm -f "$BK"; echo "::warning::Baza zaxirasi olinmadi: $(tail -c 300 /tmp/hemu-bk.log | tr '\n' ' ')"
               fi
             fi
-            # Sayt papkasi yo'q bo'lsa — hech narsani o'zgartirmasdan tashxis (serverda boshqa loyihalar bor)
+            # Sayt papkasi yo'q bo'lsa (o'chirilgan) — oxirgi to'liq zaxiradan tiklanadi.
+            # Serverdagi boshqa loyihalarga (movexgo.uz, dostava, tg-voice) tegilmaydi: faqat hemu fayllari yaratiladi
             if [ ! -f /opt/hemu/package.json ]; then
-              set +e; trap - ERR
-              rm -f $(find /root/hemu-backups -name 'hemu-*.tgz' -size -100k 2>/dev/null)   # muvaffaqiyatsiz urinishlardan qolgan bo'sh arxivlar
-              D1="opt: $(for d in /opt/*; do printf '%s[%s %s %s] ' "$(basename $d)" "$(stat -c '%U %y' $d | cut -c1-30)" "$(cat $d/package.json 2>/dev/null | grep -m1 '\"name\"' | tr -d ' \",' )" "$(ls $d 2>/dev/null | head -8 | tr '\n' ',')"; done)"
-              echo "::warning::T1 $D1"
-              echo "::warning::T2 xizmatlar: $(systemctl list-units --type=service --state=running --no-legend --plain | awk '{print $1}' | grep -vE '^(systemd|dbus|cron|ssh|getty|serial|polkit|rsyslog|unattended|networkd|snapd|multipath|udisks|ModemManager|qemu|fail2ban|chrony|irqbalance|packagekit|user@)' | tr '\n' ' ') | pm2: $(command -v pm2 >/dev/null && pm2 jlist 2>/dev/null | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{console.log(JSON.parse(d).map(p=>p.name+":"+p.pm2_env.status+":"+p.pm2_env.pm_cwd).join(" "))}catch{console.log("-")}})' ) | docker: $(docker ps --format '{{.Names}}:{{.Ports}}' 2>/dev/null | tr '\n' ' ')"
-              echo "::warning::T3 portlar: $(ss -ltnp 2>/dev/null | awk 'NR>1{print $4"="$6}' | sed 's/users:((//;s/,pid=[0-9]*,fd=[0-9]*))//' | tr '\n' ' ')"
-              echo "::warning::T4 nginx: $(grep -rhoE 'server_name [^;]+|proxy_pass [^;]+|root [^;]+' /etc/nginx/sites-enabled /etc/nginx/conf.d 2>/dev/null | tr '\n' '|' | cut -c1-900)"
-              echo "::warning::T5 zaxiralar: $(ls -la --time-style=+%m-%d_%H:%M /root/hemu-backups 2>/dev/null | awk 'NR>1{print $6"="$5"@"$7}' | tr '\n' ' ')"
-              echo "::warning::T6 kirishlar: $(last -n 12 -F -w 2>/dev/null | head -12 | awk '{print $1,$3,$5,$6,$7,$8}' | sed -E 's/([0-9]+\.[0-9]+)\.[0-9]+\.[0-9]+/\1.x.x/g' | tr '\n' ';') | auth: $(journalctl -u ssh --since '2026-11-20' --no-pager 2>/dev/null | grep -E 'Accepted' | awk '{print $1,$2,$3,$9,$11}' | sed -E 's/([0-9]+\.[0-9]+)\.[0-9]+\.[0-9]+/\1.x.x/g' | tail -8 | tr '\n' ';')"
-              echo "::warning::T7 hemu izlari: $(ls -la /etc/systemd/system | grep -iE 'hemu|movex|dostava|voice' | awk '{print $6,$7,$8,$9}' | tr '\n' ';') | cron: $(crontab -l 2>/dev/null | grep -v '^#' | tr '\n' ';' | cut -c1-300) | bash_history: $(tail -n 300 /root/.bash_history 2>/dev/null | grep -E '(rm -r|systemctl (stop|disable)|mv ).*(hemu|/opt)' | tail -8 | tr '\n' ';' | cut -c1-600)"
-              exit 1
+              find /root/hemu-backups -name 'hemu-*.tgz' -size -1M -delete 2>/dev/null || true
+              TGZ=$(ls -1t /root/hemu-backups/hemu-*.tgz 2>/dev/null | head -1)
+              [ -n "$TGZ" ] || { echo "::error::Tiklash uchun kod zaxirasi topilmadi"; exit 1; }
+              id hemu >/dev/null 2>&1 || useradd --system --create-home --shell /usr/sbin/nologin hemu
+              tar xzf "$TGZ" -C /opt
+              mkdir -p /opt/hemu/data && chown -R hemu: /opt/hemu
+              step "Kod, .env va rasmlar tiklandi: $(basename "$TGZ") ($(du -sh /opt/hemu | cut -f1))"
+              DBR=$(grep -E '^DB_FILE=' /opt/hemu/.env 2>/dev/null | cut -d= -f2 | tr -d '"\r '); DBR=${DBR:-data/movexgo.db}
+              case "$DBR" in /*) ;; *) DBR="/opt/hemu/$DBR";; esac
+              DGZ=$(ls -1t /root/hemu-backups/db-*.db.gz 2>/dev/null | head -1)
+              if [ ! -f "$DBR" ] && [ -n "$DGZ" ]; then
+                mkdir -p "$(dirname "$DBR")" && gunzip -c "$DGZ" > "$DBR" && chown -R hemu: "$(dirname "$DBR")"
+                step "Baza tiklandi: $(basename "$DGZ")"
+              fi
+              # systemd xizmati (repodagi deploy/hemu.service asosida)
+              if ! systemctl cat hemu >/dev/null 2>&1; then
+                sed "s#^ExecStart=/usr/bin/node #ExecStart=$(command -v node) #" /opt/hemu/deploy/hemu.service > /etc/systemd/system/hemu.service
+                systemctl daemon-reload && systemctl enable hemu >/dev/null 2>&1
+                step "systemd xizmati tiklandi"
+              fi
+              # nginx: hemu.uz sayti (boshqa saytlar o'zgarmaydi; xato bo'lsa hemu fayllari olib tashlanadi)
+              HPORT=$(grep -E '^PORT=' /opt/hemu/.env 2>/dev/null | cut -d= -f2 | tr -d '"\r '); HPORT=${HPORT:-4700}
+              if ! grep -rqsE 'server_name[^;]*\bhemu\.uz' /etc/nginx/sites-enabled /etc/nginx/conf.d; then
+                [ -f /etc/nginx/conf.d/hemu-security.conf ] || cp /opt/hemu/deploy/nginx-hemu-security.conf /etc/nginx/conf.d/hemu-security.conf
+                CERT=$(ls -d /etc/letsencrypt/live/hemu.uz* 2>/dev/null | head -1)
+                BODY=$(sed -n '/^server {/,/gzip_types/p' /opt/hemu/deploy/nginx-hemu.conf | sed -e '1d' -e "s/server_name [^;]*;/server_name hemu.uz www.hemu.uz;/" -e "s#127.0.0.1:4710#127.0.0.1:$HPORT#g")
+                if [ -n "$CERT" ] && [ -f "$CERT/fullchain.pem" ]; then
+                  printf 'server {\n%s\n\n    listen 443 ssl;\n    listen [::]:443 ssl;\n    ssl_certificate %s/fullchain.pem;\n    ssl_certificate_key %s/privkey.pem;\n%s}\n\nserver {\n    listen 80;\n    listen [::]:80;\n    server_name hemu.uz www.hemu.uz;\n    location /.well-known/acme-challenge/ { root /var/www/html; }\n    location / { return 301 https://$host$request_uri; }\n}\n' "$BODY" "$CERT" "$CERT" "$( [ -f /etc/letsencrypt/options-ssl-nginx.conf ] && printf '    include /etc/letsencrypt/options-ssl-nginx.conf;\n'; [ -f /etc/letsencrypt/ssl-dhparams.pem ] && printf '    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;\n')" > /etc/nginx/sites-available/hemu.conf
+                else
+                  printf 'server {\n    listen 80;\n    listen [::]:80;\n%s\n}\n' "$BODY" > /etc/nginx/sites-available/hemu.conf
+                fi
+                ln -sf /etc/nginx/sites-available/hemu.conf /etc/nginx/sites-enabled/hemu.conf
+                if nginx -t >/tmp/hemu-nginx.log 2>&1; then
+                  systemctl reload nginx
+                  step "nginx: hemu.uz qo'shildi ($( [ -n "$CERT" ] && echo "SSL: $(basename "$CERT")" || echo "SSL hali yoq"))"
+                else
+                  rm -f /etc/nginx/sites-enabled/hemu.conf
+                  echo "::error::nginx sozlamasi xato (olib tashlandi, boshqa saytlar ishlayapti): $(tail -3 /tmp/hemu-nginx.log | tr '\n' ' ')"; exit 1
+                fi
+                if [ -z "$CERT" ]; then
+                  command -v certbot >/dev/null || { DEBIAN_FRONTEND=noninteractive apt-get install -y -q certbot python3-certbot-nginx >/tmp/hemu-apt.log 2>&1 || true; }
+                  if certbot --nginx -d hemu.uz -d www.hemu.uz --non-interactive --agree-tos --register-unsafely-without-email --redirect >/tmp/hemu-cert.log 2>&1; then
+                    step "SSL sertifikat olindi (Let's Encrypt)"
+                  else
+                    echo "::warning::SSL olinmadi (DNS bu serverga qaraganini tekshiring): $(tail -3 /tmp/hemu-cert.log | tr '\n' ' ')"
+                  fi
+                fi
+              fi
             fi
             # Kod va rasmlar (baza fayllarisiz — ular yuqorida izchil saqlandi), 5 tasi saqlanadi
             tar czf /root/hemu-backups/hemu-$(date +%F-%H%M).tgz --exclude=node_modules --exclude='*.db' --exclude='*.db-wal' --exclude='*.db-shm' --exclude=data/backups -C /opt hemu

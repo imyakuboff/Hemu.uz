@@ -506,7 +506,8 @@ test("Do'kon tarifi: admin orqali to'lov, qisqa manzil, qadalgan e'lonlar, faqat
   // Muddat tugasa — oddiy holat
   db.run(`UPDATE companies SET store_until = datetime('now', '-1 day') WHERE id = ?`, comp.id);
   assert.equal((await api('GET', `/api/v1/companies/${comp.id}`)).body.store_plan, null);
-  assert.equal((await fetch(`${base}/s/jcb-diler`, { redirect: 'manual' })).status, 200);
+  // Tarif tugagach qisqa manzil endi mavjud emas — haqiqiy 404 (yumshoq 404 emas)
+  assert.equal((await fetch(`${base}/s/jcb-diler`, { redirect: 'manual' })).status, 404);
   assert.equal((await api('GET', `/api/v1/listings/${own[0]}`)).body.store, null);
 });
 

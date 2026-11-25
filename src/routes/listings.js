@@ -143,7 +143,8 @@ r.get('/listings/:id', (req, res, next) => {
 });
 
 function priceHistory(l, req) {
-  return db.all('SELECT price, currency, changed_at FROM price_history WHERE listing_id = ? ORDER BY id', l.id)
+  // Grafikda faqat hozirgi valyutadagi narxlar (valyuta almashtirilgan bo'lsa $ va so'm aralashib, noto'g'ri tushish/o'sish ko'rinadi)
+  return db.all('SELECT price, currency, changed_at FROM price_history WHERE listing_id = ? AND currency = ? ORDER BY id', l.id, l.currency)
     .map((h) => ({ price: h.price, currency: h.currency, formatted: money.formatAmount(h.price, h.currency, req.lang), at: h.changed_at }));
 }
 

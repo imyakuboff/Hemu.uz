@@ -1,26 +1,43 @@
-// Dizayn ko'rib chiqish uchun skrinshotlar (base64 JPEG log'ga chiqariladi)
+// Lokal (runner) serverda yangi dizayn skrinshotlari
 const { chromium } = require('playwright');
-const shots = [
-  ['m-home', '/', 390, true, 3200], ['m-catalog', '/catalog', 390, true, 2200], ['m-listing', '/listing/17', 390, true, 3000],
-  ['m-rental', '/transportrental', 390, true, 2000], ['m-mechanic', '/mechanic', 390, true, 1800], ['m-requests', '/requests', 390, true, 1600],
-  ['m-company', '/company/8', 390, true, 2000], ['m-plans', '/plans', 390, true, 2400], ['m-menu', '/#menu', 390, false, 844],
-  ['m-create', '/create', 390, false, 844], ['m-404', '/yoq-sahifa', 390, false, 844],
-  ['d-home', '/', 1366, true, 2600], ['d-catalog', '/catalog', 1366, true, 1600], ['d-listing', '/listing/17', 1366, true, 1800],
-];
+const B = 'http://127.0.0.1:4799';
 (async () => {
   const b = await chromium.launch();
-  for (const [name, path, w, full, maxH] of shots) {
+  const login = await (await fetch(B + '/api/v1/auth/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ login: '+998901234567', password: 'Hemu2026' }) })).json();
+  const ids = (await (await fetch(B + '/api/v1/listings?per_page=3')).json()).items.map((x) => x.id);
+  const shots = [
+    ['m-home', '/', 390, 2600, null], ['m-catalog', '/catalog', 390, 1700, null], ['m-filters', '/catalog#f', 390, 844, null],
+    ['m-listing', '/listing/' + ids[0], 390, 1100, null], ['m-listing-in', '/listing/' + ids[0], 390, 844, login.token],
+    ['m-create-guest', '/create', 390, 1300, null], ['d-catalog', '/catalog', 1366, 1300, null], ['d-listing', '/listing/' + ids[0], 1366, 1000, null], ['d-home', '/', 1366, 900, null],
+  ];
+  const errs = [];
+  for (const [name, path, w, h, tok] of shots) {
     const mobile = w < 500;
     const ctx = await b.newContext({ viewport: { width: w, height: mobile ? 844 : 860 }, isMobile: mobile, hasTouch: mobile, deviceScaleFactor: 1 });
     const p = await ctx.newPage();
-    await p.goto('https://hemu.uz' + path.replace('#menu', ''), { waitUntil: 'networkidle' }).catch(() => {});
-    await p.waitForTimeout(1200);
-    if (path.includes('#menu')) { await p.click('[data-menu]').catch(() => {}); await p.waitForTimeout(700); }
-    if (full) { const h = await p.evaluate(() => document.documentElement.scrollHeight); await p.setViewportSize({ width: w, height: Math.min(h, maxH) }); await p.waitForTimeout(600); }
+    p.on('pageerror', (e) => errs.push(name + ': ' + e.message));
+    await p.goto(B + '/');
+    await p.evaluate((t) => { localStorage.setItem('mx_lang', 'uz'); if (t) localStorage.setItem('mx_token', t); }, tok);
+    await p.goto(B + path.replace('#f', ''), { waitUntil: 'networkidle' });
+    await p.waitForTimeout(900);
+    if (path.endsWith('#f')) { await p.click('[data-ftoggle]'); await p.waitForTimeout(500); }
+    if (!path.endsWith('#f') && h > 844) { await p.setViewportSize({ width: w, height: h }); await p.waitForTimeout(400); }
     const buf = await p.screenshot({ type: 'jpeg', quality: 62 });
     const b64 = buf.toString('base64');
     for (let i = 0; i < b64.length; i += 4000) console.log(`IMG ${name} ${i / 4000} ${b64.slice(i, i + 4000)}`);
     await ctx.close();
   }
+  // Mehmon: formani to'ldirib, joylash -> kirish oynasi chiqadimi
+  const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, isMobile: true });
+  const p = await ctx.newPage();
+  p.on('pageerror', (e) => errs.push('guest: ' + e.message));
+  await p.goto(B + '/create', { waitUntil: 'networkidle' });
+  await p.fill('input[name=title]', 'Sinov ekskavator JCB').catch((e) => errs.push('fill ' + e.message));
+  await p.click('[data-add]').catch(() => {});
+  await p.waitForTimeout(600);
+  const modal = await p.evaluate(() => !!document.querySelector('.modal, [role=dialog]'));
+  const saved = await p.evaluate(() => sessionStorage.getItem('mx_guest_listing'));
+  console.log('GUEST modal=' + modal + ' saved=' + saved);
+  console.log('ERRS ' + JSON.stringify(errs));
   await b.close();
 })();

@@ -10,5 +10,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - run: npm ci --no-audit --no-fund >/dev/null 2>&1 || npm install --no-audit --no-fund >/dev/null 2>&1
       - run: npm i --no-save playwright@1.48.2 >/dev/null 2>&1 && npx playwright install --with-deps chromium >/dev/null 2>&1
-      - run: node .github/diag/crawl.js
+      - run: |
+          export DB_FILE=/tmp/t.db UPLOAD_DIR=/tmp/up PORT=4799 BACKUP_DISABLED=1
+          node seed.js >/dev/null
+          (node src/server.js > /tmp/srv.log 2>&1 &)
+          sleep 5
+          node .github/diag/crawl.js
+          tail -5 /tmp/srv.log

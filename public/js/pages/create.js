@@ -73,8 +73,12 @@ function specsHtml(kind, e, deal) {
 }
 
 // ---------- E'lon yaratish / tahrirlash ----------
+// Mehmon formani kirishsiz to'ldiradi; rasm qo'shish yoki joylashda raqam so'raladi, kiritilganlari saqlanib qoladi
+const GUEST_KEY = 'mx_guest_listing';
 export async function listing({ params }) {
-  if (!state.user) return needLogin();
+  if (!state.user && params[0]) return needLogin();
+  const guest = !state.user;
+  const u = state.user || {};
   let id = params[0] ? Number(params[0]) : null;
   let e = {};
   let photos = [];
@@ -85,16 +89,23 @@ export async function listing({ params }) {
     photos = l.photos;
   } else {
     const pre = new URLSearchParams(location.search);
-    e = { category: pre.get('category') || undefined, subcategory: pre.get('subcategory') || undefined, deal_type: 'sale', country: state.country || state.user.country, contact_name: state.user.name, contact_phone: state.user.phone, contact_email: state.user.email, accept_messages: 1, currency: state.meta.countries.find((c) => c.code === (state.country || state.user.country))?.currency };
+    e = { category: pre.get('category') || undefined, subcategory: pre.get('subcategory') || undefined, deal_type: 'sale', country: state.country || u.country || state.meta.country, contact_name: u.name, contact_phone: u.phone, contact_email: u.email, accept_messages: 1, currency: state.meta.countries.find((c) => c.code === (state.country || state.user.country))?.currency };
+  }
+  // Kirgandan keyin: mehmon sifatida to'ldirilgan maydonlar qaytariladi
+  if (!id && !guest) {
+    try {
+      const g = JSON.parse(sessionStorage.getItem(GUEST_KEY) || 'null');
+      if (g) { Object.assign(e, g); sessionStorage.removeItem(GUEST_KEY); }
+    } catch { /* saqlanmagan */ }
   }
   const root = findRoot(e.category) || state.cats[0];
-  const company = state.user.company;
+  const company = u.company;
   const cur = state.meta.currencies.map((c) => [c.code, c.code]);
   const vats = [['', t('vat_none')], ...[12, 15, 18, 20].map((n) => [n, t('vat_incl', { n })])];
   const isActive = e.status === 'active';
 
-  const html = accountLayout('', `
-  ${crumbs([[t('home'), '/'], [t('dashboard'), '/dashboard'], [id ? t('edit_title') : t('create_title')]])}
+  const html = (guest ? (x) => x : (x) => accountLayout('', x))(`
+  ${crumbs([[t('home'), '/'], ...(guest ? [] : [[t('dashboard'), '/dashboard']]), [id ? t('edit_title') : t('create_title')]])}
   <div class="page-head"><h1 class="page-title">${esc(id ? t('edit_title') : t('create_title'))}</h1><p class="page-sub">${esc(t('create_sub'))}</p></div>
   <p class="small" style="margin:-8px 0 16px"><span class="saved-badge" data-saved ${id ? '' : 'hidden'}>${esc(t('draft_saved', { t: fmtTime(e.updated_at) }))}</span><span class="muted tiny">${esc(t('autosave_note'))}</span>${e.status && e.status !== 'draft' ? ` <span class="tag ${e.status === 'active' ? 'green' : e.status === 'rejected' ? 'red' : 'orange'}">${esc(state.meta.listing_statuses.find((s) => s.value === e.status)?.label)}</span>` : ''}</p>
   ${e.reject_reason ? `<div class="note" style="margin:0 0 16px"><div><b>${esc(t('reject_reason', { r: e.reject_reason }))}</b></div></div>` : ''}
@@ -210,7 +221,18 @@ export async function listing({ params }) {
         b.hidden = false;
         b.textContent = t('draft_saved', { t: new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' }).format(new Date()) });
       };
+      // Mehmon: kiritilganlarni saqlab, kirish oynasini ochish (kirgach sahifa shu ma'lumotlar bilan qayta chiziladi)
+      const needAuth = () => {
+        if (state.user) return false;
+        try {
+          const v = Object.fromEntries(Object.entries(collect()).filter(([k, x]) => x !== '' && x !== false && x != null && !/^contact_/.test(k)));
+          sessionStorage.setItem(GUEST_KEY, JSON.stringify(v));
+        } catch { /* */ }
+        requireLogin(onAuthChanged);
+        return true;
+      };
       const guard = async (fn) => {
+        if (needAuth()) return;
         if (busy) return;
         busy = true;
         try { await fn(); } catch (err) { if (err instanceof ApiErr) markErrors(form, err.details); } finally { busy = false; }
@@ -269,7 +291,7 @@ export async function listing({ params }) {
       // Rasmlar
       const fileIn = $('[data-file]', main);
       main.addEventListener('click', async (ev) => {
-        if (ev.target.closest('[data-add]')) { ev.preventDefault(); fileIn.click(); }
+        if (ev.target.closest('[data-add]')) { ev.preventDefault(); if (!needAuth()) fileIn.click(); }
         const del = ev.target.closest('[data-del-photo]');
         if (del) {
           await api(`/listings/${id}/photos/${del.dataset.delPhoto}`, { method: 'DELETE' });

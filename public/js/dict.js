@@ -1,5 +1,8 @@
 // Interfeys matnlari. Har qator: kalit|uz|ru|en|kk|ky|tg|tk|az|prs|ps
 const RAW = `
+cb_call|Qo'ng'iroq qilish|Позвонить|Call|Қоңырау шалу|Чалуу|Занг задан|Jaň etmek|Zəng et|تماس|زنګ ووهئ
+cb_write|Yozish|Написать|Message|Жазу|Жазуу|Навиштан|Ýazmak|Yaz|پیام|ولیکئ
+filters_show|Natijalarni ko'rsatish|Показать результаты|Show results|Нәтижелерді көрсету|Жыйынтыктарды көрсөтүү|Нишон додани натиҷаҳо|Netijeleri görkez|Nəticələri göstər|نمایش نتایج|پایلې وښایاست
 menu_mine|Mening kabinetim|Мой кабинет|My account|Менің кабинетім|Менин кабинетим|Кабинети ман|Meniň kabinetim|Mənim kabinetim|حساب من|زما حساب
 menu_cabinet|Kabinet|Кабинет|Dashboard|Кабинет|Кабинет|Кабинет|Kabinet|Kabinet|داشبورد|ډشبورډ
 menu_resume|Rezyumem|Моё резюме|My resume|Түйіндемем|Резюмем|Резюмеи ман|Rezýumäm|Rezümem|رزومهٔ من|زما سوانح
@@ -370,7 +373,7 @@ reviews|{n} ta sharh|{n} отзывов|{n} reviews|{n} пікір|{n} пики�
 today|Bugun, {t}|Сегодня, {t}|Today, {t}|Бүгін, {t}|Бүгүн, {t}|Имрӯз, {t}|Şu gün, {t}|Bu gün, {t}|امروز، {t}|نن، {t}
 yesterday|Kecha, {t}|Вчера, {t}|Yesterday, {t}|Кеше, {t}|Кечээ, {t}|Дирӯз, {t}|Düýn, {t}|Dünən, {t}|دیروز، {t}|پرون، {t}
 u_hp|o.k.|л.с.|hp|а.к.|а.к.|қ.а.|a.g.|a.g.|اسب بخار|اس قوه
-u_mh|m/s|м/ч|h|м/с|м/с|м/с|m/s|m/s|ساعت کار|د کار ساعت
+u_mh|m/soat|м/ч|h|м/с|м/с|м/с|m/s|m/s|ساعت کار|د کار ساعت
 u_km|km|км|km|км|км|км|km|km|کیلومتر|کیلومتره
 u_t|t|т|t|т|т|т|t|t|تن|ټن
 in_stock_short|omborda {n} dona|в наличии {n} шт.|{n} in stock|қоймада {n} дана|кампада {n} даана|дар анбор {n} дона|ammarda {n} sany|anbarda {n} əd.|{n} عدد موجود|{n} دانې موجودې
@@ -739,7 +742,7 @@ delivery_to_city|Shahrimga yetkazib berish bor|Есть доставка в мо
 eq_params|Texnika parametrlari|Параметры техники|Equipment parameters|Техника параметрлері|Техниканын параметрлери|Параметрҳои техника|Tehnikanyň parametrleri|Texnika parametrləri|مشخصات ماشین|د ماشین پارامترونه
 year_from|Yil (dan)|Год от|Year from|Жыл (бастап)|Жыл (баштап)|Сол аз|Ýyl (başlap)|İl (dan)|سال از|کال له
 year_to|Yil (gacha)|Год до|Year to|Жыл (дейін)|Жыл (чейин)|Сол то|Ýyl (çenli)|İl (qədər)|سال تا|کال تر
-hours_max|Motosoat (gacha), m/s|Наработка до, м/ч|Hours up to|Моторесурс (дейін)|Иштеген сааты (чейин)|Соатҳои корӣ (то)|Motosagat (çenli)|Motosaat (qədər)|ساعت کار تا|د کار ساعتونه تر
+hours_max|Motosoat (gacha), m/soat|Наработка до, м/ч|Hours up to|Моторесурс (дейін)|Иштеген сааты (чейин)|Соатҳои корӣ (то)|Motosagat (çenli)|Motosaat (qədər)|ساعت کار تا|د کار ساعتونه تر
 power_min|Quvvat (dan), o.k.|Мощность от, л.с.|Power from, hp|Қуат (бастап), а.к.|Кубаттуулук (баштап)|Иқтидор (аз)|Kuwwat (başlap)|Güc (dan), a.g.|قدرت از|ځواک له
 drive4|To'liq privod 4×4|Полный привод 4×4|4×4 drive|Толық жетек 4×4|Толук жетек 4×4|Ҳаракати пурра 4×4|Doly hereketlendiriji 4×4|Tam ötürücü 4×4|دیفرانسیل کامل 4×4|بشپړ ډرایو 4×4
 with_docs|Hujjatlari bilan|С документами|With documents|Құжаттарымен|Документтери менен|Бо ҳуҷҷатҳо|Resminamalary bilen|Sənədlərlə|با اسناد|له اسنادو سره

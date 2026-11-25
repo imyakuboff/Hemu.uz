@@ -145,9 +145,18 @@ function createApp() {
     if (!c || !require('./lib/store').isActive(c)) return next();
     res.redirect(302, `/company/${c.id}`);
   });
-  // Barcha sahifa manzillari index.html ga (mijoz tomonida marshrutlash)
+  // Boshqa saytlarga o'rgangan foydalanuvchilar yozadigan manzillar
+  app.get(['/listings', '/search', '/ads', '/elonlar'], (req, res) => {
+    const q = req.originalUrl.indexOf('?');
+    res.redirect(301, `/catalog${q >= 0 ? req.originalUrl.slice(q) : ''}`);
+  });
+  // Barcha sahifa manzillari index.html ga (mijoz tomonida marshrutlash).
+  // Mavjud bo'lmagan manzil — 404 holati (qidiruv tizimlari "yumshoq 404" deb jazolamasligi uchun), sahifa baribir ochiladi
+  const SPA_ROUTES = spaRoutes();
   app.get(/^\/(?!api\/|uploads\/).*/, (req, res, next) => {
     if (path.extname(req.path)) return next();
+    const p = req.path.length > 1 ? req.path.replace(/\/+$/, '') : req.path;
+    if (SPA_ROUTES.length && !SPA_ROUTES.some((r) => r.test(p))) res.status(404).set('X-Robots-Tag', 'noindex');
     res.set('Cache-Control', 'no-cache');
     // Qidiruv tizimlari uchun sahifa sarlavhasi, tavsifi va Open Graph serverda qo'yiladi
     res.type('html').send(seo.renderIndex(req));
@@ -215,3 +224,13 @@ Quyidagi havolalarni bosib, javoblarni brauzerda ko'rishingiz mumkin. To'liq ro'
 }
 
 module.exports = { createApp };
+
+// public/js/app.js dagi marshrutlar ro'yxati (bitta manba — frontend bilan bir xil)
+function spaRoutes() {
+  try {
+    const src = require('node:fs').readFileSync(path.join(__dirname, '..', 'public', 'js', 'app.js'), 'utf8');
+    return [...src.matchAll(/\[\/(\^[^,]+\$)\/,/g)].map((m) => new RegExp(m[1].replace(/\\\//g, '/')));
+  } catch {
+    return [];
+  }
+}

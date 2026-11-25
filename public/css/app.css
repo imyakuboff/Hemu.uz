@@ -244,7 +244,7 @@ textarea.input { height: auto; min-height: 110px; padding: 10px 12px; resize: ve
 .input:focus { border-color: var(--blue); }
 .input.err { border-color: var(--red); }
 .row2i { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.f-group > label.check { font-weight: 400; font-size: 12px; margin: 6px 0; }
+.f-group > label.check { display: flex; font-weight: 400; font-size: 12px; margin: 6px 0; }
 .check { display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer; margin: 6px 0; }
 .check input { width: 16px; height: 16px; accent-color: var(--blue); margin: 0; flex: none; }
 .results-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; }
@@ -1499,3 +1499,58 @@ h1 .vtick, h2 .vtick { width: 22px; height: 22px; vertical-align: -4px; }
 .mm-login { width: 100%; justify-content: center; margin-top: 16px; }
 .mm-more { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
 .mm-more a { padding: 7px 12px; border: 1px solid var(--line); border-radius: 999px; font-size: 13px; color: var(--ink-2); }
+
+/* ---------- Dizayn tuzatishlari (noyabr) ---------- */
+/* E'lon sahifasi: yo'l (kategoriya) kichik, narx sarlavha tagida faqat telefonda */
+.l-path { margin: 0 0 12px; font-size: 12px; }
+.m-price { display: none; }
+.contact-bar { display: none; }
+/* Katalog filtri: kompyuterda oddiy panel, telefonda pastdan ochiladigan oyna */
+.f-toggle, .f-backdrop, .f-x, .f-apply { display: none; }
+.f-head { display: flex; align-items: center; justify-content: space-between; }
+.f-head h3 { margin: 0 0 14px; }
+.f-n { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--blue); color: #fff; font-size: 11px; }
+body.no-scroll { overflow: hidden; }
+
+@media (max-width: 980px) {
+  .f-toggle { display: inline-flex; align-self: flex-start; margin-bottom: 4px; }
+  .filters { display: none; }
+  .filters.open { display: block; position: fixed; left: 0; right: 0; bottom: 0; max-height: 88vh; overflow: auto; z-index: 90; border-radius: 18px 18px 0 0; padding: 18px 18px calc(18px + env(safe-area-inset-bottom)); box-shadow: 0 -8px 30px rgba(0, 0, 0, .18); }
+  .f-backdrop.open { display: block; position: fixed; inset: 0; background: rgba(10, 20, 35, .45); z-index: 89; }
+  .f-x { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--bg); color: var(--ink); margin: -4px -4px 10px 0; }
+  .f-apply { display: flex; justify-content: center; margin-top: 14px; position: sticky; bottom: 0; }
+}
+
+@media (max-width: 760px) {
+  /* Bosh sahifada bitta qidiruv: sariq blokdagisi qoladi */
+  body.is-home .m-search { display: none; }
+  /* E'lon sahifasi */
+  .m-price { display: block; margin: -6px 0 14px; }
+  .m-price b { font-size: 24px; font-weight: 800; letter-spacing: -.01em; }
+  .m-price .old-price { margin-left: 6px; }
+  .m-price span { display: block; font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .contact-bar { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; position: fixed; left: 0; right: 0; bottom: 60px; z-index: 49; padding: 8px 12px; background: var(--card); border-top: 1px solid var(--line); box-shadow: 0 -4px 14px rgba(16, 36, 58, .08); }
+  .contact-bar .btn { justify-content: center; height: 44px; font-size: 14px; }
+  body:has(.contact-bar) { padding-bottom: 124px; }
+  /* Kartochkalar: 2 ustun, ixcham */
+  .grid:has(> .card) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .grid:has(> .card) .card { border-radius: 12px; }
+  .grid:has(> .card) .card .img { aspect-ratio: 4 / 3; }
+  .grid:has(> .card) .card .body { padding: 8px 10px 10px; }
+  .grid:has(> .card) .card .title { font-size: 12px; line-height: 1.3; }
+  .grid:has(> .card) .card .price { font-size: 15px; margin: 4px 0 2px; }
+  .grid:has(> .card) .card .price .old-price { display: none; }
+  .grid:has(> .card) .card .meta { font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .grid:has(> .card) .card .city { font-size: 10.5px; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .grid:has(> .card) .card .seller, .grid:has(> .card) .card .rating, .grid:has(> .card) .card .foot .btn { display: none; }
+  .grid:has(> .card) .card .foot { padding-top: 6px; }
+  .grid:has(> .card) .card .fav, .grid:has(> .card) .card .cmp-btn { width: 26px; height: 26px; right: 6px; }
+  .grid:has(> .card) .card .fav { top: 6px; }
+  .grid:has(> .card) .card .cmp-btn { top: 36px; }
+  .grid:has(> .card) .card .fav svg.i, .grid:has(> .card) .card .cmp-btn svg.i { width: 13px; height: 13px; }
+  .grid:has(> .card) .card .deal { left: 6px; bottom: 6px; font-size: 9px; padding: 2px 7px; }
+  /* Reklama banneri: matn rasm ustiga tushmasin */
+  .ad-txt { max-width: 62%; }
+  .ad-txt p { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .ad-img { width: 46%; -webkit-mask-image: linear-gradient(to right, transparent 0, #000 30%); mask-image: linear-gradient(to right, transparent 0, #000 30%); }
+}

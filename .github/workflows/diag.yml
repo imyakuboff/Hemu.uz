@@ -1,0 +1,64 @@
+# Har bir push'dan keyin saytni serverda avtomatik yangilaydi.
+# Bir marta sozlash: GitHub → Settings → Secrets and variables → Actions → New repository secret
+#   SSH_KEY        — serverga kirish uchun maxfiy SSH kalit (tavsiya; bo'lsa parol ishlatilmaydi)
+#   SSH_PASSWORD   — kalit bo'lmasa: serverning root paroli
+#   ADMIN_LOGIN, ADMIN_PASSWORD — admin panelga kirish (login + parol); parol repoda saqlanmaydi
+name: Tashxis
+
+on:
+  push:
+    branches: [diag]
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # SSH_KEY telefondan nusxalanganda qatorlari qo'shilib ketishi mumkin — kalit qayta tiklanadi.
+      # Bitta qatorli base64 ko'rinishda berilsa ham ishlaydi.
+      - name: SSH kalitini tayyorlash
+        env:
+          RAW_KEY: ${{ secrets.SSH_KEY }}
+        run: |
+          [ -n "$RAW_KEY" ] || { echo "SSH_KEY yo'q"; exit 0; }
+          K=$(printf '%s' "$RAW_KEY" | tr -d '\r')
+          if ! printf '%s' "$K" | grep -q 'BEGIN OPENSSH PRIVATE KEY'; then K=$(printf '%s' "$K" | tr -d ' \n\t' | base64 -d 2>/dev/null || true); fi
+          BODY=$(printf '%s' "$K" | sed -e 's/.*-----BEGIN OPENSSH PRIVATE KEY-----//' -e 's/-----END OPENSSH PRIVATE KEY-----.*//' | tr -d ' \n\t\r')
+          [ -n "$BODY" ] || { echo "::warning::SSH_KEY o'qilmadi"; exit 0; }
+          FIXED=$(printf -- '-----BEGIN OPENSSH PRIVATE KEY-----\n%s\n-----END OPENSSH PRIVATE KEY-----\n' "$(printf '%s' "$BODY" | fold -w 70)")
+          printf '%s\n' "$FIXED" > /tmp/k && chmod 600 /tmp/k
+          if ssh-keygen -y -f /tmp/k >/tmp/k.pub 2>/tmp/k.err; then echo "Kalit to'g'ri: $(cut -c1-40 /tmp/k.pub)…"; else echo "::warning::SSH_KEY buzilgan: $(cat /tmp/k.err)"; rm -f /tmp/k; exit 0; fi
+          rm -f /tmp/k /tmp/k.pub
+          { echo 'DEPLOY_KEY<<KEYEOF'; printf '%s\n' "$FIXED"; echo 'KEYEOF'; } >> "$GITHUB_ENV"
+
+      - name: Serverda yangilash
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          # Gmail: GitHub → Settings → Secrets → SMTP_USER (Gmail manzil) va SMTP_PASS (16 harfli ilova paroli)
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          ADMIN_LOGIN: ${{ secrets.ADMIN_LOGIN }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+        with:
+          host: 189.74.98.45
+          username: root
+          key: ${{ env.DEPLOY_KEY }}
+          # Kalit to'g'ri bo'lsa parol yuborilmaydi (aks holda parol birinchi sinaladi va kalit ishlatilmaydi)
+          password: ${{ env.DEPLOY_KEY == '' && secrets.SSH_PASSWORD || '' }}
+          port: 22
+          command_timeout: 15m
+          envs: SMTP_USER,SMTP_PASS,ADMIN_LOGIN,ADMIN_PASSWORD
+          script: |
+            cnt() { node --disable-warning=ExperimentalWarning -e "
+              const {DatabaseSync}=require('node:sqlite');try{const d=new DatabaseSync(process.argv[1],{readOnly:true});
+              const q=(t)=>{try{return d.prepare('SELECT COUNT(*) n FROM '+t).get().n}catch{return '-'}};
+              const last=(()=>{try{return d.prepare('SELECT MAX(created_at) m FROM listings').get().m}catch{return '-'}})();
+              console.log('users='+q('users')+' listings='+q('listings')+' companies='+q('companies')+' specialists='+q('specialists')+' msgs='+q('messages')+' last_listing='+last)}catch(e){console.log('XATO '+e.message)}" "$1"; }
+            echo "::notice::HOZIRGI: $(cnt /opt/hemu/data/movexgo.db) | .env DB_FILE=$(grep -E '^DB_FILE=' /opt/hemu/.env | cut -d= -f2)"
+            for f in $(ls -1t /root/hemu-backups/db-*.db.gz | head -10); do gunzip -c $f > /tmp/x.db; echo "::notice::$(basename $f): $(cnt /tmp/x.db)"; done
+            echo "::notice::Boshqa fayllar: $(ls -la --time-style=+%F_%H:%M /root/*.tgz /root/*.db* /root/hemu* 2>/dev/null | awk '{print $7"="$5"@"$6}' | tr '\n' ' ')"
+            echo "::notice::DB qidiruv: $(find / -xdev \( -name '*.db' -o -name '*.db.gz' -o -name 'hemu*.tgz' -o -name 'movexgo*' \) -size +20k -not -path '/proc/*' -not -path '/opt/hemu/node_modules/*' 2>/dev/null | grep -v '^/usr\|^/var/lib/\(dpkg\|apt\|postgresql\)\|/snap/' | xargs -r ls -la --time-style=+%F_%H:%M 2>/dev/null | awk '{print $7"="$5"@"$6}' | head -40 | tr '\n' ' ')"
+            for t in $(ls -1t /root/*.tgz 2>/dev/null | head -5); do mkdir -p /tmp/xt && rm -rf /tmp/xt/* && tar xzf $t -C /tmp/xt --wildcards '*.db' 2>/dev/null; for d in $(find /tmp/xt -name '*.db'); do echo "::notice::$(basename $t) ichida $(basename $d): $(cnt $d)"; done; done
+            rm -rf /tmp/x.db /tmp/xt

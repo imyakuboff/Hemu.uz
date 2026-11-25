@@ -89,7 +89,7 @@ export async function listing({ params }) {
     photos = l.photos;
   } else {
     const pre = new URLSearchParams(location.search);
-    e = { category: pre.get('category') || undefined, subcategory: pre.get('subcategory') || undefined, deal_type: 'sale', country: state.country || u.country || state.meta.country, contact_name: u.name, contact_phone: u.phone, contact_email: u.email, accept_messages: 1, currency: state.meta.countries.find((c) => c.code === (state.country || state.user.country))?.currency };
+    e = { category: pre.get('category') || undefined, subcategory: pre.get('subcategory') || undefined, deal_type: 'sale', country: state.country || u.country || state.meta.country, contact_name: u.name, contact_phone: u.phone, contact_email: u.email, accept_messages: 1, currency: state.meta.countries.find((c) => c.code === (state.country || u.country || state.meta.country))?.currency };
   }
   // Kirgandan keyin: mehmon sifatida to'ldirilgan maydonlar qaytariladi
   if (!id && !guest) {

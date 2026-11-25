@@ -1,76 +1,14 @@
-# Har bir push'dan keyin saytni serverda avtomatik yangilaydi.
-# Bir marta sozlash: GitHub → Settings → Secrets and variables → Actions → New repository secret
-#   SSH_KEY        — serverga kirish uchun maxfiy SSH kalit (tavsiya; bo'lsa parol ishlatilmaydi)
-#   SSH_PASSWORD   — kalit bo'lmasa: serverning root paroli
-#   ADMIN_LOGIN, ADMIN_PASSWORD — admin panelga kirish (login + parol); parol repoda saqlanmaydi
 name: Tashxis
-
 on:
   push:
     branches: [diag]
-concurrency:
-  group: deploy
-  cancel-in-progress: false
-
 jobs:
-  deploy:
+  crawl:
     runs-on: ubuntu-latest
     steps:
-      # SSH_KEY telefondan nusxalanganda qatorlari qo'shilib ketishi mumkin — kalit qayta tiklanadi.
-      # Bitta qatorli base64 ko'rinishda berilsa ham ishlaydi.
-      - name: SSH kalitini tayyorlash
-        env:
-          RAW_KEY: ${{ secrets.SSH_KEY }}
-        run: |
-          [ -n "$RAW_KEY" ] || { echo "SSH_KEY yo'q"; exit 0; }
-          K=$(printf '%s' "$RAW_KEY" | tr -d '\r')
-          if ! printf '%s' "$K" | grep -q 'BEGIN OPENSSH PRIVATE KEY'; then K=$(printf '%s' "$K" | tr -d ' \n\t' | base64 -d 2>/dev/null || true); fi
-          BODY=$(printf '%s' "$K" | sed -e 's/.*-----BEGIN OPENSSH PRIVATE KEY-----//' -e 's/-----END OPENSSH PRIVATE KEY-----.*//' | tr -d ' \n\t\r')
-          [ -n "$BODY" ] || { echo "::warning::SSH_KEY o'qilmadi"; exit 0; }
-          FIXED=$(printf -- '-----BEGIN OPENSSH PRIVATE KEY-----\n%s\n-----END OPENSSH PRIVATE KEY-----\n' "$(printf '%s' "$BODY" | fold -w 70)")
-          printf '%s\n' "$FIXED" > /tmp/k && chmod 600 /tmp/k
-          if ssh-keygen -y -f /tmp/k >/tmp/k.pub 2>/tmp/k.err; then echo "Kalit to'g'ri: $(cut -c1-40 /tmp/k.pub)…"; else echo "::warning::SSH_KEY buzilgan: $(cat /tmp/k.err)"; rm -f /tmp/k; exit 0; fi
-          rm -f /tmp/k /tmp/k.pub
-          { echo 'DEPLOY_KEY<<KEYEOF'; printf '%s\n' "$FIXED"; echo 'KEYEOF'; } >> "$GITHUB_ENV"
-
-      - name: Serverda yangilash
-        uses: appleboy/ssh-action@v1.2.0
-        env:
-          # Gmail: GitHub → Settings → Secrets → SMTP_USER (Gmail manzil) va SMTP_PASS (16 harfli ilova paroli)
-          SMTP_USER: ${{ secrets.SMTP_USER }}
-          SMTP_PASS: ${{ secrets.SMTP_PASS }}
-          ADMIN_LOGIN: ${{ secrets.ADMIN_LOGIN }}
-          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          host: 189.74.98.45
-          username: root
-          key: ${{ env.DEPLOY_KEY }}
-          # Kalit to'g'ri bo'lsa parol yuborilmaydi (aks holda parol birinchi sinaladi va kalit ishlatilmaydi)
-          password: ${{ env.DEPLOY_KEY == '' && secrets.SSH_PASSWORD || '' }}
-          port: 22
-          command_timeout: 15m
-          envs: SMTP_USER,SMTP_PASS,ADMIN_LOGIN,ADMIN_PASSWORD
-          script: |
-            mkdir -p /tmp/xt && tar xzf /root/hemu-backup-2026-10-17-1907.tgz -C /tmp/xt --wildcards '*.db' 2>/dev/null
-            OLD=$(find /tmp/xt -name movexgo.db | head -1)
-            R=$(node --disable-warning=ExperimentalWarning -e "
-              const {DatabaseSync}=require('node:sqlite');const o=new DatabaseSync(process.argv[1],{readOnly:true});const n=new DatabaseSync('/opt/hemu/data/movexgo.db',{readOnly:true});
-              const fs=require('fs');
-              const L=o.prepare('SELECT l.id,l.user_id,l.company_id,l.category_id,c.slug,c.parent_id FROM listings l LEFT JOIN categories c ON c.id=l.category_id WHERE l.id>=25').all();
-              const cats=[...new Set(L.map(r=>r.category_id+'/'+r.slug))];
-              console.log('ESKI kategoriyalar: '+cats.join(' ')+' | hozir bor: '+cats.map(k=>{const [id,slug]=k.split('/');const a=n.prepare('SELECT id,slug FROM categories WHERE slug=?').get(slug);return slug+'='+(a?a.id:'YOQ')}).join(' '));
-              console.log('egalar(user,company): '+[...new Set(L.map(r=>r.user_id+','+r.company_id))].join(' '));
-              const U=o.prepare('SELECT id,phone,role,account_type FROM users WHERE id IN ('+[...new Set(L.map(r=>r.user_id))].join(',')+')').all();
-              console.log('egalar hozirgi bazada: '+U.map(u=>{const x=n.prepare('SELECT id FROM users WHERE phone=?').get(u.phone);return u.id+':'+u.phone.slice(0,6)+'..:'+u.account_type+'->'+(x?x.id:'YOQ')}).join(' '));
-              const C=o.prepare('SELECT id,owner_id,name FROM companies WHERE id>=9').all();
-              console.log('kompaniyalar: '+C.map(c=>c.id+':owner'+c.owner_id+':'+(n.prepare('SELECT id FROM companies WHERE id=?').get(c.id)?'ID BAND':'id bo\'sh')).join(' '));
-              const P=o.prepare('SELECT path FROM listing_photos WHERE listing_id>=25').all();
-              const up=process.argv[2];
-              console.log('rasmlar: '+P.length+' ta, hozir diskda bor: '+P.filter(p=>fs.existsSync(require('path').join('/opt/hemu',p.path))||fs.existsSync(require('path').join(up,p.path))).length+' | namuna: '+P.slice(0,2).map(p=>p.path).join(' '));
-              const cols=o.prepare('PRAGMA table_info(listings)').all().map(c=>c.name), ncols=n.prepare('PRAGMA table_info(listings)').all().map(c=>c.name);
-              console.log('ustunlar farqi: eskida bor, hozir yoq: '+cols.filter(c=>!ncols.includes(c)).join(',')+' | hozir yangi: '+ncols.filter(c=>!cols.includes(c)).join(','));
-              const mx=n.prepare('SELECT MAX(id) m FROM listings').get().m, mc=n.prepare('SELECT MAX(id) m FROM companies').get().m;console.log('hozir max id: listing='+mx+' company='+mc);
-            " "$OLD" "/opt/hemu/data/uploads" 2>&1)
-            echo "$R" | while IFS= read -r l; do echo "::notice::$l" | cut -c1-2500; done
-            echo "::notice::tgz ichidagi rasmlar: $(tar tzf /root/hemu-backup-2026-10-17-1907.tgz | grep -c 'uploads/') ta | uploads papkasi: $(ls /opt/hemu/data/ | tr '\n' ' ')"
-            rm -rf /tmp/xt
+          node-version: 22
+      - run: npm i --no-save playwright@1.48.2 >/dev/null 2>&1 && npx playwright install --with-deps chromium >/dev/null 2>&1
+      - run: node .github/diag/crawl.js

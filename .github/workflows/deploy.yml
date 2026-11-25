@@ -124,9 +124,14 @@ jobs:
             HPORT=$(grep -E '^PORT=' /opt/hemu/.env 2>/dev/null | cut -d= -f2 | tr -d '"\r '); HPORT=${HPORT:-4700}
             if ! grep -rqsE 'server_name[^;]*\bhemu\.uz' /etc/nginx/sites-enabled /etc/nginx/conf.d; then
               # Umumiy sozlamalar; nginx.conf'da allaqachon bor direktivalar (server_tokens) takrorlanmaydi
+              # Har bir qator alohida sinab qo'shiladi: boshqa saytlarda allaqachon bor direktiva (masalan limit_req_status) tashlab ketiladi
               if [ ! -f /etc/nginx/conf.d/hemu-security.conf ] || ! nginx -t >/dev/null 2>&1; then
-                grep -v '^server_tokens' /opt/hemu/deploy/nginx-hemu-security.conf > /etc/nginx/conf.d/hemu-security.conf
-                grep -rqsE '^\s*server_tokens' /etc/nginx/nginx.conf /etc/nginx/conf.d --exclude=hemu-security.conf || echo 'server_tokens off;' >> /etc/nginx/conf.d/hemu-security.conf
+                SEC=/etc/nginx/conf.d/hemu-security.conf
+                echo '# HEMU.UZ: http darajasidagi cheklovlar (deploy avtomatik yaratadi)' > $SEC
+                grep -E '^[a-z_]+ ' /opt/hemu/deploy/nginx-hemu-security.conf | sed 's/ *#.*$//' | while IFS= read -r L; do
+                  echo "$L" >> $SEC
+                  nginx -t >/dev/null 2>&1 || sed -i '$d' $SEC
+                done
               fi
               CERT=$(ls -d /etc/letsencrypt/live/hemu.uz* 2>/dev/null | head -1)
               BODY=$(sed -n '/^server {/,/gzip_types/p' /opt/hemu/deploy/nginx-hemu.conf | sed -e '1d' -e "s/server_name [^;]*;/server_name hemu.uz www.hemu.uz;/" -e "s#127.0.0.1:4710#127.0.0.1:$HPORT#g")

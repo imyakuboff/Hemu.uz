@@ -6,9 +6,9 @@ const B = 'http://127.0.0.1:4799';
   const login = await (await fetch(B + '/api/v1/auth/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ login: '+998901234567', password: 'Hemu2026' }) })).json();
   const ids = (await (await fetch(B + '/api/v1/listings?per_page=3')).json()).items.map((x) => x.id);
   const shots = [
-    ['m-filters', '/catalog#f', 390, 844, null],
-    ['m-listing-in', '/listing/' + ids[0], 390, 844, login.token],
-    ['m-create-guest', '/create', 390, 1300, null], ['d-catalog', '/catalog', 1366, 1300, null], ['d-listing', '/listing/' + ids[0], 1366, 1000, null], ['d-home', '/', 1366, 900, null],
+
+
+    ['m-create-guest', '/create', 390, 1300, null],
   ];
   const errs = [];
   for (const [name, path, w, h, tok] of shots) {

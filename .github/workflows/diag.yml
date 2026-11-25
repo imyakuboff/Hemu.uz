@@ -51,15 +51,10 @@ jobs:
           command_timeout: 15m
           envs: SMTP_USER,SMTP_PASS,ADMIN_LOGIN,ADMIN_PASSWORD
           script: |
-            show() { node --disable-warning=ExperimentalWarning -e "
-              const {DatabaseSync}=require('node:sqlite');const d=new DatabaseSync(process.argv[1],{readOnly:true});
-              const L=d.prepare('SELECT l.id,l.status,substr(l.title,1,40) t,substr(l.created_at,1,10) c,(u.phone LIKE \'+99890000000%\' OR u.phone LIKE \'+0000%\') seed FROM listings l LEFT JOIN users u ON u.id=l.user_id ORDER BY l.id').all();
-              console.log('E\'LONLAR('+L.length+'): '+L.map(r=>r.id+':'+r.status+':'+(r.seed?'SEED:':'')+r.c+':'+r.t).join(' || '));
-              const C=d.prepare('SELECT id,substr(name,1,30) n,substr(created_at,1,10) c FROM companies').all();
-              console.log('KOMPANIYALAR: '+C.map(r=>r.id+':'+r.c+':'+r.n).join(' || '));
-              const U=d.prepare(\"SELECT SUM(phone LIKE '+99890000000%' OR phone LIKE '+0000%') seed, COUNT(*) n, MAX(substr(created_at,1,10)) last FROM users\").get();
-              console.log('USERS: jami='+U.n+' seed='+U.seed+' oxirgi='+U.last);" "$1" | while IFS= read -r l; do echo "::notice::$2 $l" | cut -c1-3000; done; }
-            mkdir -p /tmp/xt && tar xzf /root/hemu-backup-2026-10-17-1907.tgz -C /tmp/xt --wildcards '*.db' 2>/dev/null
-            show "$(find /tmp/xt -name 'movexgo.db' | head -1)" "17-OKT:"
-            show /opt/hemu/data/movexgo.db "HOZIR:"
-            rm -rf /tmp/xt
+            R=$(sudo -u hemu node --disable-warning=ExperimentalWarning -e "
+              const {DatabaseSync}=require('node:sqlite');const d=new DatabaseSync('/opt/hemu/data/movexgo.db');d.exec('PRAGMA busy_timeout=5000');
+              const r=d.prepare(\"UPDATE listings SET status='active', expires_at=datetime('now','+30 days'), bumped_at=datetime('now'), updated_at=datetime('now') WHERE id BETWEEN 17 AND 24 AND status='archived'\").run();
+              const a=d.prepare(\"SELECT COUNT(*) n FROM listings WHERE status='active'\").get().n;
+              console.log('faollashtirildi='+r.changes+' faol_jami='+a);")
+            echo "::notice::$R"
+            echo "::notice::Saytda: $(curl -s --max-time 10 'http://127.0.0.1:4710/api/v1/listings?per_page=1' | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{console.log("total="+JSON.parse(d).total)}catch(e){console.log("?")}})')"

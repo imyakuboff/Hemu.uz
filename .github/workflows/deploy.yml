@@ -108,7 +108,7 @@ jobs:
               step "Kod, .env va rasmlar tiklandi: $(basename "$TGZ") ($(du -sh /opt/hemu | cut -f1))"
               DBR=$(grep -E '^DB_FILE=' /opt/hemu/.env 2>/dev/null | cut -d= -f2 | tr -d '"\r '); DBR=${DBR:-data/movexgo.db}
               case "$DBR" in /*) ;; *) DBR="/opt/hemu/$DBR";; esac
-              DGZ=$(ls -1t /root/hemu-backups/db-*.db.gz 2>/dev/null | head -1)
+              DGZ=$(ls -1t /root/hemu-backups/db-*.db.gz /root/hemu-backups/daily/hemu-*.db.gz 2>/dev/null | head -1)
               if [ ! -f "$DBR" ] && [ -n "$DGZ" ]; then
                 mkdir -p "$(dirname "$DBR")" && gunzip -c "$DGZ" > "$DBR" && chown -R hemu: "$(dirname "$DBR")"
                 step "Baza tiklandi: $(basename "$DGZ")"
@@ -122,7 +122,7 @@ jobs:
             fi
             # nginx: hemu.uz sayti (boshqa saytlar o'zgarmaydi; xato bo'lsa hemu fayllari olib tashlanadi)
             HPORT=$(grep -E '^PORT=' /opt/hemu/.env 2>/dev/null | cut -d= -f2 | tr -d '"\r '); HPORT=${HPORT:-4700}
-            if ! grep -rqsE 'server_name[^;]*\bhemu\.uz' /etc/nginx/sites-enabled /etc/nginx/conf.d; then
+            if ! grep -RqsE 'server_name[^;]*\bhemu\.uz' /etc/nginx/sites-enabled /etc/nginx/conf.d; then
               # Umumiy sozlamalar; nginx.conf'da allaqachon bor direktivalar (server_tokens) takrorlanmaydi
               # Har bir qator alohida sinab qo'shiladi: boshqa saytlarda allaqachon bor direktiva (masalan limit_req_status) tashlab ketiladi
               if [ ! -f /etc/nginx/conf.d/hemu-security.conf ] || ! nginx -t >/dev/null 2>&1; then
@@ -158,6 +158,10 @@ jobs:
                 fi
               fi
             fi
+            # Saytning kunlik baza nusxalari (data/backups) har kecha sayt papkasidan tashqariga ham ko'chiriladi (30 kun)
+            printf '%s\n' 'SHELL=/bin/sh' '17 3 * * * root mkdir -p /root/hemu-backups/daily && cp -u /opt/hemu/data/backups/hemu-*.db.gz /root/hemu-backups/daily/ 2>/dev/null; find /root/hemu-backups/daily -name "hemu-*.db.gz" -mtime +30 -delete' > /etc/cron.d/hemu-backup
+            chmod 644 /etc/cron.d/hemu-backup
+            mkdir -p /root/hemu-backups/daily && cp -u /opt/hemu/data/backups/hemu-*.db.gz /root/hemu-backups/daily/ 2>/dev/null || true
             # Kod va rasmlar (baza fayllarisiz — ular yuqorida izchil saqlandi), 5 tasi saqlanadi
             tar czf /root/hemu-backups/hemu-$(date +%F-%H%M).tgz --exclude=node_modules --exclude='*.db' --exclude='*.db-wal' --exclude='*.db-shm' --exclude=data/backups -C /opt hemu
             ls -1t /root/hemu-backups/hemu-*.tgz | tail -n +6 | xargs -r rm -f

@@ -51,10 +51,26 @@ jobs:
           command_timeout: 15m
           envs: SMTP_USER,SMTP_PASS,ADMIN_LOGIN,ADMIN_PASSWORD
           script: |
-            R=$(sudo -u hemu node --disable-warning=ExperimentalWarning -e "
-              const {DatabaseSync}=require('node:sqlite');const d=new DatabaseSync('/opt/hemu/data/movexgo.db');d.exec('PRAGMA busy_timeout=5000');
-              const r=d.prepare(\"UPDATE listings SET status='active', expires_at=datetime('now','+30 days'), bumped_at=datetime('now'), updated_at=datetime('now') WHERE id BETWEEN 17 AND 24 AND status='archived'\").run();
-              const a=d.prepare(\"SELECT COUNT(*) n FROM listings WHERE status='active'\").get().n;
-              console.log('faollashtirildi='+r.changes+' faol_jami='+a);")
-            echo "::notice::$R"
-            echo "::notice::Saytda: $(curl -s --max-time 10 'http://127.0.0.1:4710/api/v1/listings?per_page=1' | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{console.log("total="+JSON.parse(d).total)}catch(e){console.log("?")}})')"
+            mkdir -p /tmp/xt && tar xzf /root/hemu-backup-2026-10-17-1907.tgz -C /tmp/xt --wildcards '*.db' 2>/dev/null
+            OLD=$(find /tmp/xt -name movexgo.db | head -1)
+            R=$(node --disable-warning=ExperimentalWarning -e "
+              const {DatabaseSync}=require('node:sqlite');const o=new DatabaseSync(process.argv[1],{readOnly:true});const n=new DatabaseSync('/opt/hemu/data/movexgo.db',{readOnly:true});
+              const fs=require('fs');
+              const L=o.prepare('SELECT l.id,l.user_id,l.company_id,l.category_id,c.slug,c.parent_id FROM listings l LEFT JOIN categories c ON c.id=l.category_id WHERE l.id>=25').all();
+              const cats=[...new Set(L.map(r=>r.category_id+'/'+r.slug))];
+              console.log('ESKI kategoriyalar: '+cats.join(' ')+' | hozir bor: '+cats.map(k=>{const [id,slug]=k.split('/');const a=n.prepare('SELECT id,slug,status FROM categories WHERE slug=?').get(slug);return slug+'='+(a?a.id+':'+(a.status||''):'YOQ')}).join(' '));
+              console.log('egalar(user,company): '+[...new Set(L.map(r=>r.user_id+','+r.company_id))].join(' '));
+              const U=o.prepare('SELECT id,phone,role,account_type FROM users WHERE id IN ('+[...new Set(L.map(r=>r.user_id))].join(',')+')').all();
+              console.log('egalar hozirgi bazada: '+U.map(u=>{const x=n.prepare('SELECT id FROM users WHERE phone=?').get(u.phone);return u.id+':'+u.phone.slice(0,6)+'..:'+u.account_type+'->'+(x?x.id:'YOQ')}).join(' '));
+              const C=o.prepare('SELECT id,owner_id,name FROM companies WHERE id>=9').all();
+              console.log('kompaniyalar: '+C.map(c=>c.id+':owner'+c.owner_id+':'+(n.prepare('SELECT id FROM companies WHERE id=?').get(c.id)?'ID BAND':'id bo\'sh')).join(' '));
+              const P=o.prepare('SELECT path FROM listing_photos WHERE listing_id>=25').all();
+              const up=process.argv[2];
+              console.log('rasmlar: '+P.length+' ta, hozir diskda bor: '+P.filter(p=>fs.existsSync(require('path').join('/opt/hemu',p.path))||fs.existsSync(require('path').join(up,p.path))).length+' | namuna: '+P.slice(0,2).map(p=>p.path).join(' '));
+              const cols=o.prepare('PRAGMA table_info(listings)').all().map(c=>c.name), ncols=n.prepare('PRAGMA table_info(listings)').all().map(c=>c.name);
+              console.log('ustunlar farqi: eskida bor, hozir yoq: '+cols.filter(c=>!ncols.includes(c)).join(',')+' | hozir yangi: '+ncols.filter(c=>!cols.includes(c)).join(','));
+              const mx=n.prepare('SELECT MAX(id) m FROM listings').get().m, mc=n.prepare('SELECT MAX(id) m FROM companies').get().m;console.log('hozir max id: listing='+mx+' company='+mc);
+            " "$OLD" "/opt/hemu/data/uploads" 2>&1)
+            echo "$R" | while IFS= read -r l; do echo "::notice::$l" | cut -c1-2500; done
+            echo "::notice::tgz ichidagi rasmlar: $(tar tzf /root/hemu-backup-2026-10-17-1907.tgz | grep -c 'uploads/') ta | uploads papkasi: $(ls /opt/hemu/data/ | tr '\n' ' ')"
+            rm -rf /tmp/xt

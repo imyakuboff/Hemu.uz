@@ -98,6 +98,9 @@ export async function render({ keepScroll = false } = {}) {
   cleanup?.();
   cleanup = null;
   closeModal();
+  // Sahifaga bog'liq ko'rinish: bosh sahifada sarlavhadagi qidiruv yashiriladi (sariq blokda o'z qidiruvi bor)
+  document.body.classList.toggle('is-home', path === '/');
+  document.body.classList.remove('no-scroll');
   // Admin panel — sayt sarlavhasi/footerisiz, faqat boshqaruv
   const shell = /^\/admin(\/|$)/.test(path)
     ? (html) => `<main class="page adm-page">${html}</main>`

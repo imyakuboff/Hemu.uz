@@ -1,5 +1,8 @@
 // Interfeys matnlari. Har qator: kalit|uz|ru|en|kk|ky|tg|tk|az|prs|ps
 const RAW = `
+cb_call|Qo'ng'iroq qilish|Позвонить|Call|Қоңырау шалу|Чалуу|Занг задан|Jaň etmek|Zəng et|تماس|زنګ ووهئ
+cb_write|Yozish|Написать|Message|Жазу|Жазуу|Навиштан|Ýazmak|Yaz|پیام|ولیکئ
+filters_show|Natijalarni ko'rsatish|Показать результаты|Show results|Нәтижелерді көрсету|Жыйынтыктарды көрсөтүү|Нишон додани натиҷаҳо|Netijeleri görkez|Nəticələri göstər|نمایش نتایج|پایلې وښایاست
 menu_mine|Mening kabinetim|Мой кабинет|My account|Менің кабинетім|Менин кабинетим|Кабинети ман|Meniň kabinetim|Mənim kabinetim|حساب من|زما حساب
 menu_cabinet|Kabinet|Кабинет|Dashboard|Кабинет|Кабинет|Кабинет|Kabinet|Kabinet|داشبورد|ډشبورډ
 menu_resume|Rezyumem|Моё резюме|My resume|Түйіндемем|Резюмем|Резюмеи ман|Rezýumäm|Rezümem|رزومهٔ من|زما سوانح

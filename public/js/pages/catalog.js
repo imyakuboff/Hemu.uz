@@ -74,6 +74,7 @@ export async function catalog({ query }) {
   const groupName = sub ? sub.name : root ? shortCat(root) : t('catalog');
   const subs = root ? root.children : [];
   const conds = (q.condition || '').split(',');
+  const nActive = ['region', 'price_min', 'price_max', 'condition', 'brand', 'year_min', 'year_max', 'verified'].filter((k) => q[k]).length;
 
   const html = `
   ${crumbs([[t('home'), '/'], [t('catalog'), '/catalog'], ...(root ? [[shortCat(root), `/catalog?category=${root.slug}`]] : []), ...(sub ? [[sub.name]] : [])])}
@@ -82,8 +83,10 @@ export async function catalog({ query }) {
   ${subs.length ? `<div class="chips small" style="margin-top:8px">${subs.slice(0, 6).map((c) => `<a class="chip ${sub?.slug === c.slug ? 'on' : ''}" href="/catalog${qs({ category: c.slug, q: q.q })}">${esc(c.name)}</a>`).join('')}${subs.length > 6 ? `<a class="chip" href="/categories">${esc(t('all_n_cats', { n: subs.length }))} ${icon('arrow', 'arrow-flip')}</a>` : ''}</div>` : ''}
 
   <div class="layout-side">
+    <button type="button" class="btn btn-soft f-toggle" data-ftoggle>${icon('sliders')} ${esc(t('filters'))}${nActive ? ` <span class="f-n">${nActive}</span>` : ''}</button>
+    <div class="f-backdrop" data-fclose></div>
     <form class="filters" data-filters>
-      <h3>${esc(t('filters'))}</h3>
+      <div class="f-head"><h3>${esc(t('filters'))}</h3><button type="button" class="f-x" data-fclose aria-label="${esc(t('close'))}">${icon('x')}</button></div>
       <div class="f-group"><label>${esc(t('category'))}</label>
         <select class="input" name="category"><option value="${root?.slug || ''}">${esc(root ? shortCat(root) : t('any'))}</option>${(root ? root.children : state.cats).map((c) => `<option value="${c.slug}" ${c.slug === (sub?.slug || (!root ? '' : null)) ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select></div>
       <div class="f-group"><label>${esc(t('region'))}</label><select class="input" name="region_sel">${regionOpts}</select></div>
@@ -99,6 +102,7 @@ export async function catalog({ query }) {
       <label class="check"><input type="checkbox" name="verified" ${q.verified ? 'checked' : ''}> ${esc(t('verified_only'))}</label>
       <a class="btn btn-soft btn-block" style="margin-top:14px" href="/filters${qs(q)}">${icon('sliders')} ${esc(t('all_filters'))}</a>
       <a class="small muted" style="display:block;margin-top:10px" href="/catalog${qs({ category: q.category })}">${esc(t('reset_filters'))}</a>
+      <button class="btn btn-primary btn-block f-apply">${esc(t('filters_show'))}</button>
     </form>
 
     <div>
@@ -132,8 +136,13 @@ export async function catalog({ query }) {
         n.verified = form.verified.checked ? '1' : undefined;
         nav(n);
       };
-      form.addEventListener('change', apply);
-      form.addEventListener('submit', (e) => { e.preventDefault(); apply(); });
+      // Telefonda filtrlar pastdan ochiladigan oynada: o'zgarishlar "Natijalarni ko'rsatish" bosilganda qo'llanadi
+      const sheet = matchMedia('(max-width: 980px)');
+      const setOpen = (on) => { form.classList.toggle('open', on); main.querySelector('.f-backdrop').classList.toggle('open', on); document.body.classList.toggle('no-scroll', on); };
+      $('[data-ftoggle]', main).addEventListener('click', () => setOpen(true));
+      $$('[data-fclose]', main).forEach((b) => b.addEventListener('click', () => setOpen(false)));
+      form.addEventListener('change', () => { if (!sheet.matches) apply(); });
+      form.addEventListener('submit', (e) => { e.preventDefault(); setOpen(false); apply(); });
       $('[data-sort]', main).onchange = (e) => nav({ ...q, sort: e.target.value, page: undefined });
       $('[data-near]', main)?.addEventListener('click', async () => {
         try {

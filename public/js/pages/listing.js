@@ -138,13 +138,13 @@ export default async function listing({ params, query }) {
     : '';
   const html = `
   ${crumbs([[t('home'), '/'], [cardTitle]])}
-  <p class="page-title" role="presentation" style="margin-bottom:2px">${esc(cardTitle)}</p>
-  <p class="page-sub" style="margin:0 0 16px">${esc(path)}</p>
+  <p class="page-sub l-path">${esc(path)}</p>
   <div class="detail">
     <div>
       <div class="tags">${l.tier ? tierBadge(l.tier) : ''}${condTag}${statusTag}</div>
       <h1>${esc(l.title)}</h1>
       <div class="sub">${esc(meta)} · <span class="views" title="${esc(t('views_title'))}">${icon('eye')} ${esc(t('views_n', { n: num(l.views) }))}</span></div>
+      <div class="m-price"><b>${esc(priceText(l.price))}</b>${l.promo ? ` <s class="old-price">${esc(l.price.old_formatted)}</s>` : ''}${priceSub ? `<span>${esc(priceSub)}</span>` : ''}</div>
       ${l.reject_reason && l.is_owner ? `<div class="note" style="margin:0 0 14px;border-color:#f3c2c2"><div><b>${esc(t('reject_reason', { r: l.reject_reason }))}</b></div></div>` : ''}
       ${gallery}
       <div style="margin-top:16px">${left}
@@ -184,7 +184,11 @@ export default async function listing({ params, query }) {
   </div>
   ${l.similar.length ? `<section class="sec" style="max-width:${l.similar.length <= 2 ? '860px' : 'none'}">
     <div class="sec-head"><div><h2>${esc(similarTitle)}</h2></div>${l.subcategory ? `<a href="/catalog?category=${l.subcategory.slug}" class="pill-link">${icon('arrow', 'arrow-flip')} ${esc(t('all_in', { c: l.subcategory.name }))}</a>` : ''}</div>
-    ${cards(l.similar.slice(0, l.similar.length <= 2 ? 2 : 4), l.similar.length <= 2 ? 2 : 4)}</section>` : ''}`;
+    ${cards(l.similar.slice(0, l.similar.length <= 2 ? 2 : 4), l.similar.length <= 2 ? 2 : 4)}</section>` : ''}
+  ${!l.is_owner && l.status === 'active' ? `<div class="contact-bar">
+    <button class="btn btn-primary" data-cb-phone>${icon('phone')} <span>${esc(t('cb_call'))}</span></button>
+    ${l.seller?.accept_messages ? `<button class="btn btn-soft" data-cb-write>${icon('chat')} ${esc(t('cb_write'))}</button>` : ''}
+  </div>` : ''}`;
 
   return {
     title: l.title,
@@ -209,12 +213,20 @@ export default async function listing({ params, query }) {
       $$('[data-q]', main).forEach((b) => b.addEventListener('click', () => { qtyIn.value = (parseInt(qtyIn.value, 10) || 1) + Number(b.dataset.q); recalc(); }));
       qtyIn?.addEventListener('input', recalc);
 
-      $('[data-phone]', main)?.addEventListener('click', async (e) => {
-        const btn = e.currentTarget;
-        if (!requireLogin(onAuthChanged)) return;
-        const r = await api(`/listings/${l.id}/phone`, { method: 'POST' });
-        btn.outerHTML = `<a class="btn btn-primary" href="tel:${esc(r.phone)}">${icon('phone')} ${esc(r.phone)}</a>`;
-      });
+      // Raqamni ochish: sotuvchi kartochkasidagi tugma va pastki panel bir xil ishlaydi
+      let phone = null;
+      const revealPhone = async () => {
+        if (!requireLogin(onAuthChanged)) return null;
+        if (!phone) phone = (await api(`/listings/${l.id}/phone`, { method: 'POST' })).phone;
+        const link = `<a class="btn btn-primary" href="tel:${esc(phone)}">${icon('phone')} ${esc(phone)}</a>`;
+        $('[data-phone]', main)?.replaceWith(Object.assign(document.createElement('span'), { innerHTML: link }).firstElementChild);
+        const cb = $('[data-cb-phone]', main);
+        if (cb) cb.outerHTML = link;
+        return phone;
+      };
+      $('[data-phone]', main)?.addEventListener('click', () => revealPhone());
+      $('[data-cb-phone]', main)?.addEventListener('click', async () => { if (await revealPhone()) location.href = `tel:${phone}`; });
+      $('[data-cb-write]', main)?.addEventListener('click', () => ($('[data-write]', main) || $('[data-lead]', main))?.click());
       $('[data-write]', main)?.addEventListener('click', () => {
         if (!requireLogin(onAuthChanged)) return;
         const m = openModal(`<h3>${esc(t('write_seller'))}</h3><p class="small muted">${esc(l.title)}</p>

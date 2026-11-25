@@ -119,32 +119,37 @@ jobs:
                 systemctl daemon-reload && systemctl enable hemu >/dev/null 2>&1
                 step "systemd xizmati tiklandi"
               fi
-              # nginx: hemu.uz sayti (boshqa saytlar o'zgarmaydi; xato bo'lsa hemu fayllari olib tashlanadi)
-              HPORT=$(grep -E '^PORT=' /opt/hemu/.env 2>/dev/null | cut -d= -f2 | tr -d '"\r '); HPORT=${HPORT:-4700}
-              if ! grep -rqsE 'server_name[^;]*\bhemu\.uz' /etc/nginx/sites-enabled /etc/nginx/conf.d; then
-                [ -f /etc/nginx/conf.d/hemu-security.conf ] || cp /opt/hemu/deploy/nginx-hemu-security.conf /etc/nginx/conf.d/hemu-security.conf
-                CERT=$(ls -d /etc/letsencrypt/live/hemu.uz* 2>/dev/null | head -1)
-                BODY=$(sed -n '/^server {/,/gzip_types/p' /opt/hemu/deploy/nginx-hemu.conf | sed -e '1d' -e "s/server_name [^;]*;/server_name hemu.uz www.hemu.uz;/" -e "s#127.0.0.1:4710#127.0.0.1:$HPORT#g")
-                if [ -n "$CERT" ] && [ -f "$CERT/fullchain.pem" ]; then
-                  printf 'server {\n%s\n\n    listen 443 ssl;\n    listen [::]:443 ssl;\n    ssl_certificate %s/fullchain.pem;\n    ssl_certificate_key %s/privkey.pem;\n%s}\n\nserver {\n    listen 80;\n    listen [::]:80;\n    server_name hemu.uz www.hemu.uz;\n    location /.well-known/acme-challenge/ { root /var/www/html; }\n    location / { return 301 https://$host$request_uri; }\n}\n' "$BODY" "$CERT" "$CERT" "$( [ -f /etc/letsencrypt/options-ssl-nginx.conf ] && printf '    include /etc/letsencrypt/options-ssl-nginx.conf;\n'; [ -f /etc/letsencrypt/ssl-dhparams.pem ] && printf '    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;\n')" > /etc/nginx/sites-available/hemu.conf
+            fi
+            # nginx: hemu.uz sayti (boshqa saytlar o'zgarmaydi; xato bo'lsa hemu fayllari olib tashlanadi)
+            HPORT=$(grep -E '^PORT=' /opt/hemu/.env 2>/dev/null | cut -d= -f2 | tr -d '"\r '); HPORT=${HPORT:-4700}
+            if ! grep -rqsE 'server_name[^;]*\bhemu\.uz' /etc/nginx/sites-enabled /etc/nginx/conf.d; then
+              # Umumiy sozlamalar; nginx.conf'da allaqachon bor direktivalar (server_tokens) takrorlanmaydi
+              if [ ! -f /etc/nginx/conf.d/hemu-security.conf ] || ! nginx -t >/dev/null 2>&1; then
+                grep -v '^server_tokens' /opt/hemu/deploy/nginx-hemu-security.conf > /etc/nginx/conf.d/hemu-security.conf
+                grep -rqsE '^\s*server_tokens' /etc/nginx/nginx.conf /etc/nginx/conf.d --exclude=hemu-security.conf || echo 'server_tokens off;' >> /etc/nginx/conf.d/hemu-security.conf
+              fi
+              CERT=$(ls -d /etc/letsencrypt/live/hemu.uz* 2>/dev/null | head -1)
+              BODY=$(sed -n '/^server {/,/gzip_types/p' /opt/hemu/deploy/nginx-hemu.conf | sed -e '1d' -e "s/server_name [^;]*;/server_name hemu.uz www.hemu.uz;/" -e "s#127.0.0.1:4710#127.0.0.1:$HPORT#g")
+              if [ -n "$CERT" ] && [ -f "$CERT/fullchain.pem" ]; then
+                printf 'server {\n%s\n\n    listen 443 ssl;\n    listen [::]:443 ssl;\n    ssl_certificate %s/fullchain.pem;\n    ssl_certificate_key %s/privkey.pem;\n%s}\n\nserver {\n    listen 80;\n    listen [::]:80;\n    server_name hemu.uz www.hemu.uz;\n    location /.well-known/acme-challenge/ { root /var/www/html; }\n    location / { return 301 https://$host$request_uri; }\n}\n' "$BODY" "$CERT" "$CERT" "$( [ -f /etc/letsencrypt/options-ssl-nginx.conf ] && printf '    include /etc/letsencrypt/options-ssl-nginx.conf;\n'; [ -f /etc/letsencrypt/ssl-dhparams.pem ] && printf '    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;\n')" > /etc/nginx/sites-available/hemu.conf
+              else
+                printf 'server {\n    listen 80;\n    listen [::]:80;\n%s\n}\n' "$BODY" > /etc/nginx/sites-available/hemu.conf
+              fi
+              ln -sf /etc/nginx/sites-available/hemu.conf /etc/nginx/sites-enabled/hemu.conf
+              if nginx -t >/tmp/hemu-nginx.log 2>&1; then
+                systemctl reload nginx
+                step "nginx: hemu.uz qo'shildi ($( [ -n "$CERT" ] && echo "SSL: $(basename "$CERT")" || echo "SSL hali yoq"))"
+              else
+                rm -f /etc/nginx/sites-enabled/hemu.conf
+                nginx -t >/dev/null 2>&1 || rm -f /etc/nginx/conf.d/hemu-security.conf
+                echo "::error::nginx sozlamasi xato (olib tashlandi, boshqa saytlar ishlayapti): $(tail -3 /tmp/hemu-nginx.log | tr '\n' ' ')"; exit 1
+              fi
+              if [ -z "$CERT" ]; then
+                command -v certbot >/dev/null || { DEBIAN_FRONTEND=noninteractive apt-get install -y -q certbot python3-certbot-nginx >/tmp/hemu-apt.log 2>&1 || true; }
+                if certbot --nginx -d hemu.uz -d www.hemu.uz --non-interactive --agree-tos --register-unsafely-without-email --redirect >/tmp/hemu-cert.log 2>&1; then
+                  step "SSL sertifikat olindi (Let's Encrypt)"
                 else
-                  printf 'server {\n    listen 80;\n    listen [::]:80;\n%s\n}\n' "$BODY" > /etc/nginx/sites-available/hemu.conf
-                fi
-                ln -sf /etc/nginx/sites-available/hemu.conf /etc/nginx/sites-enabled/hemu.conf
-                if nginx -t >/tmp/hemu-nginx.log 2>&1; then
-                  systemctl reload nginx
-                  step "nginx: hemu.uz qo'shildi ($( [ -n "$CERT" ] && echo "SSL: $(basename "$CERT")" || echo "SSL hali yoq"))"
-                else
-                  rm -f /etc/nginx/sites-enabled/hemu.conf
-                  echo "::error::nginx sozlamasi xato (olib tashlandi, boshqa saytlar ishlayapti): $(tail -3 /tmp/hemu-nginx.log | tr '\n' ' ')"; exit 1
-                fi
-                if [ -z "$CERT" ]; then
-                  command -v certbot >/dev/null || { DEBIAN_FRONTEND=noninteractive apt-get install -y -q certbot python3-certbot-nginx >/tmp/hemu-apt.log 2>&1 || true; }
-                  if certbot --nginx -d hemu.uz -d www.hemu.uz --non-interactive --agree-tos --register-unsafely-without-email --redirect >/tmp/hemu-cert.log 2>&1; then
-                    step "SSL sertifikat olindi (Let's Encrypt)"
-                  else
-                    echo "::warning::SSL olinmadi (DNS bu serverga qaraganini tekshiring): $(tail -3 /tmp/hemu-cert.log | tr '\n' ' ')"
-                  fi
+                  echo "::warning::SSL olinmadi (DNS bu serverga qaraganini tekshiring): $(tail -3 /tmp/hemu-cert.log | tr '\n' ' ')"
                 fi
               fi
             fi

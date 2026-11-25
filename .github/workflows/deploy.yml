@@ -134,7 +134,7 @@ jobs:
                 done
               fi
               CERT=$(ls -d /etc/letsencrypt/live/hemu.uz* 2>/dev/null | head -1)
-              BODY=$(sed -n '/^server {/,/gzip_types/p' /opt/hemu/deploy/nginx-hemu.conf | sed -e '1d' -e "s/server_name [^;]*;/server_name hemu.uz www.hemu.uz;/" -e "s#127.0.0.1:4710#127.0.0.1:$HPORT#g")
+              BODY=$(sed -n '/^server {/,/gzip_types/{p;/gzip_types/q}' /opt/hemu/deploy/nginx-hemu.conf | sed -e '1d' -e "s/server_name [^;]*;/server_name hemu.uz www.hemu.uz;/" -e "s#127.0.0.1:4710#127.0.0.1:$HPORT#g")
               if [ -n "$CERT" ] && [ -f "$CERT/fullchain.pem" ]; then
                 printf 'server {\n%s\n\n    listen 443 ssl;\n    listen [::]:443 ssl;\n    ssl_certificate %s/fullchain.pem;\n    ssl_certificate_key %s/privkey.pem;\n%s}\n\nserver {\n    listen 80;\n    listen [::]:80;\n    server_name hemu.uz www.hemu.uz;\n    location /.well-known/acme-challenge/ { root /var/www/html; }\n    location / { return 301 https://$host$request_uri; }\n}\n' "$BODY" "$CERT" "$CERT" "$( [ -f /etc/letsencrypt/options-ssl-nginx.conf ] && printf '    include /etc/letsencrypt/options-ssl-nginx.conf;\n'; [ -f /etc/letsencrypt/ssl-dhparams.pem ] && printf '    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;\n')" > /etc/nginx/sites-available/hemu.conf
               else

@@ -1,4 +1,4 @@
-import { state, t, esc, api, icon, money, num, locale, openModal, closeModal, toast, $, $$ } from './core.js';
+import { state, t, esc, api, icon, money, num, locale, fmtRel, openModal, closeModal, toast, $, $$ } from './core.js';
 
 // ---------- HEMU ohangi (bildirishnoma ovozi) ----------
 // Sahifa/ilova ochiq bo'lganda chalinadi. Yopiq bo'lsa telefon tizim ovozini chaladi —
@@ -381,7 +381,7 @@ export function priceChart(h) {
   const x = (i) => pad + (i * (w - pad * 2)) / (h.length - 1);
   const y = (p) => (max === min ? ht / 2 : pad + ((max - p) * (ht - pad * 2)) / (max - min));
   const pts = h.map((p, i) => `${x(i).toFixed(1)},${y(p.price).toFixed(1)}`).join(' ');
-  const date = (s) => new Date(`${s.replace(' ', 'T')}Z`).toLocaleDateString(locale(), { day: 'numeric', month: 'short' });
+  const date = (s) => (state.lang === 'uz' ? fmtRel(s).replace(/, .*$/, '') : new Date(`${s.replace(' ', 'T')}Z`).toLocaleDateString(locale(), { day: 'numeric', month: 'short' }));
   return `<svg viewBox="0 0 ${w} ${ht}" style="width:100%;height:120px" role="img" aria-label="${esc(t('price_history'))}">
       <polyline fill="none" stroke="var(--blue)" stroke-width="2.5" points="${pts}"/>
       ${h.map((p, i) => `<circle cx="${x(i)}" cy="${y(p.price)}" r="4" fill="${i === h.length - 1 ? 'var(--teal)' : 'var(--blue)'}"><title>${esc(p.formatted)} · ${esc(date(p.at))}</title></circle>`).join('')}

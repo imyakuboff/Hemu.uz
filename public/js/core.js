@@ -135,9 +135,13 @@ export function fmtTime(s) {
   const d = toDate(s);
   return d ? new Intl.DateTimeFormat(locale(), { hour: '2-digit', minute: '2-digit' }).format(d) : '';
 }
+// Brauzerlarda o'zbekcha oy nomlari yo'q ("2027 M02 28") — o'zimiz yozamiz
+const UZ_MONTHS = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr'];
+const uzDay = (d, year) => `${d.getDate()}-${UZ_MONTHS[d.getMonth()]}${year ? ` ${d.getFullYear()}` : ''}`;
 export function fmtDate(s, withTime = false) {
   const d = toDate(s);
   if (!d) return '';
+  if (state.lang === 'uz') return `${uzDay(d, true)}${withTime ? `, ${fmtTime(s)}` : ''}`;
   return new Intl.DateTimeFormat(locale(), { day: 'numeric', month: 'long', year: 'numeric', ...(withTime ? { hour: '2-digit', minute: '2-digit' } : {}) }).format(d);
 }
 // "Сегодня, 10:24" / "Вчера, 16:40" / "10 октября"
@@ -149,6 +153,7 @@ export function fmtRel(s) {
   const diff = Math.round((day(now) - day(d)) / 86400000);
   if (diff === 0) return t('today', { t: fmtTime(s) });
   if (diff === 1) return t('yesterday', { t: fmtTime(s) });
+  if (state.lang === 'uz') return uzDay(d, d.getFullYear() !== now.getFullYear());
   return new Intl.DateTimeFormat(locale(), { day: 'numeric', month: 'long' }).format(d);
 }
 // Bosh harflar: tirnoq va yuridik shakllarsiz (ООО, ТОО, MChJ ...)

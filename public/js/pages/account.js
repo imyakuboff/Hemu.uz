@@ -540,11 +540,11 @@ export async function company({ params, query }) {
   const c = await api(`/companies/${params[0]}${qs({ page: query.page })}`);
   const html = `
     ${crumbs([[t('home'), '/'], [t('company_page')], [c.name]])}
-    <div class="banner-navy"><div><h2>${esc(c.name)}</h2><p>${esc([c.activity, c.city || c.region_name, c.country_name].filter(Boolean).join(' · '))}</p>
+    <div class="banner-navy"><div><h2>${esc(c.name)}</h2><p>${esc([c.activity, c.city || c.region_name, c.country_name].filter(Boolean).filter((x, i, a) => !(/узбекистан|uzbekistan|o.zbekiston|ўзбекистон/i.test(x) && a.slice(i + 1).some((y) => /узбекистан|uzbekistan|o.zbekiston|ўзбекистон/i.test(y)))).join(' · '))}</p>
       ${c.verified ? `<span class="tag green">${esc(t('verified_seller'))}</span>` : ''}</div>
       <div style="text-align:end">${c.reviews_count ? `<div style="font-size:26px;font-weight:700">★ ${String(c.rating).replace('.', ',')}</div><p>${esc(t('reviews', { n: c.reviews_count }))}</p>` : ''}</div></div>
     <div class="dash-row">
-      <div class="box"><h3>${esc(t('about_company'))}</h3><div class="prose">${esc(c.about || '—')}</div>
+      <div class="box"><h3>${esc(t('about_company'))}</h3>${c.about ? `<div class="prose">${esc(c.about)}</div>` : ''}
         <table class="spec" style="margin-top:12px">${[[t('on_since', { y: c.since }), ''], [t('work_hours'), c.work_hours], [t('address'), [c.city, c.address].filter(Boolean).join(', ')], [t('active_listings'), num(c.active_listings)]].filter((r) => r[1] !== undefined && r[1] !== null && r[1] !== '' || r[1] === '').map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join('')}</table></div>
       <div class="box"><h3>${esc(t('reviews_title'))}</h3>${c.reviews.length ? c.reviews.map((r) => `<div class="lead" style="grid-template-columns:1fr"><div><b>${'★'.repeat(r.rating)} · ${esc(r.author || '')}</b><span>${esc(r.text || '')} · ${esc(fmtRel(r.created_at))}</span></div></div>`).join('') : `<div class="empty">${esc(t('empty'))}</div>`}</div>
     </div>

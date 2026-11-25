@@ -138,7 +138,7 @@ export default async function listing({ params, query }) {
     : '';
   const html = `
   ${crumbs([[t('home'), '/'], [cardTitle]])}
-  <h1 class="page-title" style="margin-bottom:2px">${esc(cardTitle)}</h1>
+  <p class="page-title" role="presentation" style="margin-bottom:2px">${esc(cardTitle)}</p>
   <p class="page-sub" style="margin:0 0 16px">${esc(path)}</p>
   <div class="detail">
     <div>

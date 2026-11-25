@@ -330,3 +330,16 @@ test("TOP o'chiq: faqat kompaniya karusellari; kompaniyasizga paket yo'q, TOP so
     assert.equal((await api('POST', `/api/v1/listings/${lid}/promote`, { token: S.seller.token, body: { package: 'top', provider: 'balance' } })).status, 403);
   } finally { config.promoTop = prev; }
 });
+
+test("mavjud bo'lmagan sahifa 404 holatini qaytaradi (yumshoq 404 emas), boshqa saytlardagi manzillar katalogga", async () => {
+  const miss = await fetch(`${base}/bu-sahifa-yoq-123`);
+  assert.equal(miss.status, 404);
+  assert.match(miss.headers.get('content-type'), /html/);
+  assert.equal(miss.headers.get('x-robots-tag'), 'noindex');
+  assert.equal((await fetch(`${base}/catalog`)).status, 200);
+  assert.equal((await fetch(`${base}/listing/1`)).status, 200);
+  assert.equal((await fetch(`${base}/requests/1`)).status, 200);
+  const r = await fetch(`${base}/search?q=jcb`, { redirect: 'manual' });
+  assert.equal(r.status, 301);
+  assert.equal(r.headers.get('location'), '/catalog?q=jcb');
+});

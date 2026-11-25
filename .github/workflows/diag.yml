@@ -58,7 +58,7 @@ jobs:
               const fs=require('fs');
               const L=o.prepare('SELECT l.id,l.user_id,l.company_id,l.category_id,c.slug,c.parent_id FROM listings l LEFT JOIN categories c ON c.id=l.category_id WHERE l.id>=25').all();
               const cats=[...new Set(L.map(r=>r.category_id+'/'+r.slug))];
-              console.log('ESKI kategoriyalar: '+cats.join(' ')+' | hozir bor: '+cats.map(k=>{const [id,slug]=k.split('/');const a=n.prepare('SELECT id,slug,status FROM categories WHERE slug=?').get(slug);return slug+'='+(a?a.id+':'+(a.status||''):'YOQ')}).join(' '));
+              console.log('ESKI kategoriyalar: '+cats.join(' ')+' | hozir bor: '+cats.map(k=>{const [id,slug]=k.split('/');const a=n.prepare('SELECT id,slug FROM categories WHERE slug=?').get(slug);return slug+'='+(a?a.id:'YOQ')}).join(' '));
               console.log('egalar(user,company): '+[...new Set(L.map(r=>r.user_id+','+r.company_id))].join(' '));
               const U=o.prepare('SELECT id,phone,role,account_type FROM users WHERE id IN ('+[...new Set(L.map(r=>r.user_id))].join(',')+')').all();
               console.log('egalar hozirgi bazada: '+U.map(u=>{const x=n.prepare('SELECT id FROM users WHERE phone=?').get(u.phone);return u.id+':'+u.phone.slice(0,6)+'..:'+u.account_type+'->'+(x?x.id:'YOQ')}).join(' '));

@@ -1515,7 +1515,7 @@ body.no-scroll { overflow: hidden; }
 @media (max-width: 980px) {
   .f-toggle { display: inline-flex; align-self: flex-start; margin-bottom: 4px; }
   .filters { display: none; }
-  .filters.open { display: block; position: fixed; left: 0; right: 0; bottom: 0; max-height: 88vh; overflow: auto; z-index: 90; border-radius: 18px 18px 0 0; padding: 18px 18px calc(18px + env(safe-area-inset-bottom)); box-shadow: 0 -8px 30px rgba(0, 0, 0, .18); }
+  .filters.open { display: block; position: fixed; left: 0; right: 0; top: auto; bottom: 0; max-height: 88vh; overflow: auto; z-index: 90; border-radius: 18px 18px 0 0; padding: 18px 18px calc(18px + env(safe-area-inset-bottom)); box-shadow: 0 -8px 30px rgba(0, 0, 0, .18); }
   .f-backdrop.open { display: block; position: fixed; inset: 0; background: rgba(10, 20, 35, .45); z-index: 89; }
   .f-x { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--bg); color: var(--ink); margin: -4px -4px 10px 0; }
   .f-apply { display: flex; justify-content: center; margin-top: 14px; position: sticky; bottom: 0; }

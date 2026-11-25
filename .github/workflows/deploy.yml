@@ -171,6 +171,7 @@ jobs:
             sudo -u "$U" cp -r /tmp/hemu-new/. /opt/hemu/
             cd /opt/hemu
             step "Kod yangilandi: $(cat .deployed) (egasi: $U)"
+            rm -rf /tmp/hemu-npm   # eski foydalanuvchiga tegishli kesh qolgan bo'lishi mumkin
             sudo -u "$U" npm install --omit=dev --include=optional --no-audit --no-fund --cache /tmp/hemu-npm >/tmp/hemu-npm.log 2>&1 || { echo "::error::npm install: $(tail -3 /tmp/hemu-npm.log | tr '\n' ' ')"; exit 1; }
             step "Kutubxonalar o'rnatildi"
             # Rasm siqish: sharp (yangi CPU) yoki vipsthumbnail (har qanday CPU, masalan eski QEMU)

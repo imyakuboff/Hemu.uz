@@ -96,6 +96,34 @@ jobs:
                 rm -f "$BK"; echo "::warning::Baza zaxirasi olinmadi: $(tail -c 300 /tmp/hemu-bk.log | tr '\n' ' ')"
               fi
             fi
+            # Sayt papkasi yo'q bo'lsa (o'chirilgan / server qayta o'rnatilgan) — oxirgi zaxiradan tiklanadi
+            if [ ! -f /opt/hemu/package.json ]; then
+              echo "::warning::/opt/hemu topilmadi — zaxiradan tiklanmoqda. Tashxis: opt=[$(ls -A /opt 2>/dev/null | tr '\n' ' ')] xizmat=$(systemctl is-enabled hemu 2>&1) node=$(node -v 2>&1) nginx=$(systemctl is-active nginx 2>&1) | oxirgi kirishlar: $(last -n 4 -w 2>/dev/null | head -4 | tr -s ' ' | tr '\n' ';')"
+              id hemu >/dev/null 2>&1 || useradd --system --create-home --shell /usr/sbin/nologin hemu
+              TGZ=$(ls -1t /root/hemu-backups/hemu-*.tgz 2>/dev/null | head -1)
+              if [ -n "$TGZ" ]; then
+                mkdir -p /opt && tar xzf "$TGZ" -C /opt
+                step "Kod, .env va rasmlar tiklandi: $(basename "$TGZ")"
+              else
+                mkdir -p /opt/hemu && echo '{}' > /opt/hemu/package.json
+                echo "::warning::Kod zaxirasi yo'q — toza o'rnatish"
+              fi
+              chown -R hemu: /opt/hemu
+              DBR=$(grep -E '^DB_FILE=' /opt/hemu/.env 2>/dev/null | cut -d= -f2 | tr -d '"\r '); DBR=${DBR:-data/movexgo.db}
+              case "$DBR" in /*) ;; *) DBR="/opt/hemu/$DBR";; esac
+              DGZ=$(ls -1t /root/hemu-backups/db-*.db.gz 2>/dev/null | head -1)
+              if [ -n "$DGZ" ] && [ ! -f "$DBR" ]; then
+                mkdir -p "$(dirname "$DBR")" && gunzip -c "$DGZ" > "$DBR" && chown -R hemu: "$(dirname "$DBR")"
+                step "Baza tiklandi: $(basename "$DGZ") ($(du -h "$DBR" | cut -f1))"
+              elif [ -z "$DGZ" ]; then
+                echo "::warning::Baza zaxirasi yo'q — bo'sh baza bilan ishga tushadi"
+              fi
+              if [ ! -f /etc/systemd/system/hemu.service ] && ! systemctl cat hemu >/dev/null 2>&1; then
+                printf '[Unit]\nDescription=HEMU.UZ\nAfter=network.target\n\n[Service]\nType=simple\nUser=hemu\nWorkingDirectory=/opt/hemu\nEnvironment=NODE_ENV=production\nExecStart=%s --disable-warning=ExperimentalWarning src/server.js\nRestart=always\nRestartSec=3\n\n[Install]\nWantedBy=multi-user.target\n' "$(command -v node)" > /etc/systemd/system/hemu.service
+                systemctl daemon-reload && systemctl enable hemu >/dev/null 2>&1
+                step "systemd xizmati yaratildi"
+              fi
+            fi
             # Kod va rasmlar (baza fayllarisiz — ular yuqorida izchil saqlandi), 5 tasi saqlanadi
             tar czf /root/hemu-backups/hemu-$(date +%F-%H%M).tgz --exclude=node_modules --exclude='*.db' --exclude='*.db-wal' --exclude='*.db-shm' --exclude=data/backups -C /opt hemu
             ls -1t /root/hemu-backups/hemu-*.tgz | tail -n +6 | xargs -r rm -f

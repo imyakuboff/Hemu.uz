@@ -5,6 +5,7 @@ Description=HEMU.UZ market
 After=network.target
 
 [Service]
+UMask=0077
 Type=simple
 User=hemu
 WorkingDirectory=/opt/hemu

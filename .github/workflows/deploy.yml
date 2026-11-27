@@ -232,6 +232,9 @@ jobs:
               echo "::warning::Admin login sozlanmagan: GitHub Secrets'ga ADMIN_LOGIN va ADMIN_PASSWORD qo'shing"
             fi
             command -v vipsthumbnail >/dev/null || sudo -u "$U" node -e "require('sharp')" >/dev/null 2>&1 || echo "::warning::Rasm dvigateli yo'q — faqat EXIF o'chiriladi, rasmlar siqilmaydi"
+            # Baza va yuklangan fayllar faqat hemu foydalanuvchisiga ochiq (serverdagi boshqa loyihalar o'qiy olmasin)
+            chmod 750 /opt/hemu; chmod 700 /opt/hemu/data; find /opt/hemu/data -type d -exec chmod 700 {} + ; find /opt/hemu/data -type f -exec chmod 600 {} +
+            grep -q '^UMask=' /etc/systemd/system/hemu.service || { sed -i 's/^\[Service\]$/[Service]\nUMask=0077/' /etc/systemd/system/hemu.service; systemctl daemon-reload; }
             systemctl restart hemu
             trap - ERR
             set +e

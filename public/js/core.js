@@ -114,7 +114,12 @@ export const $ = (sel, root = document) => root.querySelector(sel);
 export const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
 export const locale = () => ({ uz: 'uz-Latn-UZ', ru: 'ru-RU', en: 'en-GB', kk: 'kk-KZ', ky: 'ky-KG', tg: 'tg-TJ', tk: 'tk-TM', az: 'az-Latn-AZ', prs: 'fa-AF', ps: 'ps-AF' }[state.lang] || 'ru-RU');
-export const num = (n) => new Intl.NumberFormat(locale()).format(n ?? 0);
+export const num = (n) => {
+  if (state.lang !== 'uz') return new Intl.NumberFormat(locale()).format(n ?? 0);
+  const x = Number(n) || 0;
+  const [i, f] = String(Math.round(Math.abs(x) * 100) / 100).split('.');
+  return `${x < 0 ? '−' : ''}${i.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}${f ? `,${f}` : ''}`;
+};
 // Server bilan bir xil: Intl mahalliy belgini bermagan valyutalar uchun
 const SYM = {
   UZS: { ru: 'сум', kk: 'сум', ky: 'сум', tg: 'сӯм', tk: 'som', az: 'som' },
@@ -123,7 +128,15 @@ const SYM = {
   TMT: { ru: 'манат', kk: 'манат', ky: 'манат', uz: 'manat', tg: 'манат', az: 'manat' },
   AZN: { ru: '₼', kk: '₼', ky: '₼', uz: '₼', tg: '₼', tk: '₼' },
 };
+// Brauzerlarda o'zbekcha raqam formati yo'q ("UZS 11,864,015") — server bilan bir xil ko'rinishda yozamiz
+const UZ_SYM = { UZS: 'so‘m', USD: '$', EUR: '€', RUB: '₽', KZT: '₸', KGS: 'so‘m', TJS: 'somoni', TMT: 'manat', AZN: '₼', CNY: '¥' };
 export const money = (amount, currency) => {
+  if (state.lang === 'uz') {
+    const n = Math.abs(Number(amount) || 0);
+    const [i, f] = (n >= 1000 ? Math.round(n).toString() : n.toFixed(2).replace(/\.?0+$/, '')).split('.');
+    const body = `${Number(amount) < 0 ? '−' : ''}${i.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}${f ? `,${f}` : ''}`;
+    return `${body} ${UZ_SYM[currency] || currency}`;
+  }
   const s = new Intl.NumberFormat(locale(), { style: 'currency', currency, currencyDisplay: 'narrowSymbol', maximumFractionDigits: amount >= 1000 ? 0 : 2 }).format(amount);
   const sym = SYM[currency]?.[state.lang];
   return sym ? s.replace(currency, sym) : s;

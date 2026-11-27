@@ -20,8 +20,8 @@ const note = (s) => console.log(`::notice::${s}`);
     p.on('pageerror', (e) => errs.push(e.message));
     p.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
     for (const path of ['/my/listings', '/dashboard', '/create', '/my/import']) {
-      await p.goto(base + path, { waitUntil: 'networkidle' });
-      await p.waitForTimeout(800);
+      await p.goto(base + path, { waitUntil: 'load' });
+      await p.waitForTimeout(2500);
       await p.screenshot({ path: `shots/${name}-${path.replace(/\//g, '_')}.png`, fullPage: true });
     }
     if (name === 'mobil') {

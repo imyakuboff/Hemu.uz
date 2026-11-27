@@ -282,7 +282,7 @@ test('avtojavob, shablonlar, CSV import, statistika, Telegram', async () => {
   assert.match(await tplCsv.text(), /deal_type,category,subcategory,title/);
   const csv = 'deal_type;category;subcategory;title;description;price;currency;condition;brand;stock_qty;region;city\n'
     + 'sale;parts;filters;Фильтр воздушный JCB 32/917804;Оригинальный воздушный фильтр JCB, в наличии;410000;UZS;new;JCB;7;tashkent;Ташкент\n'
-    + 'sale;parts;nope;Плохая строка;Описание достаточно длинное;1;UZS;new;JCB;1;tashkent;Ташкент\n';
+    + 'sale;parts;nope;Ab;Описание достаточно длинное;1;UZS;new;JCB;1;tashkent;Ташкент\n';
   const fd = new FormData();
   fd.append('file', new Blob([csv], { type: 'text/csv' }), 'import.csv');
   const imp = await api('POST', '/api/v1/my/listings/import', { token: S.seller.token, form: fd });

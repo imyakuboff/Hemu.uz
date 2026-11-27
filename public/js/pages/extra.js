@@ -245,8 +245,12 @@ export async function importPage() {
     <div class="page-head"><h1 class="page-title">${esc(t('import'))}</h1><p class="page-sub">${esc(t('import_sub'))}</p></div>
     <form class="box" data-imp>
       <ol class="imp-steps">${['imp_step1', 'imp_step2', 'imp_step3'].map((k) => `<li>${esc(t(k))}</li>`).join('')}</ol>
-      <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn btn-soft" data-tpl="xlsx">${icon('file')} ${esc(t('download_template'))} (Excel)</button><button type="button" class="btn btn-ghost btn-sm" data-tpl="csv">CSV</button></div>
-      <div style="margin-top:16px"><input type="file" name="file" accept=".xlsx,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required class="input" style="padding:8px"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn btn-soft" data-tpl="xlsx">${icon('file')} ${esc(t('download_template'))} (Excel)</button><button type="button" class="btn btn-soft" data-tpl="docx">${icon('file')} Word</button><button type="button" class="btn btn-ghost btn-sm" data-tpl="csv">CSV</button></div>
+      <ul class="small muted" style="margin:14px 0 0;padding-left:18px;display:grid;gap:4px"><li>${esc(t('imp_cols_hint'))}</li><li>${esc(t('imp_photos_hint'))}</li></ul>
+      <label class="field" style="margin-top:16px;display:block"><span class="small" style="font-weight:600">${esc(t('imp_kind'))}</span>
+        <select class="input" name="kind" style="margin-top:6px">${[['', 'imp_kind_auto'], ['parts', 'imp_kind_parts'], ['special', 'imp_kind_special']].map(([v, k]) => `<option value="${v}">${esc(t(k))}</option>`).join('')}</select></label>
+      <div style="margin-top:14px"><input type="file" name="file" multiple accept=".xlsx,.docx,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required class="input" style="padding:8px">
+        <div class="tiny muted" style="margin-top:6px">${esc(t('imp_files_hint'))}</div></div>
       <label class="check" style="margin-top:12px"><input type="checkbox" name="publish"> ${esc(t('publish_after'))}</label>
       <button class="btn btn-primary" style="margin-top:14px">${icon('upload')} ${esc(t('upload'))}</button>
     </form>
@@ -288,21 +292,45 @@ export async function importPage() {
         try { $('[data-feed-st]', main).innerHTML = feedStatus(await api('/my/feed/run', { method: 'POST' })); } finally { e.target.disabled = false; }
       });
       $('[data-feed-del]', main)?.addEventListener('click', async () => { await api('/my/feed', { method: 'DELETE' }); render({ keepScroll: true }); });
+      const statusLabel = (v) => state.meta.listing_statuses.find((x) => x.value === v)?.label || v;
+      const fileErr = (c) => { const k = `imp_err_${c}`; const v = t(k); return v === k ? t('imp_err_bad_file') : v; };
+      const showResult = (r) => {
+        const byFile = r.files.map((f) => {
+          const rows = r.results.filter((x) => x.file === f.name);
+          return `<div style="margin-top:14px"><div style="font-weight:700;display:flex;gap:8px;align-items:center">${icon('file')} ${esc(f.name)}</div>
+            ${f.error ? `<div class="small" style="color:var(--red);margin-top:4px">${esc(fileErr(f.error))}</div>` : ''}
+            ${f.skipped ? `<div class="small muted" style="margin-top:4px">${esc(t('imp_skipped', { n: f.skipped }))}</div>` : ''}
+            ${rows.map((x) => `<div class="lead" style="grid-template-columns:90px 1fr auto"><b>${esc(t('row_n', { n: x.row }))}</b>
+              <span>${x.ok ? `<a class="link-blue" href="/create/${x.id}">№ ${x.id}</a> ${esc(x.title || '')} · ${esc(statusLabel(x.status))}${x.photos ? ` · ${esc(t('imp_photos_n', { n: x.photos }))}` : ''}${x.warning ? ` · <span class="muted">${esc(x.warning)}${x.details ? `: ${esc(Object.keys(x.details).join(', '))}` : ''}</span>` : ''}`
+                : `<span style="color:var(--red)">${esc(x.title ? `${x.title}: ` : '')}${esc(x.error || '')}${x.details ? `: ${esc(Object.keys(x.details).join(', '))}` : ''}</span>`}</span>
+              <span>${x.ok ? icon('check') : icon('x')}</span></div>`).join('')}</div>`;
+        }).join('');
+        $('[data-res]', main).innerHTML = `<div class="box"><h3>${esc(r.done ? t('import_result', { c: r.created, t: r.total }) : t('imp_progress', { p: r.processed, t: r.total }))}</h3>
+          ${r.done ? '' : `<div style="height:8px;border-radius:8px;background:var(--line);overflow:hidden;margin-top:8px"><div style="height:100%;width:${r.total ? Math.round((r.processed / r.total) * 100) : 0}%;background:var(--blue);transition:width .3s"></div></div>`}
+          ${byFile}
+          ${r.done ? `<a class="btn btn-soft btn-sm" style="margin-top:12px" href="/my/listings">${esc(t('my_listings'))}</a>` : ''}</div>`;
+      };
       $('[data-imp]', main).onsubmit = async (e) => {
         e.preventDefault();
         const f = e.target;
+        const list = [...f.file.files].slice(0, 10);
+        if (!list.length) return;
         const fd = new FormData();
-        fd.append('file', f.file.files[0]);
+        for (const file of list) fd.append('files', file);
+        fd.append('kind', f.kind.value);
         if (f.publish.checked) fd.append('publish', '1');
         const btn = f.querySelector('button.btn-primary');
         btn.disabled = true;
         try {
-          const r = await api('/my/listings/import', { method: 'POST', form: fd });
-          $('[data-res]', main).innerHTML = `<div class="box"><h3>${esc(t('import_result', { c: r.created, t: r.total }))}</h3>
-            ${r.results.map((x) => `<div class="lead" style="grid-template-columns:90px 1fr auto"><b>${esc(t('row_n', { n: x.row }))}</b>
-              <span>${x.ok ? `<a class="link-blue" href="/create/${x.id}">№ ${x.id}</a> · ${esc(state.meta.listing_statuses.find((s) => s.value === x.status)?.label || x.status)}${x.warning ? ` · ${esc(x.warning)}` : ''}` : `<span style="color:var(--red)">${esc(x.error || '')}${x.details ? `: ${esc(Object.keys(x.details).join(', '))}` : ''}</span>`}</span>
-              <span>${x.ok ? icon('check') : icon('x')}</span></div>`).join('')}
-            <a class="btn btn-soft btn-sm" style="margin-top:12px" href="/my/listings">${esc(t('my_listings'))}</a></div>`;
+          let r = await api('/my/listings/import?async=1', { method: 'POST', form: fd });
+          showResult(r);
+          // Fonda ishlanadi — holatni har 1.5 soniyada so'raymiz (sahifadan chiqilsa to'xtaydi)
+          while (!r.done && main.isConnected) {
+            await new Promise((ok) => setTimeout(ok, 1500));
+            r = await api(`/my/listings/import/jobs/${r.id}`);
+            if (main.isConnected) showResult(r);
+          }
+          if (r.done) f.reset();
         } finally { btn.disabled = false; }
       };
     },

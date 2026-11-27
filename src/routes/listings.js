@@ -313,7 +313,7 @@ function prepare(req, body, existing) {
   return v;
 }
 
-r.post('/listings', requireAuth, rateLimit({ name: 'create', windowMs: 3600000, max: 300, key: (req) => req.user.id }), (req, res) => {
+r.post('/listings', requireAuth, rateLimit({ name: 'create', windowMs: 3600000, max: 300, key: (req) => req.user.id, internalOk: true }), (req, res) => {
   const body = req.body || {};
   const v = prepare(req, body, null);
   const company = companyFor(req.user.id);

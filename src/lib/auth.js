@@ -101,8 +101,15 @@ function requireAdmin(req, _res, next) {
 
 // Oddiy xotiradagi rate limiter
 const buckets = new Map();
-function rateLimit({ windowMs, max, key = (req) => req.ip, name = 'rl' }) {
+// Ichki ommaviy import so'rovlari uchun jarayon ichidagi maxfiy kalit (tashqaridan bilib bo'lmaydi)
+const INTERNAL_KEY = require('node:crypto').randomBytes(24).toString('hex');
+const isInternal = (req) => {
+  const v = String(req.get?.('x-hemu-internal') || '');
+  return v.length === INTERNAL_KEY.length && require('node:crypto').timingSafeEqual(Buffer.from(v), Buffer.from(INTERNAL_KEY));
+};
+function rateLimit({ windowMs, max, key = (req) => req.ip, name = 'rl', internalOk = false }) {
   return (req, _res, next) => {
+    if (internalOk && isInternal(req)) { next(); return; }
     const k = `${name}:${key(req)}`;
     const now = Date.now();
     let b = buckets.get(k);
@@ -124,4 +131,4 @@ function resetRateLimits() {
   buckets.clear();
 }
 
-module.exports = { sha, streamKey, createSession, context, requireAuth, requireAdmin, requireStaff, isStaff, rateLimit, resetRateLimits };
+module.exports = { sha, streamKey, createSession, context, requireAuth, requireAdmin, requireStaff, isStaff, rateLimit, resetRateLimits, INTERNAL_KEY };

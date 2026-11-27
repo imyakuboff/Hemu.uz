@@ -240,4 +240,4 @@ async function runDue() {
   }
 }
 
-module.exports = { syncFeed, runDue, normalizeUrl, assertPublic, privateIp };
+module.exports = { syncFeed, runDue, normalizeUrl, assertPublic, privateIp, downloadPhotos };

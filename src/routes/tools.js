@@ -2,11 +2,12 @@ const { Router } = require('express');
 const multer = require('multer');
 const db = require('../db');
 const tg = require('../lib/telegram');
-const { requireAuth, rateLimit } = require('../lib/auth');
+const { requireAuth, rateLimit, INTERNAL_KEY } = require('../lib/auth');
 const { fail, validate } = require('../lib/http');
 const catLib = require('../lib/categories');
 const { REGIONS, CURRENCY_CODES } = require('../geo');
-const { readXlsx, writeXlsx, isXlsx } = require('../lib/xlsx');
+const { readXlsx, readXlsxSheet, readDocx, writeXlsx, writeDocx, isXlsx, isOldOffice, officeKind } = require('../lib/xlsx');
+const imap = require('../lib/importmap');
 
 const r = Router();
 
@@ -67,19 +68,42 @@ function parseCsv(text) {
   return rows;
 }
 
-const IMPORT_COLS = [...COLS.slice(0, 19), 'negotiable', 'leasing', 'with_operator', 'country', ...COLS.slice(19)];
+const IMPORT_COLS = [...COLS.slice(0, 19), 'negotiable', 'leasing', 'with_operator', 'country', ...COLS.slice(19), 'photos'];
 // Excel shablonidagi ustun izohlari (sarlavha: "kalit | izoh")
 const COL_LABELS = {
-  uz: { deal_type: 'Bitim turi *', category: 'Kategoriya *', subcategory: 'Rubrika *', title: 'Nomi *', description: 'Tavsif', price: 'Narx', currency: 'Valyuta', price_unit: 'Narx birligi', condition: 'Holati', brand: 'Marka', model: 'Model', year: 'Yil', hours: 'Moto-soat', power_hp: 'Quvvat, o.k.', part_number: 'Artikul', manufacturer: 'Ishlab chiqaruvchi', stock_qty: 'Omborda, dona', warranty_months: 'Kafolat, oy', compatibility: 'Mos texnika (; bilan)', negotiable: 'Kelishiladi (ha/yo\'q)', leasing: 'Lizing (ha/yo\'q)', with_operator: 'Operator bilan (ha/yo\'q)', country: 'Mamlakat (UZ)', region: 'Viloyat', city: 'Shahar', address: 'Manzil', serial_number: 'Seriya raqami' },
-  ru: { deal_type: 'Тип сделки *', category: 'Категория *', subcategory: 'Рубрика *', title: 'Название *', description: 'Описание', price: 'Цена', currency: 'Валюта', price_unit: 'Единица цены', condition: 'Состояние', brand: 'Марка', model: 'Модель', year: 'Год', hours: 'Моточасы', power_hp: 'Мощность, л.с.', part_number: 'Артикул', manufacturer: 'Производитель', stock_qty: 'На складе, шт', warranty_months: 'Гарантия, мес', compatibility: 'Совместимость (через ;)', negotiable: 'Торг (да/нет)', leasing: 'Лизинг (да/нет)', with_operator: 'С оператором (да/нет)', country: 'Страна (UZ)', region: 'Регион', city: 'Город', address: 'Адрес', serial_number: 'Серийный номер' },
-  en: { deal_type: 'Deal type *', category: 'Category *', subcategory: 'Subcategory *', title: 'Title *', description: 'Description', price: 'Price', currency: 'Currency', price_unit: 'Price unit', condition: 'Condition', brand: 'Brand', model: 'Model', year: 'Year', hours: 'Engine hours', power_hp: 'Power, hp', part_number: 'Part number', manufacturer: 'Manufacturer', stock_qty: 'In stock, pcs', warranty_months: 'Warranty, months', compatibility: 'Compatible with (; separated)', negotiable: 'Negotiable (yes/no)', leasing: 'Leasing (yes/no)', with_operator: 'With operator (yes/no)', country: 'Country (UZ)', region: 'Region', city: 'City', address: 'Address', serial_number: 'Serial number' },
+  uz: { deal_type: 'Bitim turi *', category: 'Kategoriya *', subcategory: 'Rubrika *', title: 'Nomi *', description: 'Tavsif', price: 'Narx', currency: 'Valyuta', price_unit: 'Narx birligi', condition: 'Holati', brand: 'Marka', model: 'Model', year: 'Yil', hours: 'Moto-soat', power_hp: 'Quvvat, o.k.', part_number: 'Artikul', manufacturer: 'Ishlab chiqaruvchi', stock_qty: 'Omborda, dona', warranty_months: 'Kafolat, oy', compatibility: 'Mos texnika (; bilan)', negotiable: 'Kelishiladi (ha/yo\'q)', leasing: 'Lizing (ha/yo\'q)', with_operator: 'Operator bilan (ha/yo\'q)', country: 'Mamlakat (UZ)', region: 'Viloyat', city: 'Shahar', address: 'Manzil', serial_number: 'Seriya raqami', photos: 'Rasm (katakchaga qo\'ying yoki havola)' },
+  ru: { deal_type: 'Тип сделки *', category: 'Категория *', subcategory: 'Рубрика *', title: 'Название *', description: 'Описание', price: 'Цена', currency: 'Валюта', price_unit: 'Единица цены', condition: 'Состояние', brand: 'Марка', model: 'Модель', year: 'Год', hours: 'Моточасы', power_hp: 'Мощность, л.с.', part_number: 'Артикул', manufacturer: 'Производитель', stock_qty: 'На складе, шт', warranty_months: 'Гарантия, мес', compatibility: 'Совместимость (через ;)', negotiable: 'Торг (да/нет)', leasing: 'Лизинг (да/нет)', with_operator: 'С оператором (да/нет)', country: 'Страна (UZ)', region: 'Регион', city: 'Город', address: 'Адрес', serial_number: 'Серийный номер', photos: 'Фото (вставьте в ячейку или ссылка)' },
+  en: { deal_type: 'Deal type *', category: 'Category *', subcategory: 'Subcategory *', title: 'Title *', description: 'Description', price: 'Price', currency: 'Currency', price_unit: 'Price unit', condition: 'Condition', brand: 'Brand', model: 'Model', year: 'Year', hours: 'Engine hours', power_hp: 'Power, hp', part_number: 'Part number', manufacturer: 'Manufacturer', stock_qty: 'In stock, pcs', warranty_months: 'Warranty, months', compatibility: 'Compatible with (; separated)', negotiable: 'Negotiable (yes/no)', leasing: 'Leasing (yes/no)', with_operator: 'With operator (yes/no)', country: 'Country (UZ)', region: 'Region', city: 'City', address: 'Address', serial_number: 'Serial number', photos: 'Photo (paste into the cell or a link)' },
 };
+// Shablon izohlari ham ustun nomi sifatida tanilsin ("Omborda, dona" -> stock_qty)
+for (const labels of Object.values(COL_LABELS)) imap.addAliases(labels);
 const tplLang = (l) => (['uz', 'ru', 'en'].includes(l) ? l : ['prs', 'ps'].includes(l) ? 'en' : 'ru');
 const SAMPLE_MARK = /^(namuna|пример|example)\s*:/i;
 const TPL_TEXT = {
   uz: { sheet: "E'lonlar", cats: 'Kategoriyalar', vals: 'Qiymatlar', sample: 'Namuna', field: 'Ustun', value: 'Qiymat', meaning: "Ma'nosi", cat: 'Kategoriya', sub: 'Rubrika' },
   ru: { sheet: 'Объявления', cats: 'Категории', vals: 'Значения', sample: 'Пример', field: 'Столбец', value: 'Значение', meaning: 'Значение (описание)', cat: 'Категория', sub: 'Рубрика' },
   en: { sheet: 'Listings', cats: 'Categories', vals: 'Values', sample: 'Example', field: 'Column', value: 'Value', meaning: 'Meaning', cat: 'Category', sub: 'Subcategory' },
+};
+
+const DOCX_TPL = {
+  uz: {
+    title: "HEMU.UZ — e'lonlar ro'yxati", new: 'yangi', used: 'b/u',
+    s1: "JCB yoqilg'i filtri 32/925869", s2: 'JCB JS220 ekskavator', d1: 'Original, zavod qadog\'ida', d2: 'Yaxshi holatda, hujjatlari bor',
+    notes: ["Har bir qator — bitta e'lon. Ehtiyot qism ham, texnika ham bitta jadvalda bo'lishi mumkin.", "«Rasm» katakchasiga rasmni qo'ying (Qo'yish → Rasm) — e'longa o'zi qo'shiladi.", "Kerak bo'lsa qator qo'shing. Namuna qatorlari yuklanmaydi. Kategoriya nomdan avtomatik aniqlanadi."],
+    cols: { title: 'Nomi', price: 'Narx', currency: 'Valyuta', part_number: 'Artikul', stock_qty: 'Soni', brand: 'Marka', model: 'Model', year: 'Yil', condition: 'Holati', compatibility: 'Mos texnika', description: 'Tavsif', photos: 'Rasm' },
+  },
+  ru: {
+    title: 'HEMU.UZ — список объявлений', new: 'новое', used: 'б/у',
+    s1: 'Фильтр топливный JCB 32/925869', s2: 'Экскаватор JCB JS220', d1: 'Оригинал, заводская упаковка', d2: 'Хорошее состояние, документы есть',
+    notes: ['Каждая строка — одно объявление. Запчасти и техника могут быть в одной таблице.', 'Вставьте фото в ячейку «Фото» (Вставка → Рисунок) — оно добавится к объявлению.', 'Добавляйте строки по необходимости. Строки-примеры не загружаются. Категория определяется по названию.'],
+    cols: { title: 'Название', price: 'Цена', currency: 'Валюта', part_number: 'Артикул', stock_qty: 'Количество', brand: 'Марка', model: 'Модель', year: 'Год', condition: 'Состояние', compatibility: 'Совместимость', description: 'Описание', photos: 'Фото' },
+  },
+  en: {
+    title: 'HEMU.UZ — listings', new: 'new', used: 'used',
+    s1: 'JCB fuel filter 32/925869', s2: 'JCB JS220 excavator', d1: 'Genuine, factory packed', d2: 'Good condition, documents available',
+    notes: ['Each row is one listing. Parts and machines can share one table.', 'Paste a photo into the «Photo» cell (Insert → Picture) — it is added to the listing.', 'Add rows as needed. Example rows are skipped. The category is detected from the title.'],
+    cols: { title: 'Title', price: 'Price', currency: 'Currency', part_number: 'Part number', stock_qty: 'Quantity', brand: 'Brand', model: 'Model', year: 'Year', condition: 'Condition', compatibility: 'Compatible with', description: 'Description', photos: 'Photo' },
+  },
 };
 
 r.get('/my/listings/import/template', requireAuth, (req, res) => {
@@ -91,6 +115,18 @@ r.get('/my/listings/import/template', requireAuth, (req, res) => {
   }
   const lang = tplLang(req.lang);
   const T = TPL_TEXT[lang];
+  if (req.query.format === 'docx') {
+    const W = DOCX_TPL[lang];
+    const cols = ['title', 'price', 'currency', 'part_number', 'stock_qty', 'brand', 'model', 'year', 'condition', 'compatibility', 'description', 'photos'];
+    const head = cols.map((k) => W.cols[k]);
+    const rows = [
+      [`${T.sample}: ${W.s1}`, '350 000', 'UZS', '32/925869', '15', 'JCB', '', '', W.new, 'JCB 3CX; JCB 4CX', W.d1, ''],
+      [`${T.sample}: ${W.s2}`, '950 000 000', 'UZS', '', '', 'JCB', 'JS220', '2019', W.used, '', W.d2, ''],
+      ...Array.from({ length: 8 }, () => cols.map(() => '')),
+    ];
+    res.set({ 'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'Content-Disposition': 'attachment; filename="hemu-import.docx"' });
+    return res.send(writeDocx({ title: W.title, notes: W.notes, header: head, rows, sampleRows: [0, 1] }));
+  }
   const nm = (names) => names[lang] || names.ru || names.en || Object.values(names)[0];
   const row = (o) => IMPORT_COLS.map((k) => o[k] ?? '');
   const samples = [
@@ -134,19 +170,27 @@ function findCat(v, parent) {
 
 
 // Jadval qatorini e'lon maydonlariga aylantirish (Excel/CSV import va diler fidi uchun umumiy)
+const INT_FIELDS = ['year', 'hours', 'power_hp', 'stock_qty', 'warranty_months', 'mileage_km', 'weight_kg'];
 function rowToBody(head, row) {
   const o = Object.fromEntries(head.map((h, j) => [h, String(row[j] ?? '').trim()]));
   delete o[''];
   const body = { ...o, publish: false };
-  if (o.compatibility) body.compatibility = o.compatibility.split(/[;|]/).map((s) => s.trim()).filter(Boolean);
+  if (o.compatibility) body.compatibility = o.compatibility.split(/[;|\n]/).map((s) => s.trim()).filter(Boolean).slice(0, 30);
   if (o.deal_type) body.deal_type = DEAL[low(o.deal_type)] || low(o.deal_type);
   if (o.condition) body.condition = COND[low(o.condition)] || low(o.condition);
-  if (o.currency) body.currency = o.currency.trim().toUpperCase().replace(/^(SO'?M|СУМ|SUM)$/, 'UZS');
+  if (o.currency) body.currency = o.currency.trim().toUpperCase().replace(/^(SO['ʻʼ‘’`]?M|СУМ|SUM)$/, 'UZS').replace(/^(\$|ДОЛЛ.*|DOLLAR)$/, 'USD');
   if (o.country) body.country = o.country.trim().toUpperCase();
   if (o.region) body.region = low(o.region);
   if (o.category) body.category = findCat(o.category);
   if (o.subcategory) body.subcategory = findCat(o.subcategory, body.category);
-  if (o.price) body.price = o.price.replace(/[\s\u00a0]/g, '').replace(',', '.');
+  if (o.price) {
+    // "1 250 000 so'm", "$62,500", "1 250 000,50" — son va valyuta alohida
+    const pp = imap.parsePrice(o.price);
+    if (pp.price) body.price = pp.price; else delete body.price;
+    if (pp.currency && !o.currency) body.currency = pp.currency;
+  }
+  // "12 dona", "2019 y." — faqat raqamlar
+  for (const k of INT_FIELDS) if (o[k] && !/^\d+$/.test(o[k])) { const d = o[k].replace(/[\s ]/g, '').match(/\d+/); if (d) body[k] = d[0]; else delete body[k]; }
   for (const k of ['negotiable', 'leasing', 'with_operator']) {
     if (!o[k]) continue;
     if (YES.has(low(o[k]))) body[k] = true; else if (NO.has(low(o[k]))) body[k] = false; else delete body[k];
@@ -154,7 +198,7 @@ function rowToBody(head, row) {
   for (const k of Object.keys(body)) if (body[k] === '') delete body[k];
   return body;
 }
-// Fayl (CSV yoki Excel) -> { head, rows }
+// Fayl (CSV yoki Excel) -> { head, rows } — diler fidi uchun (ustun kalitlari o'zgarmaydi: external_id barqaror qoladi)
 function readTable(buf) {
   let rows;
   if (isXlsx(buf)) rows = readXlsx(buf).map((r) => r.map((c) => String(c ?? '')));
@@ -164,44 +208,177 @@ function readTable(buf) {
   return { head, data };
 }
 
-const csvUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
-r.post('/my/listings/import', requireAuth, csvUpload.single('file'), async (req, res) => {
-  if (!req.file) fail(422, 'err.file_type');
+// ---------- Ommaviy yuklash: Excel (.xlsx), Word (.docx), CSV — bir nechta fayl birdaniga ----------
+const MAX_IMPORT_ROWS = 500;
+const MAX_IMPORT_FILES = 10;
+const FALLBACK_SUB = { parts: 'parts-special', special: 'special-other' };
+
+// Fayl -> { head, data: [{ n, cells }], images: Map(n -> rasmlar) }; xato bo'lsa Error.code
+function readImportFile(buf) {
+  const bad = (code) => Object.assign(new Error(code), { code });
+  if (isOldOffice(buf)) throw bad('old_format');
+  const kind = officeKind(buf);
   let rows;
-  if (isXlsx(req.file.buffer)) {
-    try { rows = readXlsx(req.file.buffer).map((r) => r.map((c) => String(c ?? ''))); } catch { fail(422, 'err.file_type'); }
-  } else rows = parseCsv(req.file.buffer.toString('utf8'));
-  if (rows.length < 2) fail(422, 'err.validation', { file: 'empty' });
-  // Sarlavha "title | Nomi *" ko'rinishida bo'lishi mumkin — kalit qismini olamiz
-  const head = rows[0].map((h) => String(h).split('|')[0].trim().toLowerCase().replace(/\s+/g, '_'));
-  // Namuna qatorlarini tashlab yuboramiz, lekin asl qator raqamini saqlaymiz (xato hisobotida)
-  const data = rows.slice(1).map((cells, i) => ({ n: i + 2, cells })).filter((x) => !SAMPLE_MARK.test(String(x.cells[head.indexOf('title')] ?? '').trim()));
-  if (!data.length) fail(422, 'err.validation', { file: 'empty' });
-  const publish = req.body?.publish === '1' || req.body?.publish === 'true';
-  // E'lon yaratish uchun ichki API (validatsiya, moderatsiya va chegaralar bir xil ishlaydi)
-  const base = `http://127.0.0.1:${req.socket.localPort}/api/v1`;
-  const headers = { Authorization: req.get('authorization'), 'Content-Type': 'application/json', 'X-Lang': req.lang };
-  const results = [];
-  for (const { n: rowNo, cells: row } of data.slice(0, 200)) {
-    const body = rowToBody(head, row);
-    try {
-      const cr = await fetch(`${base}/listings`, { method: 'POST', headers, body: JSON.stringify(body) });
-      const cj = await cr.json();
-      if (!cr.ok) { results.push({ row: rowNo, ok: false, error: cj.error?.message, details: cj.error?.details }); continue; }
-      // Rasmlar keyin "Мои объявления" orqali qo'shiladi (server tashqi URL'larni yuklamaydi — SSRF xavfi)
-      let status = 'draft';
-      if (publish) {
-        const pr = await fetch(`${base}/listings/${cj.id}/publish`, { method: 'POST', headers, body: '{}' });
-        const pj = await pr.json();
-        status = pr.ok ? pj.status : 'draft';
-        if (!pr.ok) { results.push({ row: rowNo, ok: true, id: cj.id, status, warning: pj.error?.message, details: pj.error?.details }); continue; }
+  let images = new Map();
+  try {
+    if (kind === 'xlsx') ({ rows, images } = readXlsxSheet(buf));
+    else if (kind === 'docx') ({ rows, images } = readDocx(buf));
+    else if (isXlsx(buf) || buf.subarray(0, 5).toString('latin1') === '%PDF-') throw bad('bad_file');
+    else rows = parseCsv(buf.toString('utf8')).map((cells, i) => ({ n: i + 1, cells }));
+  } catch (e) {
+    throw e.code ? e : bad('bad_file');
+  }
+  rows = rows.map((r) => ({ n: r.n, cells: r.cells.map((c) => String(c ?? '')) }));
+  // Sarlavha qatori: dastlabki 10 qatordan eng ko'p ustun nomi tanilgani (yuqorida "Prays-list" kabi sarlavha bo'lishi mumkin)
+  let hi = 0;
+  let best = 0;
+  rows.slice(0, 10).forEach((r, i) => {
+    const keys = r.cells.map(imap.headerKey).filter(Boolean);
+    const score = new Set(keys).size + (keys.includes('title') ? 2 : 0);
+    if (score > best) { best = score; hi = i; }
+  });
+  if (!rows.length) throw bad('empty');
+  const head = rows[hi].cells.map(imap.headerKey);
+  // Bir xil ustun ikki marta bo'lsa — birinchisi olinadi
+  head.forEach((k, j) => { if (k && head.indexOf(k) !== j) head[j] = ''; });
+  if (!head.includes('title') && !(head.includes('brand') || head.includes('model') || head.includes('part_number'))) throw bad('no_title');
+  const ti = head.indexOf('title');
+  const data = rows.slice(hi + 1).filter((x) => !(ti >= 0 && SAMPLE_MARK.test(String(x.cells[ti] ?? '').trim())));
+  if (!data.length) throw bad('empty');
+  return { head, data, images };
+}
+
+// Kategoriya va rubrikani aniqlash: qatordagi qiymat > tanlangan tur > nomdan topish
+function inferCategory(body, kind) {
+  const text = [body.title, body.description, body.brand, body.model].filter(Boolean).join(' ');
+  const roots = catLib.load().roots;
+  if (!body.category || !catLib.bySlug(body.category)) {
+    if (kind && catLib.bySlug(kind)) body.category = kind;
+    else {
+      // Barcha bo'limlar rubrikalari bo'yicha eng mosini topish
+      let hit = null;
+      for (const root of roots) {
+        const c = imap.guessChild(text, root.children);
+        if (c && !hit) hit = { root, c };
       }
-      results.push({ row: rowNo, ok: true, id: cj.id, status });
-    } catch (e) {
-      results.push({ row: rowNo, ok: false, error: e.message });
+      if (hit) { body.category = hit.root.slug; body.subcategory = body.subcategory || hit.c.slug; }
+      else body.category = (body.part_number || body.stock_qty) ? 'parts' : 'special';
     }
   }
-  res.json({ total: results.length, created: results.filter((x) => x.ok).length, results });
+  const root = catLib.bySlug(body.category);
+  const sub = body.subcategory && catLib.bySlug(body.subcategory);
+  if (!sub || sub.parent_id !== root?.id) {
+    const c = imap.guessChild(text, root?.children);
+    body.subcategory = c?.slug || FALLBACK_SUB[body.category] || body.subcategory;
+  }
+}
+
+function importBody(head, cells, kind) {
+  const body = rowToBody(head, cells);
+  const photoLinks = String(body.photos || '').split(/[\s,;|]+/).filter((u) => /^https?:\/\//i.test(u));
+  delete body.photos;
+  delete body.external_id;
+  // Nomi yo'q bo'lsa: marka + model + yil (texnika ro'yxatlarida ko'p uchraydi)
+  if (!body.title) {
+    const t = [body.brand, body.model, body.part_number, body.year].filter(Boolean).join(' ');
+    if (t) body.title = t;
+  }
+  if (body.title && body.title.length > 80) body.title = body.title.slice(0, 80).replace(/\s+\S*$/, '');
+  body.deal_type = body.deal_type || 'sale';
+  inferCategory(body, kind);
+  return { body, photoLinks };
+}
+
+// Import ishlari (fonda bajariladi, sahifa holatni so'rab turadi)
+const jobs = new Map();
+setInterval(() => { const old = Date.now() - 3600e3; for (const [id, j] of jobs) if (j.started < old) jobs.delete(id); }, 600e3).unref();
+
+async function runImport(job, files, { kind, publish, base, headers, city }) {
+  const auth = { Authorization: headers.Authorization };
+  for (const f of files) {
+    let table;
+    try { table = readImportFile(f.buffer); } catch (e) {
+      job.files.push({ name: f.originalname, rows: 0, error: e.code || 'bad_file' });
+      continue;
+    }
+    const left = MAX_IMPORT_ROWS - job.total;
+    const rows = table.data.slice(0, Math.max(0, left));
+    job.files.push({ name: f.originalname, rows: rows.length, skipped: table.data.length - rows.length });
+    job.total += rows.length;
+  }
+  // Ikkinchi o'tish: e'lonlarni yaratish (fayllar yana o'qiladi — xotirada faqat bittasi)
+  for (const f of files) {
+    const meta = job.files.find((x) => x.name === f.originalname && !x.done);
+    if (!meta) continue;
+    meta.done = true;
+    if (meta.error) continue;
+    const table = readImportFile(f.buffer);
+    for (const { n, cells } of table.data.slice(0, meta.rows)) {
+      const res = { file: f.originalname, row: n };
+      try {
+        const { body, photoLinks } = importBody(table.head, cells, kind);
+        // Shahar ko'rsatilmagan bo'lsa — profildagi shahar (nashr uchun manzil kerak)
+        if (!body.city && !body.region && city) body.city = city;
+        res.title = body.title;
+        const cr = await fetch(`${base}/listings`, { method: 'POST', headers, body: JSON.stringify(body) });
+        const cj = await cr.json();
+        if (!cr.ok) { Object.assign(res, { ok: false, error: cj.error?.message, details: cj.error?.details }); continue; }
+        Object.assign(res, { ok: true, id: cj.id, status: 'draft', photos: 0 });
+        // Rasmlar: katakchaga qo'yilganlari + havolalar (havolalar xavfsiz yuklovchi orqali)
+        let pics = (table.images.get(n) || []).slice(0, 10);
+        if (pics.length < 10 && photoLinks.length) {
+          pics = pics.concat(await require('../lib/feeds').downloadPhotos(photoLinks.slice(0, 10 - pics.length)));
+        }
+        if (pics.length) {
+          const fd = new FormData();
+          for (const p of pics) fd.append('files', new Blob([p.buf], { type: p.type }), p.name);
+          const ur = await fetch(`${base}/listings/${cj.id}/photos`, { method: 'POST', headers: auth, body: fd });
+          if (ur.ok) res.photos = pics.length;
+        }
+        if (publish) {
+          const pr = await fetch(`${base}/listings/${cj.id}/publish`, { method: 'POST', headers, body: '{}' });
+          const pj = await pr.json();
+          if (pr.ok) res.status = pj.status; else Object.assign(res, { warning: pj.error?.message, details: pj.error?.details });
+        }
+        job.created += 1;
+      } catch (e) {
+        Object.assign(res, { ok: false, error: e.message });
+      } finally {
+        job.results.push(res);
+        job.processed += 1;
+      }
+    }
+  }
+  for (const x of job.files) delete x.done;
+  job.done = true;
+}
+
+const jobView = (j) => ({ id: j.id, done: j.done, total: j.total, processed: j.processed, created: j.created, files: j.files, results: j.results });
+
+const importUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024, files: MAX_IMPORT_FILES } });
+r.post('/my/listings/import', requireAuth, rateLimit({ name: 'import', windowMs: 60e3, max: 10, key: (req) => req.user?.id || req.ip }), importUpload.fields([{ name: 'file', maxCount: 1 }, { name: 'files', maxCount: MAX_IMPORT_FILES }]), async (req, res) => {
+  const files = [...(req.files?.file || []), ...(req.files?.files || [])].slice(0, MAX_IMPORT_FILES);
+  if (!files.length) fail(422, 'err.validation', { file: 'required' });
+  // Brauzer fayl nomini latin1 deb yuboradi — UTF-8 ga qaytarish
+  for (const f of files) { try { const u = Buffer.from(f.originalname, 'latin1').toString('utf8'); if (!u.includes('�')) f.originalname = u; } catch { /* nomi o'zgarmaydi */ } }
+  const kind = ['parts', 'special', 'trucks', 'construction'].includes(req.body?.kind) ? req.body.kind : '';
+  const publish = req.body?.publish === '1' || req.body?.publish === 'true';
+  if ([...jobs.values()].some((j) => j.user_id === req.user.id && !j.done)) fail(429, 'err.too_many');
+  const job = { id: require('node:crypto').randomBytes(8).toString('hex'), user_id: req.user.id, started: Date.now(), done: false, total: 0, processed: 0, created: 0, files: [], results: [] };
+  jobs.set(job.id, job);
+  // E'lon yaratish uchun ichki API (validatsiya, moderatsiya va chegaralar bir xil ishlaydi)
+  const opts = { kind, publish, base: `http://127.0.0.1:${req.socket.localPort}/api/v1`, headers: { Authorization: req.get('authorization'), 'Content-Type': 'application/json', 'X-Lang': req.lang, 'X-Hemu-Internal': INTERNAL_KEY }, city: req.user.city || '' };
+  const run = runImport(job, files, opts).catch((e) => { job.error = e.message; job.done = true; });
+  if (req.query.async === '1') return res.status(202).json(jobView(job));
+  await run;
+  // Bitta fayl va u o'qilmasa — avvalgidek 422
+  if (!job.total && job.files.length === 1 && job.files[0].error) fail(422, job.files[0].error === 'empty' ? 'err.validation' : 'err.file_type', { file: job.files[0].error });
+  res.json(jobView(job));
+});
+r.get('/my/listings/import/jobs/:id', requireAuth, (req, res) => {
+  const j = jobs.get(req.params.id);
+  if (!j || j.user_id !== req.user.id) fail(404, 'err.not_found');
+  res.json(jobView(j));
 });
 
 // ---------- Diler fidi: havola orqali avtomatik sinxronlash ----------

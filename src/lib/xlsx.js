@@ -21,7 +21,8 @@ function crc32(buf) {
 }
 
 // ---------- ZIP o'qish ----------
-function unzip(buf) {
+// keep — qaysi fayllar kerak (boshqalari o'qilmaydi); qiymat — Buffer qaytaruvchi funksiya
+function unzip(buf, keep = /^(xl\/|\[Content_Types\])/) {
   let eocd = -1;
   for (let i = buf.length - 22; i >= Math.max(0, buf.length - 65557); i -= 1) {
     if (buf.readUInt32LE(i) === 0x06054b50) { eocd = i; break; }
@@ -42,12 +43,12 @@ function unzip(buf) {
     const off = buf.readUInt32LE(p + 42);
     const name = buf.toString('utf8', p + 46, p + 46 + nlen);
     p += 46 + nlen + elen + clen;
-    if (!/^(xl\/|\[Content_Types\])/.test(name) || name.endsWith('/')) continue;
+    if (!keep.test(name) || name.endsWith('/')) continue;
     total += usize;
     if (total > MAX_UNZIPPED) throw new Error('too_big');
     const start = off + 30 + buf.readUInt16LE(off + 26) + buf.readUInt16LE(off + 28);
     const raw = buf.subarray(start, start + csize);
-    files.set(name, () => (method === 0 ? raw : zlib.inflateRawSync(raw, { maxOutputLength: MAX_UNZIPPED })).toString('utf8'));
+    files.set(name, () => (method === 0 ? raw : zlib.inflateRawSync(raw, { maxOutputLength: MAX_UNZIPPED })));
   }
   return files;
 }
@@ -67,27 +68,68 @@ function numText(v) {
   return Number.isInteger(n) ? String(n) : String(Number(n.toPrecision(12)));
 }
 
-// Birinchi varaqni satrlar massivi sifatida qaytaradi: [[A1, B1, ...], [A2, ...]]
-function readXlsx(buf) {
+// Rels fayli: Id -> to'liq yo'l (base — rels egasining papkasi, masalan "xl/drawings")
+function relsMap(xmlText, base) {
+  const out = new Map();
+  for (const m of String(xmlText || '').matchAll(/<Relationship\b[^>]*>/g)) {
+    const id = (m[0].match(/\bId="([^"]+)"/) || [])[1];
+    const target = (m[0].match(/\bTarget="([^"]+)"/) || [])[1];
+    if (!id || !target || /TargetMode="External"/.test(m[0])) continue;
+    out.set(id, resolvePath(base, target));
+  }
+  return out;
+}
+function resolvePath(base, target) {
+  if (target.startsWith('/')) return target.slice(1);
+  const parts = base.split('/').filter(Boolean);
+  for (const seg of target.split('/')) {
+    if (seg === '..') parts.pop(); else if (seg !== '.' && seg) parts.push(seg);
+  }
+  return parts.join('/');
+}
+const relsPathOf = (file) => { const i = file.lastIndexOf('/'); return `${file.slice(0, i)}/_rels/${file.slice(i + 1)}.rels`; };
+const dirOf = (file) => file.slice(0, file.lastIndexOf('/'));
+
+// Rasm turini baytlardan aniqlash (faqat saytda qabul qilinadiganlari)
+function imageType(b) {
+  if (!b || b.length < 12) return null;
+  if (b[0] === 0xff && b[1] === 0xd8) return 'image/jpeg';
+  if (b.readUInt32BE(0) === 0x89504e47) return 'image/png';
+  if (b.toString('latin1', 0, 4) === 'RIFF' && b.toString('latin1', 8, 12) === 'WEBP') return 'image/webp';
+  return null;
+}
+const MAX_IMAGE = 10 * 1024 * 1024;
+function pushImage(map, key, buf) {
+  const type = imageType(buf);
+  if (!type || buf.length > MAX_IMAGE) return;
+  const list = map.get(key) || [];
+  if (list.length >= 10 || list.some((x) => x.buf.equals(buf))) return;
+  list.push({ buf, type, name: `photo-${list.length + 1}.${type.split('/')[1].replace('jpeg', 'jpg')}` });
+  map.set(key, list);
+}
+
+// Birinchi varaq: { rows: [{ n, cells }], images: Map(qator raqami -> [{ buf, type, name }]) }
+// Rasmlar — katakchaga qo'yilgan (yuqori chap burchagi qaysi qatorda bo'lsa, o'sha qatorga tegishli)
+function readXlsxSheet(buf) {
   const files = unzip(buf);
-  const get = (n) => (files.has(n) ? files.get(n)() : null);
+  const raw = (n) => (n && files.has(n) ? files.get(n)() : null);
+  const get = (n) => raw(n)?.toString('utf8') ?? null;
   // Birinchi varaq faylini workbook.xml + rels orqali topish
   let sheetPath = 'xl/worksheets/sheet1.xml';
   const wb = get('xl/workbook.xml');
-  const rels = get('xl/_rels/workbook.xml.rels');
   const first = wb && wb.match(/<(?:\w+:)?sheet\b[^>]*?r:id="([^"]+)"/);
-  if (first && rels) {
-    const rel = [...rels.matchAll(/<Relationship\b[^>]*>/g)].map((m) => m[0]).find((r) => r.includes(`Id="${first[1]}"`));
-    const target = rel && rel.match(/Target="([^"]+)"/);
-    if (target) sheetPath = target[1].startsWith('/') ? target[1].slice(1) : `xl/${target[1].replace(/^\.\//, '')}`;
+  if (first) {
+    const target = relsMap(get('xl/_rels/workbook.xml.rels'), 'xl').get(first[1]);
+    if (target) sheetPath = target;
   }
-  const sheet = get(sheetPath) || get([...files.keys()].find((k) => /^xl\/worksheets\/sheet\d+\.xml$/.test(k)) || '');
+  if (!files.has(sheetPath)) sheetPath = [...files.keys()].find((k) => /^xl\/worksheets\/sheet\d+\.xml$/.test(k)) || '';
+  const sheet = get(sheetPath);
   if (!sheet) throw new Error('no_sheet');
   const ssXml = get('xl/sharedStrings.xml') || '';
   const shared = [...ssXml.matchAll(/<(?:\w+:)?si>([\s\S]*?)<\/(?:\w+:)?si>/g)].map((m) => textOf(m[1]));
   const rows = [];
   for (const rm of sheet.matchAll(/<(?:\w+:)?row\b([^>]*)>([\s\S]*?)<\/(?:\w+:)?row>/g)) {
-    const rowNo = Number((rm[1].match(/\br="(\d+)"/) || [])[1]) || rows.length + 1;
+    const rowNo = Number((rm[1].match(/\br="(\d+)"/) || [])[1]) || (rows.length ? rows[rows.length - 1].n + 1 : 1);
     const row = [];
     let next = 0;
     for (const cm of rm[2].matchAll(/<(?:\w+:)?c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/(?:\w+:)?c>)/g)) {
@@ -106,9 +148,90 @@ function readXlsx(buf) {
       else if (v !== undefined) val = numText(v);
       row[idx] = val;
     }
-    rows[rowNo - 1] = Array.from(row, (x) => x ?? '');
+    rows.push({ n: rowNo, cells: Array.from(row, (x) => x ?? '') });
   }
-  return Array.from(rows, (r) => r || []).filter((r) => r.some((c) => String(c).trim()));
+  // Varaqdagi rasmlar: sheet rels -> drawing -> (from.row, blip r:embed) -> drawing rels -> media
+  const images = new Map();
+  try {
+    const drawings = [...relsMap(get(relsPathOf(sheetPath)), dirOf(sheetPath)).values()].filter((p) => /drawings\/drawing\d+\.xml$/.test(p));
+    for (const dp of drawings) {
+      const dx = get(dp);
+      if (!dx) continue;
+      const media = relsMap(get(relsPathOf(dp)), dirOf(dp));
+      for (const a of dx.matchAll(/<(?:\w+:)?(?:twoCellAnchor|oneCellAnchor)\b[\s\S]*?<\/(?:\w+:)?(?:twoCellAnchor|oneCellAnchor)>/g)) {
+        const r = (a[0].match(/<(?:\w+:)?from>[\s\S]*?<(?:\w+:)?row>(\d+)</) || [])[1];
+        const emb = (a[0].match(/<(?:\w+:)?blip\b[^>]*?r:embed="([^"]+)"/) || [])[1];
+        if (r === undefined || !emb) continue;
+        pushImage(images, Number(r) + 1, raw(media.get(emb)));
+      }
+    }
+  } catch { /* rasmlarni o'qib bo'lmasa — matn baribir import qilinadi */ }
+  return { rows: rows.filter((r) => r.cells.some((c) => String(c).trim())), images };
+}
+
+// Birinchi varaqni satrlar massivi sifatida qaytaradi: [[A1, B1, ...], [A2, ...]]
+function readXlsx(buf) {
+  return readXlsxSheet(buf).rows.map((r) => r.cells);
+}
+
+// Word (.docx): hujjatdagi barcha jadvallar ketma-ket. Birinchi qator — sarlavha;
+// keyingi jadvallarda xuddi shu sarlavha takrorlansa, u tashlab ketiladi.
+// { rows: [{ n, cells }], images: Map(n -> rasmlar) } — n: jadval qatori tartib raqami (sarlavha = 1)
+function readDocx(buf) {
+  const files = unzip(buf, /^(word\/|\[Content_Types\])/);
+  const raw = (n) => (n && files.has(n) ? files.get(n)() : null);
+  const doc = raw('word/document.xml')?.toString('utf8');
+  if (!doc) throw new Error('no_document');
+  const media = relsMap(raw('word/_rels/document.xml.rels')?.toString('utf8'), 'word');
+  const rows = [];
+  const images = new Map();
+  let head = null;
+  // Ichma-ich jadvallar kam uchraydi — eng tashqi jadvallarni olish uchun oddiy chuqurlik hisobi
+  const tables = [];
+  const re = /<(\/?)w:tbl\b[^>]*>/g;
+  let depth = 0;
+  let start = -1;
+  for (let m = re.exec(doc); m; m = re.exec(doc)) {
+    if (!m[1]) { if (depth === 0) start = m.index; depth += 1; } else if (depth > 0) {
+      depth -= 1;
+      if (depth === 0) tables.push(doc.slice(start, m.index + m[0].length));
+    }
+  }
+  const cellText = (c) => [...c.matchAll(/<w:p\b[\s\S]*?<\/w:p>/g)].map((p) => textOf(p[0].replace(/<w:tab\/>/g, '<w:t> </w:t>').replace(/<w:br\/>/g, '<w:t>\n</w:t>')).trim()).filter(Boolean).join('\n');
+  for (const tbl of tables) {
+    let first = true;
+    for (const tr of tbl.matchAll(/<w:tr\b[\s\S]*?<\/w:tr>/g)) {
+      const cells = [];
+      const pics = [];
+      for (const tc of tr[0].matchAll(/<w:tc\b[\s\S]*?<\/w:tc>/g)) {
+        const span = Number((tc[0].match(/<w:gridSpan w:val="(\d+)"/) || [])[1]) || 1;
+        cells.push(cellText(tc[0]));
+        for (let i = 1; i < span; i += 1) cells.push('');
+        for (const b of tc[0].matchAll(/r:embed="([^"]+)"/g)) pics.push(media.get(b[1]));
+      }
+      if (!cells.some((c) => c.trim()) && !pics.length) continue;
+      const key = cells.map((c) => c.trim().toLowerCase()).join('|');
+      if (first && head !== null && key === head) { first = false; continue; }
+      first = false;
+      if (head === null) head = key;
+      const n = rows.length + 1;
+      rows.push({ n, cells });
+      for (const p of pics) pushImage(images, n, raw(p));
+    }
+  }
+  return { rows, images };
+}
+
+const isOldOffice = (buf) => buf.length > 8 && buf.readUInt32BE(0) === 0xd0cf11e0;
+// ZIP ichida nima borligiga qarab: 'xlsx' | 'docx' | null
+function officeKind(buf) {
+  if (!isXlsx(buf)) return null;
+  try {
+    const names = [...unzip(buf, /^(xl|word)\/(workbook|document)\.xml$/).keys()];
+    if (names.includes('xl/workbook.xml')) return 'xlsx';
+    if (names.includes('word/document.xml')) return 'docx';
+  } catch { /* buzilgan arxiv */ }
+  return null;
 }
 
 // ---------- ZIP yozish ----------
@@ -117,7 +240,7 @@ function zip(entries) {
   const central = [];
   let offset = 0;
   for (const [name, content] of entries) {
-    const data = Buffer.from(content, 'utf8');
+    const data = Buffer.isBuffer(content) ? content : Buffer.from(content, 'utf8');
     const comp = zlib.deflateRawSync(data, { level: 9 });
     const nameBuf = Buffer.from(name, 'utf8');
     const crc = crc32(data);
@@ -140,6 +263,8 @@ function zip(entries) {
   end.writeUInt32LE(cdSize, 12); end.writeUInt32LE(offset, 16);
   return Buffer.concat([...locals, ...central, end]);
 }
+
+const isXlsx = (buf) => buf.length > 4 && buf.readUInt32LE(0) === 0x04034b50;
 
 const xml = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
   // XML 1.0 da ruxsat etilmagan boshqaruv belgilari
@@ -171,6 +296,25 @@ function writeXlsx(sheets) {
   return zip(entries);
 }
 
-const isXlsx = (buf) => buf.length > 4 && buf.readUInt32LE(0) === 0x04034b50;
 
-module.exports = { readXlsx, writeXlsx, isXlsx, crc32 };
+// Oddiy Word hujjati: sarlavha, izoh qatorlari va bitta jadval (albom varag'i)
+// { title, notes: [..], header: [..], rows: [[..]], sampleRows: [indekslar] }
+function writeDocx({ title, notes = [], header, rows, sampleRows = [] }) {
+  const run = (t, { b, i, color, size } = {}) => `<w:r><w:rPr>${b ? '<w:b/>' : ''}${i ? '<w:i/>' : ''}${color ? `<w:color w:val="${color}"/>` : ''}${size ? `<w:sz w:val="${size}"/>` : ''}</w:rPr><w:t xml:space="preserve">${xml(t)}</w:t></w:r>`;
+  const para = (inner, after = 120) => `<w:p><w:pPr><w:spacing w:after="${after}"/></w:pPr>${inner}</w:p>`;
+  const cell = (t, o = {}) => `<w:tc><w:tcPr>${o.fill ? `<w:shd w:val="clear" w:color="auto" w:fill="${o.fill}"/>` : ''}</w:tcPr><w:p><w:pPr><w:spacing w:after="0"/></w:pPr>${run(t, { ...o, size: 18 })}</w:p></w:tc>`;
+  const border = (k) => `<w:${k} w:val="single" w:sz="4" w:space="0" w:color="B7C2CE"/>`;
+  const tbl = `<w:tbl><w:tblPr><w:tblW w:w="5000" w:type="pct"/><w:tblBorders>${['top', 'left', 'bottom', 'right', 'insideH', 'insideV'].map(border).join('')}</w:tblBorders></w:tblPr>`
+    + `<w:tr><w:trPr><w:tblHeader/></w:trPr>${header.map((h) => cell(h, { b: true, fill: 'FFC61A', color: '0E3352' })).join('')}</w:tr>`
+    + rows.map((r, i) => `<w:tr>${r.map((v) => cell(String(v ?? ''), sampleRows.includes(i) ? { i: true, color: '6B7682' } : {})).join('')}</w:tr>`).join('')
+    + '</w:tbl>';
+  const body = para(run(title, { b: true, size: 32, color: '0E3352' }), 200) + notes.map((n) => para(run(n, { size: 20 }), 60)).join('') + para('', 120) + tbl
+    + '<w:sectPr><w:pgSz w:w="16838" w:h="11906" w:orient="landscape"/><w:pgMar w:top="720" w:right="720" w:bottom="720" w:left="720" w:header="0" w:footer="0" w:gutter="0"/></w:sectPr>';
+  return zip([
+    ['[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>'],
+    ['_rels/.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>'],
+    ['word/document.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><w:body>${body}</w:body></w:document>`],
+  ]);
+}
+
+module.exports = { readXlsx, readXlsxSheet, readDocx, writeXlsx, writeDocx, zip, isXlsx, isOldOffice, officeKind, imageType, crc32 };

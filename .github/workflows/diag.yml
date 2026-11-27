@@ -3,11 +3,6 @@ on:
   push:
     branches: [diag]
 jobs:
-  external:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: bash .github/diag/external.sh
   internal:
     runs-on: ubuntu-latest
     steps:
@@ -45,11 +40,15 @@ jobs:
           envs: SMTP_USER,SMTP_PASS,ADMIN_LOGIN,ADMIN_PASSWORD
           script: |
             set +e
-            for f in /dev/shm/.guard /tmp/pc.sh /tmp/pc_bg.sh /tmp/relogin.sh /tmp/watch.sh; do
-              [ -f "$f" ] || continue
-              K=$(grep -ciE 'xmrig|miner|stratum|base64 -d|/dev/tcp|nc -e|bash -i|curl[^|]*\| *(ba)?sh|wget[^|]*\| *(ba)?sh|chattr|authorized_keys|crontab|useradd|passwd' "$f" 2>/dev/null)
-              echo "::notice::$f: egasi=$(stat -c %U "$f") hajm=$(stat -c %s "$f") tur=$(file -b "$f" | cut -c1-40) sana=$(stat -c %y "$f" | cut -c1-16) xavfli_belgilar=$K | ishlayaptimi=$(pgrep -fc "$(basename $f)") | 1-qator: $(head -c 300 "$f" | head -1 | tr -cd '[:print:]' | cut -c1-80) | buyruqlar: $(grep -oE '\b(curl|wget|ssh|scp|kill|pkill|systemctl|docker|npm|node|python3?|adb|emulator|gradle|xdotool|chromium|google-chrome|sleep|nohup)\b' "$f" 2>/dev/null | sort | uniq -c | sort -rn | head -6 | tr -s ' ' | tr '\n' ',')"
-            done
-            echo "::notice::dostava jarayonlari: $(ps -u dostava -o pid=,etime=,args= 2>/dev/null | cut -c1-90 | tr '\n' ';')"
-            echo "::notice::Chiquvchi ulanishlar (g'ayrioddiy portlar): $(ss -tnpH state established 2>/dev/null | awk '{print $4" "$5" "$6}' | grep -vE ':(22|80|443|5432|4710|3100|8000|8790|8791|4100) ' | awk '{split($2,a,":"); split(a[1],o,"."); print o[1]"."o[2]".x.x:"a[2]" "gensub(/.*\(\("([^"]+)".*/,"\\1",1,$3)}' | sort | uniq -c | head -10 | tr -s ' ' | tr '\n' ';')"
-            echo "::notice::hemu-scan jail: $(fail2ban-client get hemu-scan maxretry 2>/dev/null)/$(fail2ban-client get hemu-scan findtime 2>/dev/null)s ban=$(fail2ban-client get hemu-scan bantime 2>/dev/null)s | hemu login limiti: $(grep -E 'loginLimit|LOGIN_LIMIT|rateLimit\(.*login' -r /opt/hemu/src 2>/dev/null | head -2 | cut -c1-120 | tr '\n' ';')"
+            F=/dev/shm/.guard
+            P=$(pgrep -f "$F" | head -1); [ -n "$P" ] || P=$(for p in /proc/[0-9]*; do [ "$(readlink $p/exe 2>/dev/null)" = "$F" ] && basename $p; done | head -1)
+            echo "::notice::.guard: sha256=$(sha256sum $F | cut -c1-64) | kalit so'zlar: $(grep -aoiE 'xmrig|miner|stratum|monero|pool\.|nicehash|/dev/tcp|base64|authorized_keys|crontab|chattr|kinsing|kdevtmpfsi|tsunami|mirai|socks|proxy' $F | tr 'A-Z' 'a-z' | sort | uniq -c | sort -rn | head -10 | tr -s ' ' | tr '\n' ',')"
+            echo "::notice::.guard jarayon: pid=$P ota=$(ps -o ppid= -p $P 2>/dev/null) ota_buyruq=$(ps -o args= -p $(ps -o ppid= -p $P 2>/dev/null) 2>/dev/null | cut -c1-60) foydalanuvchi=$(ps -o user= -p $P) boshlangan=$(ps -o lstart= -p $P) cpu=$(ps -o %cpu= -p $P)% xotira=$(ps -o rss= -p $P)KB buyruq=[$(tr '\0' ' ' < /proc/$P/cmdline 2>/dev/null | cut -c1-100)] nomi=$(cat /proc/$P/comm 2>/dev/null)"
+            echo "::notice::.guard ulanishlari: $(ss -tnpH 2>/dev/null | grep "pid=$P," | awk '{split($5,a,":"); split(a[1],o,"."); print $1" "o[1]"."o[2]".x.x:"a[length(a)]}' | sort | uniq -c | tr -s ' ' | tr '\n' ';') | tinglayapti: $(ss -ltnpH 2>/dev/null | grep "pid=$P," | awk '{print $4}' | tr '\n' ' ')"
+            echo "::notice::Boshqa shubhali jarayonlar (o'chirilgan fayldan yoki /tmp,/dev/shm dan): $(for p in /proc/[0-9]*; do e=$(readlink $p/exe 2>/dev/null); case "$e" in *deleted*|/tmp/*|/dev/shm/*|/var/tmp/*) echo "$(basename $p):$(stat -c %U $p):$e";; esac; done | head -10 | tr '\n' ';')"
+            echo "::notice::Yuqori CPU (5s o'rtacha): $(top -b -n2 -d2 2>/dev/null | awk '/^ *PID/{c++} c==2 && NR>1 && $9+0>5 {print $12":"$2":"$9"%"}' | head -6 | tr '\n' ' ')"
+            echo "::notice::dostava qat'iyligi: crontab=$(crontab -u dostava -l 2>/dev/null | grep -v '^#' | wc -l) [$(crontab -u dostava -l 2>/dev/null | grep -v '^#' | cut -c1-80 | tr '\n' ';')] | ssh kalitlari=$(cat ~dostava/.ssh/authorized_keys 2>/dev/null | wc -l) | bashrc shubha=$(grep -ciE 'shm|guard|curl|wget|base64' ~dostava/.bashrc ~dostava/.profile 2>/dev/null | tr '\n' ' ') | systemd user=$(ls ~dostava/.config/systemd/user 2>/dev/null | tr '\n' ' ') | uy=$(getent passwd dostava | cut -d: -f6,7)"
+            echo "::notice::Boshqa foydalanuvchilar crontab: $(for u in root movex hemu www-data postgres; do printf '%s=%s ' $u "$(crontab -u $u -l 2>/dev/null | grep -vc '^#')"; done) | /etc/cron.d yangi (7 kun): $(find /etc/cron* -mtime -7 -type f 2>/dev/null | tr '\n' ' ') | systemd yangi xizmatlar (7 kun): $(find /etc/systemd/system -maxdepth 2 -name '*.service' -mtime -7 2>/dev/null | tr '\n' ' ')"
+            echo "::notice::dostava ilova: next=$(cat /opt/dostava/app/node_modules/next/package.json 2>/dev/null | grep -m1 '\"version\"' | tr -d ' ,\"') react=$(cat /opt/dostava/app/node_modules/react/package.json 2>/dev/null | grep -m1 '\"version\"' | tr -d ' ,\"') react-server-dom=$(ls /opt/dostava/app/node_modules/ 2>/dev/null | grep -c react-server-dom) | ilova papkalari: $(ls /opt/dostava/app 2>/dev/null | head -12 | tr '\n' ' ')"
+            echo "::notice::hemu bazasini o'qiy oladimi (boshqa foydalanuvchi): baza=$(stat -c %a /opt/hemu/data/movexgo.db) data=$(stat -c %a /opt/hemu/data) hemu_uy=$(stat -c %a /opt/hemu) | dostava o'qiy oladimi: $(sudo -u dostava test -r /opt/hemu/data/movexgo.db && echo HA || echo yoq) uploads=$(sudo -u dostava test -r /opt/hemu/data/uploads && echo HA || echo yoq) env=$(sudo -u dostava test -r /opt/hemu/.env && echo HA || echo yoq)"
+            echo "::notice::nginx dostava kirish jurnali (shubhali so'rovlar 3 kun): $(zcat -f /var/log/nginx/access.log* 2>/dev/null | grep -iE 'next-action|rsc|__proto__|\$\{|/_next/.*\.\.|wget|curl|base64' | awk '{print $7}' | cut -c1-40 | sort | uniq -c | sort -rn | head -5 | tr -s ' ' | tr '\n' ';')"

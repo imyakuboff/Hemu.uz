@@ -240,7 +240,7 @@ export async function importPage() {
        ${f.stats ? ` · ${esc(t('feed_stats', { c: f.stats.created, u: f.stats.updated, a: f.stats.archived }))}` : ''}${f.last_error ? `<div class="tiny" style="color:var(--red)">${esc(f.last_error)}</div>` : ''}
        ${f.stats?.errors?.length ? `<details class="tiny" style="margin-top:6px"><summary>${esc(t('feed_errors', { n: f.stats.errors.length }))}</summary>${f.stats.errors.map((x) => `<div>${esc(t('row_n', { n: x.row }))}: ${esc(x.error || x.warning || '')}${x.details ? ` (${esc(Object.keys(x.details).join(', '))})` : ''}</div>`).join('')}</details>` : ''}`
     : esc(t('feed_pending'))} · ${esc(t('feed_active_n', { n: f.listings }))}</div>`);
-  const html = accountLayout('/my/listings', `
+  const html = accountLayout('/my/import', `
     ${crumbs([[t('home'), '/'], [t('my_listings'), '/my/listings'], [t('import')]])}
     <div class="page-head"><h1 class="page-title">${esc(t('import'))}</h1><p class="page-sub">${esc(t('import_sub'))}</p></div>
     <form class="box" data-imp>

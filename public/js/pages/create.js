@@ -107,6 +107,7 @@ export async function listing({ params }) {
   const html = (guest ? (x) => x : (x) => accountLayout('', x))(`
   ${crumbs([[t('home'), '/'], ...(guest ? [] : [[t('dashboard'), '/dashboard']]), [id ? t('edit_title') : t('create_title')]])}
   <div class="page-head"><h1 class="page-title">${esc(id ? t('edit_title') : t('create_title'))}</h1><p class="page-sub">${esc(t('create_sub'))}</p></div>
+  ${id ? '' : `<a class="imp-banner" href="/my/import">${icon('upload')}<span><b>${esc(t('imp_banner'))}</b><small>${esc(t('imp_banner_sub'))}</small></span>${icon('chevron')}</a>`}
   <p class="small" style="margin:-8px 0 16px"><span class="saved-badge" data-saved ${id ? '' : 'hidden'}>${esc(t('draft_saved', { t: fmtTime(e.updated_at) }))}</span><span class="muted tiny">${esc(t('autosave_note'))}</span>${e.status && e.status !== 'draft' ? ` <span class="tag ${e.status === 'active' ? 'green' : e.status === 'rejected' ? 'red' : 'orange'}">${esc(state.meta.listing_statuses.find((s) => s.value === e.status)?.label)}</span>` : ''}</p>
   ${e.reject_reason ? `<div class="note" style="margin:0 0 16px"><div><b>${esc(t('reject_reason', { r: e.reject_reason }))}</b></div></div>` : ''}
   ${!id && !company ? `<div class="note" style="margin:0 0 16px">${icon('user')}<div><b>${esc(t('seller_private'))}</b><p>${esc(t('private_sell_hint'))}</p></div></div>` : ''}

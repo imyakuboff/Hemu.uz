@@ -196,6 +196,7 @@ export function accountLayout(active, content) {
   const items = [
     ['/dashboard', 'dash', t('dashboard')],
     ['/my/listings', 'list', t('my_listings')],
+    ['/my/import', 'upload', t('import')],
     ['/my/promos', 'target', t('my_promos')],
     ['/my/orders', 'box', t('my_orders')],
     ['/favorites', 'heart', t('nav_fav')],
@@ -384,7 +385,7 @@ export function mobileMenu() {
   ];
   const mine = [];
   if (u) {
-    mine.push(['/dashboard', 'dash', t('menu_cabinet')], ['/my/listings', 'list', t('my_listings')], ['/my/orders', 'box', t('my_orders')],
+    mine.push(['/dashboard', 'dash', t('menu_cabinet')], ['/my/listings', 'list', t('my_listings')], ['/my/import', 'upload', t('import')], ['/my/orders', 'box', t('my_orders')],
       ['/notifications', 'bell', t('menu_notif'), state.badges?.notifications || 0]);
     if (u.company) mine.push(['/crm', 'chart', t('crm')], ['/business', 'building', t('business')]);
     if (['driver', 'mechanic'].includes(u.account_type)) mine.push(['/resume', 'file', t('menu_resume')]);

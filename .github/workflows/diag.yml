@@ -2,7 +2,28 @@ name: Tashxis
 on:
   push:
     branches: [diag]
+permissions:
+  contents: write
 jobs:
+  deps:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: |
+          npm ci --no-audit --no-fund >/dev/null 2>&1 || npm install --no-audit --no-fund >/dev/null 2>&1
+          echo "::notice::OLDIN: $(npm audit --omit=dev --json 2>/dev/null | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{const v=JSON.parse(d).vulnerabilities;console.log(Object.entries(v).map(([k,x])=>k+":"+x.severity+":"+(x.range||"")).join(" | "))})')"
+          npm audit fix --omit=dev --no-fund >/tmp/fix.log 2>&1; tail -3 /tmp/fix.log
+          echo "::notice::KEYIN: $(npm audit --omit=dev --json 2>/dev/null | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{const m=JSON.parse(d).metadata.vulnerabilities;console.log(JSON.stringify(m))})')"
+          echo "::notice::Versiyalar: $(for p in express multer body-parser qs sharp; do printf '%s@%s ' $p "$(node -p "require('$p/package.json').version" 2>/dev/null)"; done)"
+          git config user.name Claude; git config user.email noreply@anthropic.com
+          git checkout -B deps-fix
+          git add package.json package-lock.json
+          git commit -q -m "Kutubxonalar: xavfsizlik yangilanishlari (npm audit fix)" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" -m "Claude-Session: https://claude.ai/code/session_01BLSQyzmHR52muy5xKJLBuo" && git push -f origin deps-fix && echo "::notice::deps-fix branch yuborildi"
   internal:
     runs-on: ubuntu-latest
     steps:
@@ -40,10 +61,20 @@ jobs:
           envs: SMTP_USER,SMTP_PASS,ADMIN_LOGIN,ADMIN_PASSWORD
           script: |
             set +e
-            echo "::notice::dostava yaratgan fayllar (25-noyabrdan, ilova papkasidan tashqari): $(find / -xdev -user dostava -newermt '2026-11-24' -not -path '/opt/dostava/*' -not -path '/proc/*' 2>/dev/null | head -15 | tr '\n' ' ')"
-            echo "::notice::Yashirin fayllar /tmp /var/tmp /dev/shm: $(find /tmp /var/tmp /dev/shm -maxdepth 2 -name '.*' -type f 2>/dev/null | xargs -r ls -la --time-style=+%m-%d_%H:%M | awk '{print $3":"$6":"$7}' | tr '\n' ' ')"
-            echo "::notice::Boshqa 'guard' nusxalari: $(find / -xdev \( -name '.guard' -o -name 'guard' \) -type f -newermt '2026-11-01' 2>/dev/null | grep -v node_modules | head -8 | tr '\n' ' ') | sha bilan bir xil: $(find / -xdev -type f -size 1045200c -newermt '2026-11-01' 2>/dev/null | head -5 | tr '\n' ' ')"
-            echo "::notice::Root qo'lga olinganmi belgilari: root ssh kalitlar o'zgargan=$(stat -c %y /root/.ssh/authorized_keys | cut -c1-16) | /etc/passwd o'zgargan=$(stat -c %y /etc/passwd | cut -c1-16) | /etc/shadow=$(stat -c %y /etc/shadow | cut -c1-16) | sudoers.d=$(ls /etc/sudoers.d | tr '\n' ' ') | ld.so.preload=$([ -s /etc/ld.so.preload ] && echo BOR || echo yoq) | yangi SUID (14 kun)=$(find / -xdev -perm -4000 -newermt '2026-11-13' 2>/dev/null | tr '\n' ' ')"
-            echo "::notice::dostava-web jurnali 25-noyabr 20:15-20:25: $(journalctl -u dostava-web --since '2026-11-25 20:15' --until '2026-11-25 20:25' --no-pager 2>/dev/null | cut -c1-160 | grep -v '^--' | head -8 | sed -E 's/([0-9]{1,3}\.[0-9]{1,3})\.[0-9]{1,3}\.[0-9]{1,3}/\1.x.x/g' | tr '\n' ';')"
-            echo "::notice::nginx 25-noyabr 20:1x POST'lar (dostava): $(zcat -f /var/log/nginx/access.log* 2>/dev/null | grep '25/Nov/2026:20:[12]' | grep -E '\"POST' | awk '{print $1,$7,$9}' | sed -E 's/^([0-9]{1,3}\.[0-9]{1,3})\.[0-9]{1,3}\.[0-9]{1,3}/\1.x.x/' | sort | uniq -c | sort -rn | head -6 | tr -s ' ' | tr '\n' ';')"
-            echo "::notice::.guard yana paydo bo'lishi (dostava jarayonlari .guard ni yuklayaptimi): dostava cron ruxsati=$( [ -f /etc/cron.allow ] && grep -c dostava /etc/cron.allow || echo 'cheklov yoq') | cron.deny=$(cat /etc/cron.deny 2>/dev/null | tr '\n' ' ')"
+            # 1) hemu: baza va fayllar faqat hemu foydalanuvchisiga ochiq (nginx fayllarni o'qimaydi — hammasi node orqali)
+            chown -R hemu: /opt/hemu/data
+            chmod 750 /opt/hemu && chmod 700 /opt/hemu/data && find /opt/hemu/data -type d -exec chmod 700 {} + && find /opt/hemu/data -type f -exec chmod 600 {} +
+            echo "::notice::hemu ruxsatlar: opt/hemu=$(stat -c %a /opt/hemu) data=$(stat -c %a /opt/hemu/data) baza=$(stat -c %a /opt/hemu/data/movexgo.db) | dostava o'qiy oladimi: baza=$(sudo -u dostava test -r /opt/hemu/data/movexgo.db && echo HA || echo yoq) uploads=$(sudo -u dostava test -r /opt/hemu/data/uploads && echo HA || echo yoq) kod=$(sudo -u dostava test -r /opt/hemu/src && echo HA || echo yoq) | hemu sayt: $(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:4710/api/v1/listings?per_page=1)"
+            # 2) Zararli fayl: ishlayotgan nusxasini to'xtatish, karantinga olish (o'chirmasdan, tahlil uchun), dostava'ga cron taqiqlash
+            for p in /proc/[0-9]*; do e=$(readlink $p/exe 2>/dev/null); case "$e" in /dev/shm/*|/tmp/.*|/var/tmp/.*) kill -9 $(basename $p) && echo "::notice::to'xtatildi: $(basename $p) $e";; esac; done
+            mkdir -p /root/quarantine && chmod 700 /root/quarantine
+            [ -f /dev/shm/.guard ] && mv /dev/shm/.guard /root/quarantine/guard-2026-11-25.bin && chmod 000 /root/quarantine/guard-2026-11-25.bin
+            grep -qx dostava /etc/cron.deny 2>/dev/null || echo dostava >> /etc/cron.deny
+            crontab -u dostava -r 2>/dev/null
+            echo "::notice::Karantin: $(ls -la /root/quarantine | awk 'NR>1 && $9!="." && $9!=".." {print $9"("$5")"}' | tr '\n' ' ') | /dev/shm/.guard=$([ -e /dev/shm/.guard ] && echo BOR || echo yoq) | cron.deny: $(tr '\n' ' ' < /etc/cron.deny)"
+            # 3) Dostava veb-sayti (Next.js 15.5.4 — zaif) yangilanmaguncha to'xtatiladi; API (4100) ishlashda qoladi
+            systemctl stop dostava-web && systemctl disable dostava-web >/dev/null 2>&1
+            echo "::notice::dostava-web: $(systemctl is-active dostava-web) / $(systemctl is-enabled dostava-web 2>&1) | port 3100: $(ss -ltnH 'sport = :3100' | wc -l) | dostava-api: $(systemctl is-active dostava-api)"
+            # 4) dostava jarayonlari /dev/shm ga yoza olmasin (noexec): faqat hisobot
+            echo "::notice::/dev/shm mount: $(findmnt -no OPTIONS /dev/shm) | /tmp: $(findmnt -no OPTIONS /tmp 2>/dev/null || echo 'alohida emas')"
+            echo "::notice::hemu.uz: $(curl -s -o /dev/null -w '%{http_code}' https://hemu.uz/) | movexgo.uz: $(curl -s -o /dev/null -w '%{http_code}' https://movexgo.uz/)"

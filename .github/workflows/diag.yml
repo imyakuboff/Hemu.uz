@@ -3,11 +3,6 @@ on:
   push:
     branches: [diag]
 jobs:
-  external:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: sudo apt-get install -y -q nmap >/dev/null 2>&1; bash .github/diag/external.sh
   internal:
     runs-on: ubuntu-latest
     steps:
@@ -45,26 +40,13 @@ jobs:
           envs: SMTP_USER,SMTP_PASS,ADMIN_LOGIN,ADMIN_PASSWORD
           script: |
             set +e
-            m() { sed -E 's/([0-9]{1,3}\.[0-9]{1,3})\.[0-9]{1,3}\.[0-9]{1,3}/\1.x.x/g'; }
-            echo "::notice::OS: $(. /etc/os-release; echo $PRETTY_NAME) | kernel $(uname -r) | uptime $(uptime -p)"
-            echo "::notice::Yangilanishlar: kutilayotgan=$(apt list --upgradable 2>/dev/null | grep -c upgradable) xavfsizlik=$(apt list --upgradable 2>/dev/null | grep -ci security) | avto-yangilanish=$(systemctl is-enabled unattended-upgrades 2>&1) | qayta yuklash kerak=$([ -f /var/run/reboot-required ] && echo HA || echo yoq)"
-            echo "::notice::Firewall: ufw=$(ufw status 2>/dev/null | head -1) | iptables INPUT policy=$(iptables -S INPUT 2>/dev/null | head -1) qoidalar=$(iptables -S INPUT 2>/dev/null | wc -l) | nft=$(nft list ruleset 2>/dev/null | grep -c 'drop\|reject')"
-            echo "::notice::Ochiq portlar (barcha interfeyslarda): $(ss -ltnpH 2>/dev/null | awk '{split($4,a,":"); host=substr($4,1,length($4)-length(a[length(a)])-1); if (host!="127.0.0.1" && host!="[::1]" && host!="127.0.0.53%lo" && host!="127.0.0.54") print $4"("gensub(/.*\(\("([^"]+)".*/,"\\1",1,$6)")"}' | tr '\n' ' ')"
-            echo "::notice::Faqat localhost: $(ss -ltnpH 2>/dev/null | awk '{print $4}' | grep -E '^(127|\[::1\])' | tr '\n' ' ')"
-            echo "::notice::UDP: $(ss -lunpH 2>/dev/null | awk '{print $4}' | grep -vE '^(127|\[::1\])' | tr '\n' ' ')"
-            echo "::notice::SSH: $(sshd -T 2>/dev/null | grep -E '^(port|permitrootlogin|passwordauthentication|kbdinteractiveauthentication|pubkeyauthentication|maxauthtries|x11forwarding|permitemptypasswords) ' | tr '\n' ' ') | kalitlar root=$(grep -c '^ssh-\|^ecdsa' /root/.ssh/authorized_keys 2>/dev/null)"
-            echo "::notice::fail2ban: $(systemctl is-active fail2ban 2>&1) jails=[$(fail2ban-client status 2>/dev/null | sed -n 's/.*Jail list:\s*//p')] sshd bloklangan=$(fail2ban-client status sshd 2>/dev/null | sed -n 's/.*Currently banned:\s*//p') jami=$(fail2ban-client status sshd 2>/dev/null | sed -n 's/.*Total banned:\s*//p')"
-            echo "::notice::SSH urinishlar (24 soat): muvaffaqiyatsiz=$(journalctl -u ssh -u sshd --since '-24h' --no-pager 2>/dev/null | grep -cE 'Failed|Invalid user') muvaffaqiyatli=$(journalctl -u ssh -u sshd --since '-24h' --no-pager 2>/dev/null | grep -c Accepted)"
-            echo "::notice::Login qila oladigan foydalanuvchilar: $(awk -F: '$7 !~ /(nologin|false|sync|halt|shutdown)$/ {print $1}' /etc/passwd | tr '\n' ' ') | UID0: $(awk -F: '$3==0{print $1}' /etc/passwd | tr '\n' ' ') | sudo: $(getent group sudo | cut -d: -f4)"
-            echo "::notice::Xizmatlar foydalanuvchisi: $(ps -eo user:12,comm:18,args --no-headers | grep -E 'node|python|uvicorn|next|gunicorn|java|php' | grep -v grep | awk '{print $1":"$2}' | sort -u | tr '\n' ' ')"
-            echo "::notice::hemu xizmati: $(systemctl show hemu -p User -p NoNewPrivileges -p ProtectSystem -p ProtectHome -p PrivateTmp 2>/dev/null | tr '\n' ' ') | .env=$(stat -c '%a %U' /opt/hemu/.env 2>/dev/null) | baza=$(stat -c '%a %U' /opt/hemu/data/movexgo.db 2>/dev/null) | data=$(stat -c '%a %U' /opt/hemu/data 2>/dev/null)"
-            echo "::notice::Boshqa loyihalar .env: $(for f in /opt/*/.env /opt/*/*/.env; do [ -f "$f" ] && printf '%s=%s ' "$f" "$(stat -c '%a:%U' $f)"; done)"
-            echo "::notice::Boshqa loyihalar egasi: $(for d in /opt/*/; do printf '%s=%s ' "$(basename $d)" "$(stat -c %U $d)"; done) | root ishlovchi web: $(ps -eo user,args --no-headers | awk '$1=="root"' | grep -E 'node|python|uvicorn|next' | grep -v grep | awk '{print $2,$3}' | cut -c1-60 | tr '\n' ';')"
-            echo "::notice::Docker: $(docker ps --format '{{.Names}} {{.Ports}}' 2>/dev/null | tr '\n' ';' || echo yoq)"
-            echo "::notice::nginx: $(nginx -v 2>&1) | server_tokens=$(nginx -T 2>/dev/null | grep -m1 -o 'server_tokens [a-z]*') | saytlar: $(nginx -T 2>/dev/null | grep -oE 'server_name [^;]+' | sort -u | tr '\n' '|') | default_server: $(nginx -T 2>/dev/null | grep -c default_server)"
-            echo "::notice::SSL: $(for c in /etc/letsencrypt/live/*/cert.pem; do printf '%s tugaydi %s; ' "$(basename $(dirname $c))" "$(openssl x509 -enddate -noout -in $c | cut -d= -f2)"; done) | certbot timer=$(systemctl is-active certbot.timer 2>&1)"
-            echo "::notice::Node: $(node -v) | npm audit hemu: $(cd /opt/hemu && sudo -u hemu npm audit --omit=dev --json 2>/dev/null | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{const v=JSON.parse(d).metadata.vulnerabilities;console.log(JSON.stringify(v))}catch{console.log("?")}})')"
-            echo "::notice::Cron: $(ls /etc/cron.d | tr '\n' ' ') | root crontab: $(crontab -l 2>/dev/null | grep -vc '^#')"
-            echo "::notice::Zaxiralar: $(ls /root/hemu-backups/*.gz /root/hemu-backups/daily/* 2>/dev/null | wc -l) fayl, oxirgisi $(ls -t /root/hemu-backups/db-*.gz /root/hemu-backups/daily/* 2>/dev/null | head -1 | xargs -r stat -c %y | cut -c1-16) | serverdan tashqarida: yoq"
-            echo "::notice::Disk: $(df -h / | awk 'NR==2{print $4" free, "$5" band"}') | RAM: $(free -m | awk '/Mem/{print $7"MB free"}') | swap: $(free -m | awk '/Swap/{print $2"MB"}')"
-            echo "::notice::Shubhali: /tmp ijro fayllar=$(find /tmp /var/tmp /dev/shm -type f -perm -u+x 2>/dev/null | wc -l) | yangi SUID (30 kun)=$(find / -xdev -perm -4000 -mtime -30 2>/dev/null | wc -l) | yuklama=$(cat /proc/loadavg | cut -d' ' -f1-3) | eng ko'p CPU: $(ps -eo comm,%cpu --sort=-%cpu --no-headers | head -3 | tr -s ' ' | tr '\n' ';')"
+            echo "::notice::SSH kirishlar (24s) kalit va manba bo'yicha: $(journalctl -u ssh -u sshd --since '-24h' --no-pager 2>/dev/null | grep Accepted | awk '{for(i=1;i<=NF;i++){if($i=="from")ip=$(i+1); if($i ~ /^SHA256:/)fp=substr($i,1,18)} split(ip,o,"."); print o[1]"."o[2]".x.x "fp}' | sort | uniq -c | sort -rn | head -8 | tr -s ' ' | tr '\n' ';')"
+            echo "::notice::root kalitlari (izoh): $(awk '{print $NF}' /root/.ssh/authorized_keys | tr '\n' ' ') | barmoq izlari: $(ssh-keygen -lf /root/.ssh/authorized_keys 2>/dev/null | awk '{print substr($2,1,18)}' | tr '\n' ' ')"
+            echo "::notice::Hozir ulangan: $(who | awk '{print $1}' | sort | uniq -c | tr -s ' ' | tr '\n' ';') | sshd jarayonlar: $(pgrep -c sshd)"
+            echo "::notice::Disk eng kattalar: $(du -xsh /opt/* /var/* /root /home/* /tmp /usr 2>/dev/null | sort -rh | head -12 | awk '{print $2"="$1}' | tr '\n' ' ')"
+            echo "::notice::/opt ichida: $(du -xsh /opt/*/* 2>/dev/null | sort -rh | head -10 | awk '{print $2"="$1}' | tr '\n' ' ')"
+            echo "::notice::Jurnal va kesh: journal=$(journalctl --disk-usage 2>/dev/null | grep -oE '[0-9.]+[MG]') apt=$(du -sh /var/cache/apt 2>/dev/null | cut -f1) npm-root=$(du -sh /root/.npm 2>/dev/null | cut -f1) gradle=$(du -sh /root/.gradle 2>/dev/null | cut -f1) snap=$(du -sh /var/lib/snapd 2>/dev/null | cut -f1) hemu-backups=$(du -sh /root/hemu-backups 2>/dev/null | cut -f1) | katta fayllar: $(find / -xdev -type f -size +300M 2>/dev/null | head -8 | xargs -r du -h | awk '{print $2"="$1}' | tr '\n' ' ')"
+            echo "::notice::/tmp ijro: $(find /tmp /var/tmp /dev/shm -type f -perm -u+x 2>/dev/null | xargs -r ls -la --time-style=+%m-%d | awk '{print $3,$6,$7}' | tr '\n' ';')"
+            echo "::notice::hemu npm audit: $(cd /opt/hemu && sudo -u hemu npm audit --omit=dev --json 2>/dev/null | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{const v=JSON.parse(d).vulnerabilities;console.log(Object.entries(v).map(([k,x])=>k+":"+x.severity+(x.fixAvailable?":fix":"")).join(" "))}catch{console.log("?")}})')"
+            echo "::notice::Port 4100 kimniki: $(ss -ltnpH 'sport = :4100' | grep -o 'pid=[0-9]*' | head -1 | cut -d= -f2 | xargs -r ps -o user=,args= -p | cut -c1-80) | ufw qoidalari: $(ufw status 2>/dev/null | grep -E 'ALLOW|DENY' | awk '{print $1"/"$2}' | tr '\n' ' ')"
+            echo "::notice::Xavfsizlik yangilanishlari: $(apt list --upgradable 2>/dev/null | grep -i security | cut -d/ -f1 | head -13 | tr '\n' ' ')"

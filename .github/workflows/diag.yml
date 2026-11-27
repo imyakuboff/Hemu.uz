@@ -19,4 +19,4 @@ jobs:
           for d in film/*/; do s=$(basename $d); ffmpeg -loglevel error -y -framerate 30 -i "$d/%05d.jpg" -vf "scale=780:1688:flags=lanczos,format=yuv420p" -c:v libx264 -crf 16 -preset slow -pix_fmt yuv420p "out/$s.mp4"; done
           ls -la out
           git config user.name Claude; git config user.email noreply@anthropic.com
-          git checkout --orphan media && git rm -rfq . && cp out/*.mp4 . && git add *.mp4 && git commit -qm "Saytdan yozib olingan sahnalar" && git push -f origin media
+          git checkout --orphan media2 && git rm -rfq . && cp out/*.mp4 . && git add *.mp4 && git commit -qm "Saytdan yozib olingan sahnalar" && git push -f origin media2

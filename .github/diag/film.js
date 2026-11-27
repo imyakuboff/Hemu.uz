@@ -35,24 +35,42 @@ const B = 'https://hemu.uz';
 
   await go('/');
   await p.evaluate(() => { localStorage.setItem('mx_lang', 'uz'); localStorage.setItem('mx_sound', '0'); });
-  // 1) Bosh sahifa
-  await go('/'); scene('1-home'); await hold(24); await scroll(700, 70); await hold(10); await scroll(1500, 70); await hold(16);
-  // 2) Katalog va filtrlar
-  await go('/catalog'); scene('2-catalog'); await hold(20); await tap('[data-ftoggle]'); await hold(36);
-  await tap('.f-apply'); await p.waitForTimeout(800); await prep(); await hold(14); await scroll(900, 80); await hold(14);
-  // 3) E'lon sahifasi + lizing kalkulyatori
-  await go('/listing/17'); scene('3-listing'); await hold(24); await scroll(520, 60); await hold(20);
-  await tap('[data-leasing]'); await p.waitForTimeout(300); await hold(45);
-  await p.keyboard.press('Escape'); await p.waitForTimeout(300); await hold(10);
-  // 4) E'lon joylash (kirishsiz) — joylanmaydi, faqat forma to'ldiriladi
-  await go('/create'); scene('4-create'); await hold(20);
-  await scroll(330, 40);
-  await type('input[name=title]', 'JCB 3CX ekskavator, 2021');
-  await hold(10);
-  const pr = p.locator('input[name=price]').first(); await pr.scrollIntoViewIfNeeded(); await p.evaluate(() => scrollBy(0, 160)); await hold(8);
-  await type('input[name=price]', '950000000');
-  await hold(12);
-  await tap('[data-add]'); await p.waitForTimeout(400); await hold(40);
+  const sel = async (s, v) => { const el = p.locator(s).first(); await el.scrollIntoViewIfNeeded(); await el.selectOption(v).catch(() => {}); await hold(10); };
+  const fill = async (s, text) => { const el = p.locator(s).first(); if (!(await el.count())) { console.log('NOEL', s); return; } await el.scrollIntoViewIfNeeded(); await el.click(); await el.fill(''); for (const ch of text) { await el.type(ch); await shot(); await shot(); } await hold(6); };
+
+  // V1: E'lon joylash — bosh sahifadan "+ Joylash", forma to'ldiriladi (joylanmaydi)
+  await go('/'); scene('v1-elon'); await hold(18);
+  await tap('.plus'); await p.waitForTimeout(900); await prep(); await hold(16);
+  await scroll(330, 36);
+  await fill('input[name=title]', 'JCB 3CX ekskavator-yuklagich, 2021');
+  await fill('input[name=brand]', 'JCB');
+  await fill('input[name=model]', '3CX');
+  await fill('input[name=year]', '2021');
+  await fill('input[name=price]', '950000000');
+  await tap('[data-add]'); await p.waitForTimeout(500); await hold(42);
+
+  // V2: Lizing — katalog -> e'lon -> kalkulyator, raqamlar o'zgartiriladi
+  await go('/catalog'); scene('v2-lizing'); await hold(16); await scroll(380, 34); await hold(8);
+  await tap('.grid .card a'); await p.waitForTimeout(900); await prep(); await hold(16);
+  await scroll(520, 46); await hold(10);
+  await tap('[data-leasing]'); await p.waitForTimeout(300); await hold(22);
+  await fill('.modal input[name=down]', '30'); await hold(10);
+  await fill('.modal input[name=term]', '24'); await hold(30);
+
+  // V3: Qidiruv — qidirish, filtr, xarita
+  await go('/'); scene('v3-qidiruv'); await hold(14);
+  await fill('main form[data-search] input[name=q]', 'ekskavator');
+  await tap('main form[data-search] button.btn'); await p.waitForTimeout(1000); await prep(); await hold(16);
+  await scroll(500, 40); await hold(8); await scroll(0, 24);
+  await tap('[data-ftoggle]'); await hold(30); await tap('.f-apply'); await p.waitForTimeout(900); await prep(); await hold(10);
+  await go('/catalog?view=map'); await p.waitForTimeout(1500); await hold(45);
+
+  // V4: Mexaniklar va haydovchilar
+  await go('/mechanic'); scene('v4-ustalar-a'); await hold(16); await scroll(700, 60); await hold(10); await scroll(1400, 60); await hold(12);
+  await go('/driver'); scene('v4-ustalar-b'); await hold(16); await scroll(700, 60); await hold(10); await scroll(1400, 60); await hold(12);
+
+  // V5: Ilova sahifasi
+  await go('/app'); scene('v5-ilova'); await hold(24); await scroll(600, 60); await hold(16); await scroll(1300, 70); await hold(20);
   await b.close();
   for (const d of fs.readdirSync('film')) console.log('SCENE', d, fs.readdirSync('film/' + d).length);
 })();

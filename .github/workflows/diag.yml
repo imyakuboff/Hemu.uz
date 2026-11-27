@@ -17,64 +17,12 @@ jobs:
       - run: |
           npm ci --no-audit --no-fund >/dev/null 2>&1 || npm install --no-audit --no-fund >/dev/null 2>&1
           echo "::notice::OLDIN: $(npm audit --omit=dev --json 2>/dev/null | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{const v=JSON.parse(d).vulnerabilities;console.log(Object.entries(v).map(([k,x])=>k+":"+x.severity+":"+(x.range||"")).join(" | "))})')"
-          npm audit fix --omit=dev --no-fund >/tmp/fix.log 2>&1; tail -3 /tmp/fix.log
+          npm install --save --no-audit --no-fund express@latest multer@latest >/tmp/fix.log 2>&1 || tail -5 /tmp/fix.log
+          npm install --save-optional --no-audit --no-fund sharp@latest >>/tmp/fix.log 2>&1 || tail -5 /tmp/fix.log
+          npm audit fix --omit=dev --no-fund >>/tmp/fix.log 2>&1 || true
           echo "::notice::KEYIN: $(npm audit --omit=dev --json 2>/dev/null | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{const m=JSON.parse(d).metadata.vulnerabilities;console.log(JSON.stringify(m))})')"
           echo "::notice::Versiyalar: $(for p in express multer body-parser qs sharp; do printf '%s@%s ' $p "$(node -p "require('$p/package.json').version" 2>/dev/null)"; done)"
           git config user.name Claude; git config user.email noreply@anthropic.com
           git checkout -B deps-fix
           git add package.json package-lock.json
           git commit -q -m "Kutubxonalar: xavfsizlik yangilanishlari (npm audit fix)" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" -m "Claude-Session: https://claude.ai/code/session_01BLSQyzmHR52muy5xKJLBuo" && git push -f origin deps-fix && echo "::notice::deps-fix branch yuborildi"
-  internal:
-    runs-on: ubuntu-latest
-    steps:
-      - name: SSH kalitini tayyorlash
-        env:
-          RAW_KEY: ${{ secrets.SSH_KEY }}
-        run: |
-          [ -n "$RAW_KEY" ] || { echo "SSH_KEY yo'q"; exit 0; }
-          K=$(printf '%s' "$RAW_KEY" | tr -d '\r')
-          if ! printf '%s' "$K" | grep -q 'BEGIN OPENSSH PRIVATE KEY'; then K=$(printf '%s' "$K" | tr -d ' \n\t' | base64 -d 2>/dev/null || true); fi
-          BODY=$(printf '%s' "$K" | sed -e 's/.*-----BEGIN OPENSSH PRIVATE KEY-----//' -e 's/-----END OPENSSH PRIVATE KEY-----.*//' | tr -d ' \n\t\r')
-          [ -n "$BODY" ] || { echo "::warning::SSH_KEY o'qilmadi"; exit 0; }
-          FIXED=$(printf -- '-----BEGIN OPENSSH PRIVATE KEY-----\n%s\n-----END OPENSSH PRIVATE KEY-----\n' "$(printf '%s' "$BODY" | fold -w 70)")
-          printf '%s\n' "$FIXED" > /tmp/k && chmod 600 /tmp/k
-          if ssh-keygen -y -f /tmp/k >/tmp/k.pub 2>/tmp/k.err; then echo "Kalit to'g'ri: $(cut -c1-40 /tmp/k.pub)…"; else echo "::warning::SSH_KEY buzilgan: $(cat /tmp/k.err)"; rm -f /tmp/k; exit 0; fi
-          rm -f /tmp/k /tmp/k.pub
-          { echo 'DEPLOY_KEY<<KEYEOF'; printf '%s\n' "$FIXED"; echo 'KEYEOF'; } >> "$GITHUB_ENV"
-
-      - name: Server ichki tekshiruvi
-        uses: appleboy/ssh-action@v1.2.0
-        env:
-          # Gmail: GitHub → Settings → Secrets → SMTP_USER (Gmail manzil) va SMTP_PASS (16 harfli ilova paroli)
-          SMTP_USER: ${{ secrets.SMTP_USER }}
-          SMTP_PASS: ${{ secrets.SMTP_PASS }}
-          ADMIN_LOGIN: ${{ secrets.ADMIN_LOGIN }}
-          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
-        with:
-          host: 189.74.98.45
-          username: root
-          key: ${{ env.DEPLOY_KEY }}
-          # Kalit to'g'ri bo'lsa parol yuborilmaydi (aks holda parol birinchi sinaladi va kalit ishlatilmaydi)
-          password: ${{ env.DEPLOY_KEY == '' && secrets.SSH_PASSWORD || '' }}
-          port: 22
-          command_timeout: 15m
-          envs: SMTP_USER,SMTP_PASS,ADMIN_LOGIN,ADMIN_PASSWORD
-          script: |
-            set +e
-            # 1) hemu: baza va fayllar faqat hemu foydalanuvchisiga ochiq (nginx fayllarni o'qimaydi — hammasi node orqali)
-            chown -R hemu: /opt/hemu/data
-            chmod 750 /opt/hemu && chmod 700 /opt/hemu/data && find /opt/hemu/data -type d -exec chmod 700 {} + && find /opt/hemu/data -type f -exec chmod 600 {} +
-            echo "::notice::hemu ruxsatlar: opt/hemu=$(stat -c %a /opt/hemu) data=$(stat -c %a /opt/hemu/data) baza=$(stat -c %a /opt/hemu/data/movexgo.db) | dostava o'qiy oladimi: baza=$(sudo -u dostava test -r /opt/hemu/data/movexgo.db && echo HA || echo yoq) uploads=$(sudo -u dostava test -r /opt/hemu/data/uploads && echo HA || echo yoq) kod=$(sudo -u dostava test -r /opt/hemu/src && echo HA || echo yoq) | hemu sayt: $(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:4710/api/v1/listings?per_page=1)"
-            # 2) Zararli fayl: ishlayotgan nusxasini to'xtatish, karantinga olish (o'chirmasdan, tahlil uchun), dostava'ga cron taqiqlash
-            for p in /proc/[0-9]*; do e=$(readlink $p/exe 2>/dev/null); case "$e" in /dev/shm/*|/tmp/.*|/var/tmp/.*) kill -9 $(basename $p) && echo "::notice::to'xtatildi: $(basename $p) $e";; esac; done
-            mkdir -p /root/quarantine && chmod 700 /root/quarantine
-            [ -f /dev/shm/.guard ] && mv /dev/shm/.guard /root/quarantine/guard-2026-11-25.bin && chmod 000 /root/quarantine/guard-2026-11-25.bin
-            grep -qx dostava /etc/cron.deny 2>/dev/null || echo dostava >> /etc/cron.deny
-            crontab -u dostava -r 2>/dev/null
-            echo "::notice::Karantin: $(ls -la /root/quarantine | awk 'NR>1 && $9!="." && $9!=".." {print $9"("$5")"}' | tr '\n' ' ') | /dev/shm/.guard=$([ -e /dev/shm/.guard ] && echo BOR || echo yoq) | cron.deny: $(tr '\n' ' ' < /etc/cron.deny)"
-            # 3) Dostava veb-sayti (Next.js 15.5.4 — zaif) yangilanmaguncha to'xtatiladi; API (4100) ishlashda qoladi
-            systemctl stop dostava-web && systemctl disable dostava-web >/dev/null 2>&1
-            echo "::notice::dostava-web: $(systemctl is-active dostava-web) / $(systemctl is-enabled dostava-web 2>&1) | port 3100: $(ss -ltnH 'sport = :3100' | wc -l) | dostava-api: $(systemctl is-active dostava-api)"
-            # 4) dostava jarayonlari /dev/shm ga yoza olmasin (noexec): faqat hisobot
-            echo "::notice::/dev/shm mount: $(findmnt -no OPTIONS /dev/shm) | /tmp: $(findmnt -no OPTIONS /tmp 2>/dev/null || echo 'alohida emas')"
-            echo "::notice::hemu.uz: $(curl -s -o /dev/null -w '%{http_code}' https://hemu.uz/) | movexgo.uz: $(curl -s -o /dev/null -w '%{http_code}' https://movexgo.uz/)"

@@ -5,24 +5,18 @@ on:
 permissions:
   contents: write
 jobs:
-  deps:
+  film:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: main
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - run: npm i --no-save playwright@1.48.2 >/dev/null 2>&1 && npx playwright install --with-deps chromium >/dev/null 2>&1
+      - run: node .github/diag/film.js
       - run: |
-          npm ci --no-audit --no-fund >/dev/null 2>&1 || npm install --no-audit --no-fund >/dev/null 2>&1
-          echo "::notice::OLDIN: $(npm audit --omit=dev --json 2>/dev/null | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{const v=JSON.parse(d).vulnerabilities;console.log(Object.entries(v).map(([k,x])=>k+":"+x.severity+":"+(x.range||"")).join(" | "))})')"
-          npm install --save --no-audit --no-fund express@latest multer@latest >/tmp/fix.log 2>&1 || tail -5 /tmp/fix.log
-          npm install --save-optional --no-audit --no-fund sharp@latest >>/tmp/fix.log 2>&1 || tail -5 /tmp/fix.log
-          npm audit fix --omit=dev --no-fund >>/tmp/fix.log 2>&1 || true
-          echo "::notice::KEYIN: $(npm audit --omit=dev --json 2>/dev/null | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{const m=JSON.parse(d).metadata.vulnerabilities;console.log(JSON.stringify(m))})')"
-          echo "::notice::Versiyalar: $(for p in express multer body-parser qs sharp; do printf '%s@%s ' $p "$(node -p "require('$p/package.json').version" 2>/dev/null)"; done)"
+          mkdir -p out
+          for d in film/*/; do s=$(basename $d); ffmpeg -loglevel error -y -framerate 30 -i "$d/%05d.jpg" -vf "scale=780:1688:flags=lanczos,format=yuv420p" -c:v libx264 -crf 16 -preset slow -pix_fmt yuv420p "out/$s.mp4"; done
+          ls -la out
           git config user.name Claude; git config user.email noreply@anthropic.com
-          git checkout -B deps-fix
-          git add package.json package-lock.json
-          git commit -q -m "Kutubxonalar: xavfsizlik yangilanishlari (npm audit fix)" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" -m "Claude-Session: https://claude.ai/code/session_01BLSQyzmHR52muy5xKJLBuo" && git push -f origin deps-fix && echo "::notice::deps-fix branch yuborildi"
+          git checkout --orphan media && git rm -rfq . && cp out/*.mp4 . && git add *.mp4 && git commit -qm "Saytdan yozib olingan sahnalar" && git push -f origin media

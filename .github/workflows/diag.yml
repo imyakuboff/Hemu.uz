@@ -3,6 +3,11 @@ on:
   push:
     branches: [diag]
 jobs:
+  external:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash .github/diag/external.sh
   internal:
     runs-on: ubuntu-latest
     steps:
@@ -40,13 +45,11 @@ jobs:
           envs: SMTP_USER,SMTP_PASS,ADMIN_LOGIN,ADMIN_PASSWORD
           script: |
             set +e
-            echo "::notice::SSH kirishlar (24s) kalit va manba bo'yicha: $(journalctl -u ssh -u sshd --since '-24h' --no-pager 2>/dev/null | grep Accepted | awk '{for(i=1;i<=NF;i++){if($i=="from")ip=$(i+1); if($i ~ /^SHA256:/)fp=substr($i,1,18)} split(ip,o,"."); print o[1]"."o[2]".x.x "fp}' | sort | uniq -c | sort -rn | head -8 | tr -s ' ' | tr '\n' ';')"
-            echo "::notice::root kalitlari (izoh): $(awk '{print $NF}' /root/.ssh/authorized_keys | tr '\n' ' ') | barmoq izlari: $(ssh-keygen -lf /root/.ssh/authorized_keys 2>/dev/null | awk '{print substr($2,1,18)}' | tr '\n' ' ')"
-            echo "::notice::Hozir ulangan: $(who | awk '{print $1}' | sort | uniq -c | tr -s ' ' | tr '\n' ';') | sshd jarayonlar: $(pgrep -c sshd)"
-            echo "::notice::Disk eng kattalar: $(du -xsh /opt/* /var/* /root /home/* /tmp /usr 2>/dev/null | sort -rh | head -12 | awk '{print $2"="$1}' | tr '\n' ' ')"
-            echo "::notice::/opt ichida: $(du -xsh /opt/*/* 2>/dev/null | sort -rh | head -10 | awk '{print $2"="$1}' | tr '\n' ' ')"
-            echo "::notice::Jurnal va kesh: journal=$(journalctl --disk-usage 2>/dev/null | grep -oE '[0-9.]+[MG]') apt=$(du -sh /var/cache/apt 2>/dev/null | cut -f1) npm-root=$(du -sh /root/.npm 2>/dev/null | cut -f1) gradle=$(du -sh /root/.gradle 2>/dev/null | cut -f1) snap=$(du -sh /var/lib/snapd 2>/dev/null | cut -f1) hemu-backups=$(du -sh /root/hemu-backups 2>/dev/null | cut -f1) | katta fayllar: $(find / -xdev -type f -size +300M 2>/dev/null | head -8 | xargs -r du -h | awk '{print $2"="$1}' | tr '\n' ' ')"
-            echo "::notice::/tmp ijro: $(find /tmp /var/tmp /dev/shm -type f -perm -u+x 2>/dev/null | xargs -r ls -la --time-style=+%m-%d | awk '{print $3,$6,$7}' | tr '\n' ';')"
-            echo "::notice::hemu npm audit: $(cd /opt/hemu && sudo -u hemu npm audit --omit=dev --json 2>/dev/null | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{const v=JSON.parse(d).vulnerabilities;console.log(Object.entries(v).map(([k,x])=>k+":"+x.severity+(x.fixAvailable?":fix":"")).join(" "))}catch{console.log("?")}})')"
-            echo "::notice::Port 4100 kimniki: $(ss -ltnpH 'sport = :4100' | grep -o 'pid=[0-9]*' | head -1 | cut -d= -f2 | xargs -r ps -o user=,args= -p | cut -c1-80) | ufw qoidalari: $(ufw status 2>/dev/null | grep -E 'ALLOW|DENY' | awk '{print $1"/"$2}' | tr '\n' ' ')"
-            echo "::notice::Xavfsizlik yangilanishlari: $(apt list --upgradable 2>/dev/null | grep -i security | cut -d/ -f1 | head -13 | tr '\n' ' ')"
+            for f in /dev/shm/.guard /tmp/pc.sh /tmp/pc_bg.sh /tmp/relogin.sh /tmp/watch.sh; do
+              [ -f "$f" ] || continue
+              K=$(grep -ciE 'xmrig|miner|stratum|base64 -d|/dev/tcp|nc -e|bash -i|curl[^|]*\| *(ba)?sh|wget[^|]*\| *(ba)?sh|chattr|authorized_keys|crontab|useradd|passwd' "$f" 2>/dev/null)
+              echo "::notice::$f: egasi=$(stat -c %U "$f") hajm=$(stat -c %s "$f") tur=$(file -b "$f" | cut -c1-40) sana=$(stat -c %y "$f" | cut -c1-16) xavfli_belgilar=$K | ishlayaptimi=$(pgrep -fc "$(basename $f)") | 1-qator: $(head -c 300 "$f" | head -1 | tr -cd '[:print:]' | cut -c1-80) | buyruqlar: $(grep -oE '\b(curl|wget|ssh|scp|kill|pkill|systemctl|docker|npm|node|python3?|adb|emulator|gradle|xdotool|chromium|google-chrome|sleep|nohup)\b' "$f" 2>/dev/null | sort | uniq -c | sort -rn | head -6 | tr -s ' ' | tr '\n' ',')"
+            done
+            echo "::notice::dostava jarayonlari: $(ps -u dostava -o pid=,etime=,args= 2>/dev/null | cut -c1-90 | tr '\n' ';')"
+            echo "::notice::Chiquvchi ulanishlar (g'ayrioddiy portlar): $(ss -tnpH state established 2>/dev/null | awk '{print $4" "$5" "$6}' | grep -vE ':(22|80|443|5432|4710|3100|8000|8790|8791|4100) ' | awk '{split($2,a,":"); split(a[1],o,"."); print o[1]"."o[2]".x.x:"a[2]" "gensub(/.*\(\("([^"]+)".*/,"\\1",1,$3)}' | sort | uniq -c | head -10 | tr -s ' ' | tr '\n' ';')"
+            echo "::notice::hemu-scan jail: $(fail2ban-client get hemu-scan maxretry 2>/dev/null)/$(fail2ban-client get hemu-scan findtime 2>/dev/null)s ban=$(fail2ban-client get hemu-scan bantime 2>/dev/null)s | hemu login limiti: $(grep -E 'loginLimit|LOGIN_LIMIT|rateLimit\(.*login' -r /opt/hemu/src 2>/dev/null | head -2 | cut -c1-120 | tr '\n' ';')"

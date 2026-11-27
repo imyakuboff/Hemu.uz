@@ -5,18 +5,22 @@ on:
 permissions:
   contents: write
 jobs:
-  film:
+  imp:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with: { ref: main, path: app }
       - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - run: npm i --no-save playwright@1.48.2 >/dev/null 2>&1 && npx playwright install --with-deps chromium >/dev/null 2>&1
-      - run: sudo apt-get install -y -q ffmpeg >/dev/null 2>&1; node .github/diag/film.js
+        with: { node-version: 22 }
       - run: |
-          mkdir -p out
-          for d in film/*/; do s=$(basename $d); ffmpeg -loglevel error -y -framerate 30 -i "$d/%05d.jpg" -vf "scale=780:1688:flags=lanczos,format=yuv420p" -c:v libx264 -crf 16 -preset slow -pix_fmt yuv420p "out/$s.mp4"; done
-          ls -la out
+          cd app && npm ci --no-audit --no-fund >/dev/null 2>&1
+          export DB_FILE=/tmp/t.db UPLOAD_DIR=/tmp/up PORT=4799 NODE_ENV=development
+          node --disable-warning=ExperimentalWarning seed.js /tmp/t.db >/dev/null 2>&1 || node -e "require('./seed').seed('/tmp/t.db')"
+          nohup node --disable-warning=ExperimentalWarning src/server.js > /tmp/app.log 2>&1 &
+          for i in $(seq 30); do curl -s localhost:4799/health && break; sleep 1; done
+      - run: npm i --no-save playwright@1.48.2 >/dev/null 2>&1 && npx playwright install --with-deps chromium >/dev/null 2>&1
+      - run: node .github/diag/imp.js; tail -5 /tmp/app.log | sed 's/^/::notice::app /'
+      - run: |
           git config user.name Claude; git config user.email noreply@anthropic.com
-          git checkout --orphan media2 && git rm -rfq . && cp out/*.mp4 . && git add *.mp4 && git commit -qm "Saytdan yozib olingan sahnalar" && git push -f origin media2
+          cp -r shots /tmp/shots && git checkout --orphan shots && git rm -rfq . && cp /tmp/shots/*.png . && git add *.png && git commit -qm shots && git push -f origin shots

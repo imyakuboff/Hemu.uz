@@ -3,15 +3,49 @@ on:
   push:
     branches: [diag]
 permissions:
-  contents: write
+  contents: read
 jobs:
-  assets:
+  sayt:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 22 }
-      - run: node .github/diag/photos.js
-      - run: |
-          git config user.name Claude; git config user.email noreply@anthropic.com
-          cp -r out /tmp/out && git checkout --orphan photos && git rm -rfq . && cp /tmp/out/* . && git add -A && git commit -qm assets && git push -f origin photos
+      - name: Tashqaridan tekshirish
+        run: |
+          for u in http://hemu.uz https://hemu.uz https://www.hemu.uz http://www.hemu.uz https://hemu.uz/api/v1/meta; do
+            r=$(curl -sS -o /dev/null -m 15 -w "%{http_code} %{time_total}s -> %{redirect_url}" "$u" 2>&1 | tail -1)
+            echo "::notice::$u : $r"
+          done
+          echo "::notice::DNS hemu.uz: $(dig +short hemu.uz A | sed -E 's/[0-9]+\.[0-9]+$/x.x/' | tr '\n' ' ') | www: $(dig +short www.hemu.uz | sed -E 's/[0-9]+\.[0-9]+$/x.x/' | tr '\n' ' ')"
+          echo | openssl s_client -connect hemu.uz:443 -servername hemu.uz 2>/dev/null | openssl x509 -noout -dates -subject 2>&1 | sed 's/^/::notice::cert /'
+      - name: SSH kalitini tayyorlash
+        env:
+          RAW_KEY: ${{ secrets.SSH_KEY }}
+        run: |
+          [ -n "$RAW_KEY" ] || { echo "SSH_KEY yo'q"; exit 0; }
+          K=$(printf '%s' "$RAW_KEY" | tr -d '\r')
+          if ! printf '%s' "$K" | grep -q 'BEGIN OPENSSH PRIVATE KEY'; then K=$(printf '%s' "$K" | tr -d ' \n\t' | base64 -d 2>/dev/null || true); fi
+          BODY=$(printf '%s' "$K" | sed -e 's/.*-----BEGIN OPENSSH PRIVATE KEY-----//' -e 's/-----END OPENSSH PRIVATE KEY-----.*//' | tr -d ' \n\t\r')
+          [ -n "$BODY" ] || { echo "::warning::SSH_KEY o'qilmadi"; exit 0; }
+          FIXED=$(printf -- '-----BEGIN OPENSSH PRIVATE KEY-----\n%s\n-----END OPENSSH PRIVATE KEY-----\n' "$(printf '%s' "$BODY" | fold -w 70)")
+          printf '%s\n' "$FIXED" > /tmp/k && chmod 600 /tmp/k
+          if ssh-keygen -y -f /tmp/k >/tmp/k.pub 2>/tmp/k.err; then echo "Kalit to'g'ri: $(cut -c1-40 /tmp/k.pub)…"; else echo "::warning::SSH_KEY buzilgan: $(cat /tmp/k.err)"; rm -f /tmp/k; exit 0; fi
+          rm -f /tmp/k /tmp/k.pub
+          { echo 'DEPLOY_KEY<<KEYEOF'; printf '%s\n' "$FIXED"; echo 'KEYEOF'; } >> "$GITHUB_ENV"
+
+      - name: Server ichidan
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: 189.74.98.45
+          username: root
+          key: ${{ env.DEPLOY_KEY }}
+          port: 22
+          script: |
+            n(){ echo "::notice::$*"; }
+            n "disk: $(df -h / | tail -1 | awk '{print $3"/"$2" band="$5" bo`sh="$4}')"
+            n "hemu: $(systemctl is-active hemu) nginx: $(systemctl is-active nginx)"
+            n "local health: $(curl -s -m 5 -o /dev/null -w '%{http_code}' http://127.0.0.1:4710/health)"
+            n "nginx -t: $(nginx -t 2>&1 | tail -1)"
+            journalctl -u hemu -n 15 --no-pager 2>&1 | sed -E 's/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/x.x.x.x/g' | tail -15 | sed 's/^/::notice::hemu-log /'
+            tail -n 8 /var/log/nginx/error.log 2>/dev/null | sed -E 's/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/x.x.x.x/g' | sed 's/^/::notice::nginx-err /'
+            n "fail2ban: $(fail2ban-client status 2>/dev/null | tr '\n' ' ' | cut -c1-200)"
+            for j in $(fail2ban-client status 2>/dev/null | sed -n 's/.*Jail list:\s*//p' | tr ',' ' '); do n "jail $j: $(fail2ban-client status $j | grep -E 'Currently banned' | tr -s ' ')"; done
+            n "ufw: $(ufw status 2>/dev/null | head -8 | tr '\n' ' ')"

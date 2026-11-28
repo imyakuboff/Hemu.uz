@@ -40,14 +40,40 @@ jobs:
           port: 22
           script: |
             n(){ echo "::notice::$*"; }
-            n "disk: $(df -h / | tail -1 | awk '{print $3"/"$2" band="$5" bosh="$4}')"
-            du -xh --max-depth=1 / 2>/dev/null | sort -rh | head -12 | sed 's/^/::notice::root /'
-            for d in /root /home /opt /var /srv /usr/local; do du -xh --max-depth=2 $d 2>/dev/null | sort -rh | head -12 | sed "s|^|::notice::$d |"; done
-            n "journal: $(journalctl --disk-usage 2>&1)"
-            n "docker: $(command -v docker >/dev/null && docker system df 2>&1 | tr '\n' ' ' || echo yoq)"
-            n "pm2/services: $(systemctl list-units --type=service --state=running --no-legend | awk '{print $1}' | grep -vE '^(systemd|dbus|cron|ssh|rsyslog|getty|serial|polkit|udisks|unattended|snapd|multipathd|networkd|fail2ban|ufw|user@|irqbalance|ModemManager|qemu|chrony|atd)' | tr '\n' ' ')"
-            n "dostava units: $(systemctl list-unit-files 2>/dev/null | grep -i dostava | tr -s ' ' | tr '\n' ';')"
-            n "nginx sites: $(ls /etc/nginx/sites-enabled | tr '\n' ' ')"
-            for f in /etc/nginx/sites-enabled/*; do n "site $(basename $f): $(grep -hoE 'server_name [^;]+|root [^;]+|proxy_pass [^;]+' $f | sort -u | sed -E 's/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/x.x.x.x/g' | tr '\n' ';' | cut -c1-300)"; done
-            ls -la /root/quarantine 2>/dev/null | tail -3 | sed 's/^/::notice::quar /'
-            find / -xdev -type f -size +300M 2>/dev/null -exec du -h {} + | sort -rh | head -15 | sed 's/^/::notice::bigfile /'
+            mask(){ sed -E 's/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/x.x.x.x/g'; }
+            n "OLDIN disk: $(df -h / | tail -1 | awk '{print $3"/"$2" band="$5" bosh="$4}')"
+            # ---- 1. Dostava ----
+            for u in dostava-api dostava-web; do systemctl stop $u 2>/dev/null; systemctl disable $u 2>/dev/null; done
+            for f in /etc/systemd/system/dostava-api.service /etc/systemd/system/dostava-web.service; do [ -f "$f" ] && rm -f "$f" && n "o'chdi: $f"; done
+            systemctl daemon-reload; systemctl reset-failed 2>/dev/null
+            if command -v pm2 >/dev/null; then
+              for p in $(pm2 jlist 2>/dev/null | python3 -c "import sys,json;[print(x['name']) for x in json.load(sys.stdin) if 'dostava' in (x['name']+str(x.get('pm2_env',{}).get('pm_cwd',''))).lower()]" 2>/dev/null); do pm2 delete "$p" >/dev/null && n "pm2 o'chdi: $p"; done
+              pm2 save >/dev/null 2>&1; n "pm2 qoldi: $(pm2 jlist 2>/dev/null | python3 -c "import sys,json;print(' '.join(x['name'] for x in json.load(sys.stdin)))" 2>/dev/null)"
+            fi
+            mkdir -p /root/dostava-arxiv && cp -a /etc/nginx/sites-available/dostava.conf /root/dostava-arxiv/ 2>/dev/null
+            rm -f /etc/nginx/sites-enabled/dostava.conf /etc/nginx/sites-available/dostava.conf
+            if nginx -t 2>/dev/null; then systemctl reload nginx; n "nginx: dostava olib tashlandi, qayta yuklandi"; else cp -a /root/dostava-arxiv/dostava.conf /etc/nginx/sites-available/ && ln -sf /etc/nginx/sites-available/dostava.conf /etc/nginx/sites-enabled/ && n "nginx -t xato — dostava.conf qaytarildi"; fi
+            # PostgreSQL: faqat nomi yoki egasi dostava bo'lgan bazalar
+            sudo -u postgres psql -Atc "select datname||'|'||pg_get_userbyid(datdba) from pg_database where not datistemplate" 2>/dev/null | while IFS='|' read db owner; do
+              n "baza: $db (egasi $owner)"
+              if echo "$db$owner" | grep -qi dostava; then sudo -u postgres dropdb "$db" && n "baza o'chdi: $db"; fi
+            done
+            for r in $(sudo -u postgres psql -Atc "select rolname from pg_roles where rolname ilike '%dostava%'" 2>/dev/null); do
+              left=$(sudo -u postgres psql -Atc "select count(*) from pg_database where pg_get_userbyid(datdba)='$r'")
+              [ "$left" = 0 ] && sudo -u postgres psql -qc "drop role \"$r\"" && n "rol o'chdi: $r"
+            done
+            # Sertifikatlar (faqat nip.io)
+            for c in $(certbot certificates 2>/dev/null | sed -n 's/^ *Certificate Name: //p'); do echo "$c" | grep -q 'nip.io' && certbot delete --cert-name "$c" -n >/dev/null 2>&1 && n "sertifikat o'chdi: $(echo $c | mask)"; done
+            crontab -u dostava -r 2>/dev/null
+            chown root:root /root/quarantine/* 2>/dev/null
+            pkill -u dostava 2>/dev/null; sleep 1; pkill -9 -u dostava 2>/dev/null
+            if id dostava >/dev/null 2>&1; then H=$(getent passwd dostava | cut -d: -f6); userdel dostava 2>&1 | head -2; n "foydalanuvchi o'chdi: dostava (uy: $H)"; fi
+            [ -d /opt/dostava ] && rm -rf --one-file-system /opt/dostava && n "o'chdi: /opt/dostava"
+            # ---- 2. Loglar va keshlar ----
+            journalctl --vacuum-size=200M 2>&1 | tail -1 | sed 's/^/::notice::journal /'
+            apt-get clean && n "apt keshi tozalandi"
+            rm -rf /root/.npm/_cacache && n "npm keshi tozalandi"
+            # ---- Natija ----
+            n "KEYIN disk: $(df -h / | tail -1 | awk '{print $3"/"$2" band="$5" bosh="$4}')"
+            n "hemu: $(systemctl is-active hemu) $(curl -s -m 5 -o /dev/null -w '%{http_code}' http://127.0.0.1:4710/health) | movex-api: $(systemctl is-active movex-api) | tg-voice: $(systemctl is-active tg-voice) | nginx: $(systemctl is-active nginx) | postgres: $(systemctl is-active postgresql@16-main)"
+            n "movexgo.uz: $(curl -s -m 8 -o /dev/null -w '%{http_code}' -H 'Host: movexgo.uz' https://127.0.0.1/ -k) | hemu.uz: $(curl -s -m 8 -o /dev/null -w '%{http_code}' -H 'Host: hemu.uz' https://127.0.0.1/ -k)"

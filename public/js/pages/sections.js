@@ -83,7 +83,7 @@ export const sparepart = ({ query }) => listingSection('sparepart', query);
 
 // ---------- Mexaniklar va haydovchilar ----------
 const rateText = (p) => (p.rate_formatted ? `${p.rate_formatted} ${t(`ru_${p.rate_unit || 'hour'}`)}` : '');
-export function personCard(p) {
+function personCard(p) {
   const tags = [...p.skills.map((k) => t(`sk_${k}`)), ...p.license.map((k) => (k === 'tractor' ? t('lic_tractor') : k === 'special' ? t('lic_special') : k))];
   return `<a class="person" href="/specialist/${p.id}">
     <span class="avatar">${p.avatar ? `<img src="${esc(p.avatar)}" alt="">` : esc(initials(p.name))}</span>

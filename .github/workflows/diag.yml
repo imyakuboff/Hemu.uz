@@ -3,77 +3,16 @@ on:
   push:
     branches: [diag]
 permissions:
-  contents: read
+  contents: write
 jobs:
-  sayt:
+  reach:
     runs-on: ubuntu-latest
     steps:
-      - name: Tashqaridan tekshirish
-        run: |
-          for u in http://hemu.uz https://hemu.uz https://www.hemu.uz http://www.hemu.uz https://hemu.uz/api/v1/meta; do
-            r=$(curl -sS -o /dev/null -m 15 -w "%{http_code} %{time_total}s -> %{redirect_url}" "$u" 2>&1 | tail -1)
-            echo "::notice::$u : $r"
-          done
-          echo "::notice::DNS hemu.uz: $(dig +short hemu.uz A | sed -E 's/[0-9]+\.[0-9]+$/x.x/' | tr '\n' ' ') | www: $(dig +short www.hemu.uz | sed -E 's/[0-9]+\.[0-9]+$/x.x/' | tr '\n' ' ')"
-          echo | openssl s_client -connect hemu.uz:443 -servername hemu.uz 2>/dev/null | openssl x509 -noout -dates -subject 2>&1 | sed 's/^/::notice::cert /'
-      - name: SSH kalitini tayyorlash
-        env:
-          RAW_KEY: ${{ secrets.SSH_KEY }}
-        run: |
-          [ -n "$RAW_KEY" ] || { echo "SSH_KEY yo'q"; exit 0; }
-          K=$(printf '%s' "$RAW_KEY" | tr -d '\r')
-          if ! printf '%s' "$K" | grep -q 'BEGIN OPENSSH PRIVATE KEY'; then K=$(printf '%s' "$K" | tr -d ' \n\t' | base64 -d 2>/dev/null || true); fi
-          BODY=$(printf '%s' "$K" | sed -e 's/.*-----BEGIN OPENSSH PRIVATE KEY-----//' -e 's/-----END OPENSSH PRIVATE KEY-----.*//' | tr -d ' \n\t\r')
-          [ -n "$BODY" ] || { echo "::warning::SSH_KEY o'qilmadi"; exit 0; }
-          FIXED=$(printf -- '-----BEGIN OPENSSH PRIVATE KEY-----\n%s\n-----END OPENSSH PRIVATE KEY-----\n' "$(printf '%s' "$BODY" | fold -w 70)")
-          printf '%s\n' "$FIXED" > /tmp/k && chmod 600 /tmp/k
-          if ssh-keygen -y -f /tmp/k >/tmp/k.pub 2>/tmp/k.err; then echo "Kalit to'g'ri: $(cut -c1-40 /tmp/k.pub)…"; else echo "::warning::SSH_KEY buzilgan: $(cat /tmp/k.err)"; rm -f /tmp/k; exit 0; fi
-          rm -f /tmp/k /tmp/k.pub
-          { echo 'DEPLOY_KEY<<KEYEOF'; printf '%s\n' "$FIXED"; echo 'KEYEOF'; } >> "$GITHUB_ENV"
-
-      - name: Server ichidan
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: 189.74.98.45
-          username: root
-          key: ${{ env.DEPLOY_KEY }}
-          port: 22
-          script: |
-            n(){ echo "::notice::$*"; }
-            mask(){ sed -E 's/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/x.x.x.x/g'; }
-            n "OLDIN disk: $(df -h / | tail -1 | awk '{print $3"/"$2" band="$5" bosh="$4}')"
-            # ---- 1. Dostava ----
-            for u in dostava-api dostava-web; do systemctl stop $u 2>/dev/null; systemctl disable $u 2>/dev/null; done
-            for f in /etc/systemd/system/dostava-api.service /etc/systemd/system/dostava-web.service; do [ -f "$f" ] && rm -f "$f" && n "o'chdi: $f"; done
-            systemctl daemon-reload; systemctl reset-failed 2>/dev/null
-            if command -v pm2 >/dev/null; then
-              for p in $(pm2 jlist 2>/dev/null | python3 -c "import sys,json;[print(x['name']) for x in json.load(sys.stdin) if 'dostava' in (x['name']+str(x.get('pm2_env',{}).get('pm_cwd',''))).lower()]" 2>/dev/null); do pm2 delete "$p" >/dev/null && n "pm2 o'chdi: $p"; done
-              pm2 save >/dev/null 2>&1; n "pm2 qoldi: $(pm2 jlist 2>/dev/null | python3 -c "import sys,json;print(' '.join(x['name'] for x in json.load(sys.stdin)))" 2>/dev/null)"
-            fi
-            mkdir -p /root/dostava-arxiv && cp -a /etc/nginx/sites-available/dostava.conf /root/dostava-arxiv/ 2>/dev/null
-            rm -f /etc/nginx/sites-enabled/dostava.conf /etc/nginx/sites-available/dostava.conf
-            if nginx -t 2>/dev/null; then systemctl reload nginx; n "nginx: dostava olib tashlandi, qayta yuklandi"; else cp -a /root/dostava-arxiv/dostava.conf /etc/nginx/sites-available/ && ln -sf /etc/nginx/sites-available/dostava.conf /etc/nginx/sites-enabled/ && n "nginx -t xato — dostava.conf qaytarildi"; fi
-            # PostgreSQL: faqat nomi yoki egasi dostava bo'lgan bazalar
-            sudo -u postgres psql -Atc "select datname||'|'||pg_get_userbyid(datdba) from pg_database where not datistemplate" 2>/dev/null | while IFS='|' read db owner; do
-              n "baza: $db (egasi $owner)"
-              if echo "$db$owner" | grep -qi dostava; then sudo -u postgres dropdb "$db" && n "baza o'chdi: $db"; fi
-            done
-            for r in $(sudo -u postgres psql -Atc "select rolname from pg_roles where rolname ilike '%dostava%'" 2>/dev/null); do
-              left=$(sudo -u postgres psql -Atc "select count(*) from pg_database where pg_get_userbyid(datdba)='$r'")
-              [ "$left" = 0 ] && sudo -u postgres psql -qc "drop role \"$r\"" && n "rol o'chdi: $r"
-            done
-            # Sertifikatlar (faqat nip.io)
-            for c in $(certbot certificates 2>/dev/null | sed -n 's/^ *Certificate Name: //p'); do echo "$c" | grep -q 'nip.io' && certbot delete --cert-name "$c" -n >/dev/null 2>&1 && n "sertifikat o'chdi: $(echo $c | mask)"; done
-            crontab -u dostava -r 2>/dev/null
-            chown root:root /root/quarantine/* 2>/dev/null
-            pkill -u dostava 2>/dev/null; sleep 1; pkill -9 -u dostava 2>/dev/null
-            if id dostava >/dev/null 2>&1; then H=$(getent passwd dostava | cut -d: -f6); userdel dostava 2>&1 | head -2; n "foydalanuvchi o'chdi: dostava (uy: $H)"; fi
-            [ -d /opt/dostava ] && rm -rf --one-file-system /opt/dostava && n "o'chdi: /opt/dostava"
-            # ---- 2. Loglar va keshlar ----
-            journalctl --vacuum-size=200M 2>&1 | tail -1 | sed 's/^/::notice::journal /'
-            apt-get clean && n "apt keshi tozalandi"
-            rm -rf /root/.npm/_cacache && n "npm keshi tozalandi"
-            # ---- Natija ----
-            n "KEYIN disk: $(df -h / | tail -1 | awk '{print $3"/"$2" band="$5" bosh="$4}')"
-            n "hemu: $(systemctl is-active hemu) $(curl -s -m 5 -o /dev/null -w '%{http_code}' http://127.0.0.1:4710/health) | movex-api: $(systemctl is-active movex-api) | tg-voice: $(systemctl is-active tg-voice) | nginx: $(systemctl is-active nginx) | postgres: $(systemctl is-active postgresql@16-main)"
-            n "movexgo.uz: $(curl -s -m 8 -o /dev/null -w '%{http_code}' -H 'Host: movexgo.uz' https://127.0.0.1/ -k) | hemu.uz: $(curl -s -m 8 -o /dev/null -w '%{http_code}' -H 'Host: hemu.uz' https://127.0.0.1/ -k)"
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm i --no-save playwright@1.48.2 >/dev/null 2>&1 && npx playwright install --with-deps chromium >/dev/null 2>&1
+      - run: node .github/diag/reach.js
+      - run: |
+          git config user.name Claude; git config user.email noreply@anthropic.com
+          cp home.png /tmp/ && git checkout --orphan shots && git rm -rfq . && cp /tmp/home.png . && git add home.png && git commit -qm shot && git push -f origin shots

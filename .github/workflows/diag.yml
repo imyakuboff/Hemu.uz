@@ -5,22 +5,13 @@ on:
 permissions:
   contents: write
 jobs:
-  imp:
+  assets:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/checkout@v4
-        with: { ref: main, path: app }
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
-      - run: |
-          cd app && npm ci --no-audit --no-fund >/dev/null 2>&1
-          export DB_FILE=/tmp/t.db UPLOAD_DIR=/tmp/up PORT=4799 NODE_ENV=development
-          node --disable-warning=ExperimentalWarning seed.js /tmp/t.db >/dev/null 2>&1 || node -e "require('./seed').seed('/tmp/t.db')"
-          nohup node --disable-warning=ExperimentalWarning src/server.js > /tmp/app.log 2>&1 &
-          for i in $(seq 30); do curl -s localhost:4799/health && break; sleep 1; done
-      - run: npm i --no-save playwright@1.48.2 >/dev/null 2>&1 && npx playwright install --with-deps chromium >/dev/null 2>&1
-      - run: node .github/diag/imp.js; tail -5 /tmp/app.log | sed 's/^/::notice::app /'
+      - run: npm i --no-save qrcode@1.5.4 >/dev/null 2>&1 && node .github/diag/assets.js
       - run: |
           git config user.name Claude; git config user.email noreply@anthropic.com
-          cp -r shots /tmp/shots && git checkout --orphan shots && git rm -rfq . && cp /tmp/shots/*.png . && git add *.png && git commit -qm shots && git push -f origin shots
+          cp -r out /tmp/out && git checkout --orphan assets && git rm -rfq . && cp /tmp/out/* . && git add -A && git commit -qm assets && git push -f origin assets

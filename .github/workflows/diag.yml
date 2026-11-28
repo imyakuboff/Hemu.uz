@@ -40,12 +40,14 @@ jobs:
           port: 22
           script: |
             n(){ echo "::notice::$*"; }
-            n "disk: $(df -h / | tail -1 | awk '{print $3"/"$2" band="$5" bo`sh="$4}')"
-            n "hemu: $(systemctl is-active hemu) nginx: $(systemctl is-active nginx)"
-            n "local health: $(curl -s -m 5 -o /dev/null -w '%{http_code}' http://127.0.0.1:4710/health)"
-            n "nginx -t: $(nginx -t 2>&1 | tail -1)"
-            journalctl -u hemu -n 15 --no-pager 2>&1 | sed -E 's/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/x.x.x.x/g' | tail -15 | sed 's/^/::notice::hemu-log /'
-            tail -n 8 /var/log/nginx/error.log 2>/dev/null | sed -E 's/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/x.x.x.x/g' | sed 's/^/::notice::nginx-err /'
-            n "fail2ban: $(fail2ban-client status 2>/dev/null | tr '\n' ' ' | cut -c1-200)"
-            for j in $(fail2ban-client status 2>/dev/null | sed -n 's/.*Jail list:\s*//p' | tr ',' ' '); do n "jail $j: $(fail2ban-client status $j | grep -E 'Currently banned' | tr -s ' ')"; done
-            n "ufw: $(ufw status 2>/dev/null | head -8 | tr '\n' ' ')"
+            n "disk: $(df -h / | tail -1 | awk '{print $3"/"$2" band="$5" bosh="$4}')"
+            du -xh --max-depth=1 / 2>/dev/null | sort -rh | head -12 | sed 's/^/::notice::root /'
+            for d in /root /home /opt /var /srv /usr/local; do du -xh --max-depth=2 $d 2>/dev/null | sort -rh | head -12 | sed "s|^|::notice::$d |"; done
+            n "journal: $(journalctl --disk-usage 2>&1)"
+            n "docker: $(command -v docker >/dev/null && docker system df 2>&1 | tr '\n' ' ' || echo yoq)"
+            n "pm2/services: $(systemctl list-units --type=service --state=running --no-legend | awk '{print $1}' | grep -vE '^(systemd|dbus|cron|ssh|rsyslog|getty|serial|polkit|udisks|unattended|snapd|multipathd|networkd|fail2ban|ufw|user@|irqbalance|ModemManager|qemu|chrony|atd)' | tr '\n' ' ')"
+            n "dostava units: $(systemctl list-unit-files 2>/dev/null | grep -i dostava | tr -s ' ' | tr '\n' ';')"
+            n "nginx sites: $(ls /etc/nginx/sites-enabled | tr '\n' ' ')"
+            for f in /etc/nginx/sites-enabled/*; do n "site $(basename $f): $(grep -hoE 'server_name [^;]+|root [^;]+|proxy_pass [^;]+' $f | sort -u | sed -E 's/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/x.x.x.x/g' | tr '\n' ';' | cut -c1-300)"; done
+            ls -la /root/quarantine 2>/dev/null | tail -3 | sed 's/^/::notice::quar /'
+            find / -xdev -type f -size +300M 2>/dev/null -exec du -h {} + | sort -rh | head -15 | sed 's/^/::notice::bigfile /'

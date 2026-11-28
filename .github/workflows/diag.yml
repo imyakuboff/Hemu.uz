@@ -3,49 +3,16 @@ on:
   push:
     branches: [diag]
 permissions:
-  contents: read
+  contents: write
 jobs:
-  elonlar:
+  viz:
     runs-on: ubuntu-latest
     steps:
-      - name: Saytdan
-        run: |
-          for u in "/api/v1/listings?per_page=1" "/api/v1/home" "/api/v1/listings/count"; do echo "::notice::$u -> $(curl -s "https://hemu.uz$u" | head -c 200)"; done
-      - name: SSH kalitini tayyorlash
-        env:
-          RAW_KEY: ${{ secrets.SSH_KEY }}
-        run: |
-          [ -n "$RAW_KEY" ] || { echo "SSH_KEY yo'q"; exit 0; }
-          K=$(printf '%s' "$RAW_KEY" | tr -d '\r')
-          if ! printf '%s' "$K" | grep -q 'BEGIN OPENSSH PRIVATE KEY'; then K=$(printf '%s' "$K" | tr -d ' \n\t' | base64 -d 2>/dev/null || true); fi
-          BODY=$(printf '%s' "$K" | sed -e 's/.*-----BEGIN OPENSSH PRIVATE KEY-----//' -e 's/-----END OPENSSH PRIVATE KEY-----.*//' | tr -d ' \n\t\r')
-          [ -n "$BODY" ] || { echo "::warning::SSH_KEY o'qilmadi"; exit 0; }
-          FIXED=$(printf -- '-----BEGIN OPENSSH PRIVATE KEY-----\n%s\n-----END OPENSSH PRIVATE KEY-----\n' "$(printf '%s' "$BODY" | fold -w 70)")
-          printf '%s\n' "$FIXED" > /tmp/k && chmod 600 /tmp/k
-          if ssh-keygen -y -f /tmp/k >/tmp/k.pub 2>/tmp/k.err; then echo "Kalit to'g'ri: $(cut -c1-40 /tmp/k.pub)…"; else echo "::warning::SSH_KEY buzilgan: $(cat /tmp/k.err)"; rm -f /tmp/k; exit 0; fi
-          rm -f /tmp/k /tmp/k.pub
-          { echo 'DEPLOY_KEY<<KEYEOF'; printf '%s\n' "$FIXED"; echo 'KEYEOF'; } >> "$GITHUB_ENV"
-
-      - name: Bazadan (faqat o'qish)
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: 189.74.98.45
-          username: root
-          key: ${{ env.DEPLOY_KEY }}
-          script: |
-            cd /opt/hemu
-            DBF=$(grep -E '^DB_FILE=' .env | cut -d= -f2 | tr -d '"\r '); DBF=${DBF:-data/movexgo.db}
-            cat > /tmp/q.js <<'JS'
-            const { DatabaseSync } = require('node:sqlite');
-            const db = new DatabaseSync(process.argv[2], { readOnly: true });
-            const n = (s) => console.log('::notice::' + s);
-            const all = (q) => db.prepare(q).all();
-            n('holatlar: ' + JSON.stringify(all("select status, count(*) c from listings group by status")));
-            n('oxirgi 10: ' + JSON.stringify(all("select id, status, substr(expires_at,1,16) exp, substr(updated_at,1,16) upd, substr(title,1,25) t from listings order by id desc limit 12")));
-            n('muddati otgan faollar: ' + JSON.stringify(all("select count(*) c from listings where status='active' and expires_at < datetime('now')")));
-            n('foydalanuvchilar: ' + JSON.stringify(all("select count(*) c from users")));
-            n('admin_log oxirgi: ' + JSON.stringify(all("select substr(created_at,1,16) t, action, target_id from admin_log order by id desc limit 8")));
-            n('sozlamalar: ' + JSON.stringify(all("select key, value from settings where key like '_mig.%' or key like '%moderation%' or key like '%expire%'")));
-            JS
-            node /tmp/q.js "$DBF" 2>&1 | grep -v Experimental; rm -f /tmp/q.js
-            journalctl -u hemu --since "-6 hours" --no-pager 2>&1 | grep -iE "expire|archiv|error|migr|security" | tail -10 | sed -E 's/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/x.x.x.x/g; s/^/::notice::log /'
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm i --no-save playwright@1.48.2 >/dev/null 2>&1 && npx playwright install --with-deps chromium >/dev/null 2>&1
+      - run: node .github/diag/viz.js
+      - run: |
+          git config user.name Claude; git config user.email noreply@anthropic.com
+          mkdir -p /tmp/s && cp *.png /tmp/s/; git checkout --orphan shots && git rm -rfq . && cp /tmp/s/* . && git add -A && git commit -qm shots && git push -f origin shots

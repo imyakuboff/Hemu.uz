@@ -5,16 +5,12 @@ on:
 permissions:
   contents: read
 jobs:
-  prod:
+  qidiruv:
     runs-on: ubuntu-latest
     steps:
-      - name: Haqiqiy saytda — soxta IP bilan cheklovni aylanib o'tish
+      - name: Haqiqiy saytda qidiruv
         run: |
-          n(){ echo "::notice::$*"; }
-          B=https://hemu.uz
-          sleep 20
-          n "sayt: $(curl -s -o /dev/null -w '%{http_code}' $B/) health: $(curl -s $B/health | head -c 80)"
-          codes=""; for i in $(seq 36); do codes="$codes $(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' -H "X-Forwarded-For: 10.$i.$i.$i" -H "X-Real-IP: 10.$i.$i.$i" -d '{"login":"probe_xff_user","password":"Wrong1234x"}' $B/api/v1/auth/login)"; done
-          n "soxta XFF bilan 36 urinish: $(echo $codes | tr ' ' '\n' | sort | uniq -c | tr '\n' ' ')"
-          n "admin API tokensiz: $(curl -s -o /dev/null -w '%{http_code}' $B/api/v1/admin/users)"
-          n "admin OTP (soxta raqam): $(curl -s -X POST -H 'Content-Type: application/json' -d '{"phone":"+998901112299","code":"000000"}' $B/api/v1/auth/otp/verify | head -c 120)"
+          for q in ekskavator экскаватор yuklagich погрузчик pogruzchik zapchast запчасть ehtiyot ijara аренда Toshkent Ташкент XGMA хгма filtr фильтр; do
+            n=$(curl -s "https://hemu.uz/api/v1/listings?q=$(python3 -c "import urllib.parse,sys;print(urllib.parse.quote(sys.argv[1]))" "$q")&per_page=1" | python3 -c "import sys,json;d=json.load(sys.stdin);print(d.get('total',len(d.get('items',[]))))")
+            echo "::notice::$q: $n ta"
+          done

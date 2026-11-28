@@ -224,9 +224,9 @@ export async function specialist({ params }) {
         <div class="viz-link"><span>hemu.uz/u/${esc(p.slug)}</span><button type="button" class="btn btn-ghost btn-sm" data-copy>${esc(t('card_copy'))}</button></div>
         <div class="stack" style="margin-top:10px">
           <button type="button" class="btn btn-primary" data-share>${icon('share')} ${esc(t('card_share'))}</button>
-          ${p.is_owner ? `<a class="btn btn-soft" href="/u/${esc(p.slug)}/vizitka.png?download=1" download>${icon('download')} ${esc(t('card_dl_card'))}</a>
-          <a class="btn btn-soft" href="/u/${esc(p.slug)}/stiker.png?download=1" download>${icon('download')} ${esc(t('card_dl_sticker'))}</a>
-          <a class="tiny" href="/u/${esc(p.slug)}/vizitka.svg?download=1" download style="text-align:center">${esc(t('card_print_hint'))}</a>` : ''}
+          ${p.is_owner ? `<a class="btn btn-soft" href="/u/${esc(p.slug)}/vizitka.png?download=1&k=${esc(p.card_key || '')}" download>${icon('download')} ${esc(t('card_dl_card'))}</a>
+          <a class="btn btn-soft" href="/u/${esc(p.slug)}/stiker.png?download=1&k=${esc(p.card_key || '')}" download>${icon('download')} ${esc(t('card_dl_sticker'))}</a>
+          <a class="tiny" href="/u/${esc(p.slug)}/vizitka.svg?download=1&k=${esc(p.card_key || '')}" download style="text-align:center">${esc(t('card_print_hint'))}</a>` : ''}
         </div>
       </div>` : ''}
     </aside>

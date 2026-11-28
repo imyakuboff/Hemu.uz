@@ -735,6 +735,14 @@ test("elektron vizitka: /u/manzil, QR, vizitka va stiker, SEO", async () => {
   assert.match(await qr.text(), /<path d="M/);
   const card = await (await fetch(`${base}/u/${v.body.slug}/vizitka.svg`)).text();
   assert.match(card, /HEMU/);
+  // Ochiq vizitkada telefon yo'q; egasining kaliti bilan — bor
+  const ownerPhone = db.get('SELECT phone FROM users WHERE id = ?', s.user_id).phone;
+  assert.ok(!card.includes(ownerPhone));
+  const key = require('../src/lib/vizitka').ownerKey(v.body.slug);
+  const own = await (await fetch(`${base}/u/${v.body.slug}/vizitka.svg?k=${key}`)).text();
+  if (!/^\+0+/.test(ownerPhone)) assert.ok(own.includes(ownerPhone));
+  assert.ok(!(await (await fetch(`${base}/u/${v.body.slug}/vizitka.svg?k=${'0'.repeat(20)}`)).text()).includes(ownerPhone));
+  assert.equal(v.body.card_key, undefined, 'begonaga kalit berilmaydi');
   assert.match(card, new RegExp(`/u/${v.body.slug}`));
   assert.equal((await fetch(`${base}/u/${v.body.slug}/stiker.svg`)).status, 200);
   // PNG (sharp bor bo'lsa) — 200 yoki rasm yasovchi yo'q bo'lsa 404
@@ -757,4 +765,6 @@ test("elektron vizitka: /u/manzil, QR, vizitka va stiker, SEO", async () => {
   assert.ok(up.status < 300, JSON.stringify(up.body));
   const mine = db.get('SELECT slug FROM specialists WHERE user_id = ?', mech.user.id);
   assert.match(mine.slug, /-mexanik/);
+  const ownView = await api('GET', `/api/v1/specialists/${mine.slug}`, { token: mech.token });
+  assert.equal(ownView.body.card_key, require('../src/lib/vizitka').ownerKey(mine.slug));
 });

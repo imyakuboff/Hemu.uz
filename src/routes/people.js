@@ -46,7 +46,8 @@ r.get('/specialists/:id', (req, res) => {
   const s = /^\d+$/.test(key) ? db.get('SELECT * FROM specialists WHERE id = ?', Number(key)) : db.get('SELECT * FROM specialists WHERE slug = ?', key.toLowerCase());
   if (!s || (s.status !== 'active' && req.user?.id !== s.user_id)) notFound();
   if (req.user?.id !== s.user_id) db.run('UPDATE specialists SET views = views + 1 WHERE id = ?', s.id);
-  res.json({ ...P.specialistView(s, req, { full: true }), is_owner: req.user?.id === s.user_id });
+  const own = req.user?.id === s.user_id;
+  res.json({ ...P.specialistView(s, req, { full: true }), is_owner: own, ...(own && s.slug ? { card_key: require('../lib/vizitka').ownerKey(s.slug) } : {}) });
 });
 
 r.post('/specialists/:id/phone', requireAuth, (req, res) => {

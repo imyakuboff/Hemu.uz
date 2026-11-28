@@ -5,14 +5,13 @@ on:
 permissions:
   contents: write
 jobs:
-  reach:
+  photos:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
-      - run: npm i --no-save playwright@1.48.2 >/dev/null 2>&1 && npx playwright install --with-deps chromium >/dev/null 2>&1
-      - run: node .github/diag/reach.js
+      - run: node .github/diag/photos.js
       - run: |
           git config user.name Claude; git config user.email noreply@anthropic.com
-          cp home.png /tmp/ && git checkout --orphan shots && git rm -rfq . && cp /tmp/home.png . && git add home.png && git commit -qm shot && git push -f origin shots
+          cp -r out /tmp/out && git checkout --orphan photos && git rm -rfq . && cp /tmp/out/* . && git add -A && git commit -qm photos && git push -f origin photos

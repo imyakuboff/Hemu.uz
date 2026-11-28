@@ -1589,3 +1589,9 @@ html[data-theme="dark"] .imp-banner { background: #2a2410; border-color: #5a4a12
 .side-card.viz h3 { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 16px; }
 .viz-qr { display: block; margin: 0 auto; width: 160px; height: 160px; border-radius: 12px; background: #fff; padding: 8px; border: 1px solid var(--line); }
 .viz-link { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; font-weight: 600; font-size: 14px; word-break: break-all; }
+
+/* Boshqa mamlakatda e'lon bor */
+.elsewhere { display: flex; align-items: center; gap: 10px; width: 100%; margin: 0 0 12px; padding: 14px 16px; border-radius: 14px; border: 2px solid var(--blue); background: #eef5ff; color: var(--blue); font: inherit; font-weight: 700; text-align: start; cursor: pointer; }
+.elsewhere span { flex: 1; }
+.elsewhere svg { flex: none; width: 20px; height: 20px; }
+html[data-theme="dark"] .elsewhere { background: #10233a; }

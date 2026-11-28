@@ -411,3 +411,17 @@ export function mobileMenu() {
 }
 
 export { catIcon };
+
+// Tanlangan mamlakat/hududda e'lon yo'q, lekin boshqa joyda bor — "barchasini ko'rish" tugmasi
+// (mamlakat tasodifan tanlanib qolsa, foydalanuvchi "e'lonlar o'chib ketdi" deb o'ylamasin)
+export async function elsewhereHint(params) {
+  if (!params.country && !params.region) return '';
+  try {
+    const r = await api(`/listings/count${qs({ ...params, country: undefined, region: undefined, page: undefined, per_page: undefined, facets: undefined })}`);
+    if (!r.total) return '';
+    return `<button type="button" class="elsewhere" data-elsewhere>${icon('target')} <span>${esc(t('elsewhere_hint', { n: num(r.total) }))}</span>${icon('chevron')}</button>`;
+  } catch { return ''; }
+}
+export function bindElsewhere(main, reload) {
+  main.querySelector('[data-elsewhere]')?.addEventListener('click', () => { setLocation('', ''); reload(); });
+}

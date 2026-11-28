@@ -1,5 +1,5 @@
 import { state, t, esc, api, icon, num, qs, fmtRel, initials, openModal, closeModal, toast, debounce, $, $$ } from '../core.js';
-import { crumbs, cards, pager, emptyBox, shortCat, regionsOf, requireLogin } from '../ui.js';
+import { crumbs, cards, pager, emptyBox, shortCat, regionsOf, requireLogin, elsewhereHint, bindElsewhere } from '../ui.js';
 import { go, render, onAuthChanged } from '../app.js';
 import { ART } from '../art.js';
 import { pushCard } from '../features.js';
@@ -62,7 +62,7 @@ async function listingSection(s, query) {
       ${await regionSel(q.region)}
       <select class="sort-select" data-sort>${['new', 'price_asc', 'price_desc', 'popular'].map((x) => `<option value="${x}" ${(q.sort || 'new') === x ? 'selected' : ''}>${esc(t(x === 'new' ? 'sort_actual' : `sort_${x}`))}</option>`).join('')}</select>
     </div></div>
-  ${res.items.length ? cards(res.items, 4) : emptyBox(t('nothing_found'), t('nothing_found_sub'))}
+  ${res.items.length ? cards(res.items, 4) : `${await elsewhereHint(params)}${emptyBox(t('nothing_found'), t('nothing_found_sub'))}`}
   ${pager(res.page, res.pages, (pg) => `${path}${qs({ ...q, page: pg })}`)}
   ${s === 'transportsale' || s === 'transportrental' ? `<a class="model-link" href="/models">${icon('chart')} ${esc(t('models_title'))} ${icon('chevron')}</a>` : ''}
   ${mech ? `<section class="sec"><div class="sec-head"><div><h2>${esc(t('nearby_mechanics'))}</h2></div><a class="pill-link" href="/mechanic">${icon('arrow', 'arrow-flip')} ${esc(t('see_all'))}</a></div>${mech.items.map(personCard).join('') || emptyBox(t('empty'))}</section>` : ''}`;
@@ -70,6 +70,7 @@ async function listingSection(s, query) {
     title: t(`sec_${secKey(s)}`),
     html,
     mount(main) {
+      bindElsewhere(main, () => nav(path, { ...q, region: undefined, page: undefined }));
       $('[data-sq]', main).onsubmit = (e) => { e.preventDefault(); nav(path, { ...q, q: e.target.q.value.trim() || undefined, page: undefined }); };
       $('[data-sort]', main).onchange = (e) => nav(path, { ...q, sort: e.target.value, page: undefined });
       $('[name=region]', main).onchange = (e) => nav(path, { ...q, region: e.target.value || undefined, page: undefined });

@@ -208,7 +208,7 @@ r.post('/auth/otp/verify', authLimit, (req, res) => {
   const p = phoneOf(req);
   // Admin/moderator faqat SMS-kod bilan (parolsiz) kira olmaydi — SIM-kartani egallash hujumidan himoya
   const staff = db.get('SELECT * FROM users WHERE phone = ?', p.e164);
-  if (guard.isStaff(staff) && staff.password_hash) fail(403, 'err.staff_password_required');
+  if (guard.isStaff(staff) && staff.password_hash && (config.adminTwoFactor || process.env.NODE_ENV === 'production')) fail(403, 'err.staff_password_required');
   consumeCode(p.e164, req.body?.code);
   let user = db.get('SELECT * FROM users WHERE phone = ?', p.e164);
   const isNew = !user;

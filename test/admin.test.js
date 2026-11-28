@@ -259,7 +259,9 @@ test('admin hisobi himoyasi: bloklash, SMS-kodsiz kirish taqiqi, qisqa sessiya, 
   db.run(`UPDATE sessions SET created_at = datetime('now', '-8 days') WHERE user_id = ?`, uid);
   assert.equal((await api('GET', '/api/v1/me', { token: tok })).status, 401);
   // Faqat SMS-kod bilan (parolsiz) kirish taqiqlangan
+  await A('PUT', '/integrations', { adminTwoFactor: true });
   const otpV = await api('POST', '/api/v1/auth/otp/verify', { body: { phone, code: '123456' } });
+  await A('PUT', '/integrations', { adminTwoFactor: false });
   assert.equal(otpV.status, 403);
   // 10 ta noto'g'ri parol (har xil IP) — hisob yopiladi, to'g'ri parol ham o'tmaydi
   for (let i = 0; i < 10; i += 1) {

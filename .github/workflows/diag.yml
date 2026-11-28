@@ -5,19 +5,14 @@ on:
 permissions:
   contents: write
 jobs:
-  deps:
+  viz:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with: { ref: main, path: app }
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
+      - run: npm i --no-save playwright@1.48.2 >/dev/null 2>&1 && npx playwright install --with-deps chromium >/dev/null 2>&1
+      - run: node .github/diag/viz.js
       - run: |
-          cd app && npm install --save qrcode-generator@1.4.4 --no-audit --no-fund 2>&1 | tail -2
-          node -e "const q=require('qrcode-generator');const x=q(0,'M');x.addData('https://hemu.uz/u/test');x.make();console.log('::notice::qr ok', x.getModuleCount())"
           git config user.name Claude; git config user.email noreply@anthropic.com
-          git checkout -b deps-qr && git add package.json package-lock.json && git commit -qm "deps: qrcode-generator (vizitka QR kodi uchun)
-
-          Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
-          Claude-Session: https://claude.ai/code/session_01BLSQyzmHR52muy5xKJLBuo" && git push -f origin deps-qr
-          git show --stat HEAD | tail -4 | sed 's/^/::notice::/'
+          mkdir -p /tmp/s && cp *.png *.svg /tmp/s/ 2>/dev/null; git checkout --orphan shots && git rm -rfq . && cp /tmp/s/* . && git add -A && git commit -qm shots && git push -f origin shots

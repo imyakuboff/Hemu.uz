@@ -660,6 +660,13 @@ test("qidiruv: kirill va lotin, sinonimlar (погрузчик = yuklagich, Та
     assert.ok(got.includes(ids[0]) && got.includes(ids[1]), `${q}: ${got}`);
   }
   assert.ok((await find('Toshkent yuklagich')).includes(ids[0]));
+  // Viloyat nomi va bitim turi ham qidiriladi
+  const r0 = db.get('SELECT country, region, deal_type FROM listings WHERE id = ?', ids[0]);
+  if (r0.region) assert.ok((await find(require('../src/geo').regionName(r0.country, r0.region, 'ru'))).includes(ids[0]));
+  db.run(`UPDATE listings SET deal_type = 'rent' WHERE id = ?`, ids[1]);
+  db.run('UPDATE listings SET search_text = ? WHERE id = ?', L.buildSearchText(db.get('SELECT * FROM listings WHERE id = ?', ids[1])), ids[1]);
+  assert.ok((await find('аренда погрузчик')).includes(ids[1]));
+  assert.ok((await find('ijara')).includes(ids[1]));
   assert.ok((await find('sement')).includes(ids[0]));
   assert.ok((await find('Карши')).includes(ids[1]));
   assert.ok((await find('хгма')).includes(ids[1]));

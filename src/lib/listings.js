@@ -18,6 +18,9 @@ function buildSearchText(l) {
   const compat = Array.isArray(l.compatibility) ? l.compatibility.join(' ') : parseJson(l.compatibility, []).join(' ');
   return [
     normalizeSearch([l.title, l.brand, l.model, l.part_number, l.manufacturer, l.analogs, compat, l.city, l.grade, l.size_text, l.pack, l.description].filter(Boolean).join(' ')),
+    // Viloyat nomi (uz/ru/en) va bitim turi — "Toshkent", "Ташкент", "ijara", "аренда" bo'yicha ham topilsin
+    l.region ? normalizeSearch(['uz', 'ru', 'en'].map((lg) => regionName(l.country, l.region, lg)).filter(Boolean).join(' ')) : '',
+    l.deal_type === 'rent' ? 'ijara arenda rent' : l.deal_type === 'service' ? 'hizmat usluga service' : '',
     cat?.searchText,
     sub?.searchText,
   ].filter(Boolean).join(' ');

@@ -10,7 +10,7 @@ const SEED_PASSWORD = 'Hemu2026';
 
 function bootMigrations() {
   // Qidiruv matni yangi qoidalar bilan (kirill/lotin: ц=s, х=h, қ=k) bir marta qayta yig'iladi
-  if (!settings.getRaw('_mig.searchNorm2')) {
+  if (!settings.getRaw('_mig.searchNorm3')) {
     const { normalizeSearch } = require('../i18n');
     const L = require('./listings');
     const parse = (v) => { try { return JSON.parse(v || '[]'); } catch { return []; } };
@@ -23,7 +23,7 @@ function bootMigrations() {
         db.run('UPDATE jobs SET search_text = ? WHERE id = ?', normalizeSearch([j.title, j.description, parse(j.requirements).join(' '), j.city, j.cname].filter(Boolean).join(' ')), j.id);
       }
     });
-    settings.setRaw('_mig.searchNorm2', 1);
+    settings.setRaw('_mig.searchNorm3', 1);
   }
   // Eski bildirishnomalardagi mavjud bo'lmagan sahifa havolalari
   if (!settings.getRaw('_mig.notifLinks')) {

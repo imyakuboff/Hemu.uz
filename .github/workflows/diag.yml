@@ -5,27 +5,16 @@ on:
 permissions:
   contents: read
 jobs:
-  pentest:
+  prod:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/checkout@v4
-        with: { ref: admin-guard, path: app }
-      - uses: actions/setup-node@v4
-        with: { node-version: 22 }
-      - name: Saytning lokal nusxasi (test bazasi)
+      - name: Haqiqiy saytda — soxta IP bilan cheklovni aylanib o'tish
         run: |
-          cd app && npm ci --no-audit --no-fund >/dev/null 2>&1
-          export DB_FILE=/tmp/t.db UPLOAD_DIR=/tmp/up PORT=4799
-          NODE_ENV=development node --disable-warning=ExperimentalWarning seed.js 2>&1 | tail -2
-          node --disable-warning=ExperimentalWarning -e "
-            const db=require('./src/db'); db.open('/tmp/t.db'); require('./src/lib/settings').load();
-            const {hashPassword}=require('./src/routes/auth');
-            for (const p of ['+998901234567','+998907654321','+998935551122','+998977778899']) db.run('UPDATE users SET password_hash=? WHERE phone=?', hashPassword('Pentest2026x'), p);
-            console.log('parollar ok');"
-          ADMIN_LOGIN=pentadmin ADMIN_PASSWORD=PentAdmin2026x NODE_ENV=production APP_SECRET=x$(openssl rand -hex 32) node --disable-warning=ExperimentalWarning scripts/set-admin.js
-          export NODE_ENV=production APP_SECRET=$(openssl rand -hex 32) OTP_DEV_ECHO=0 SMS_PROVIDER=log
-          nohup node --disable-warning=ExperimentalWarning src/server.js > /tmp/app.log 2>&1 &
-          for i in $(seq 30); do curl -s localhost:4799/health >/dev/null && break; sleep 1; done; curl -s localhost:4799/health
-      - run: npm i --no-save playwright@1.48.2 >/dev/null 2>&1 && npx playwright install --with-deps chromium >/dev/null 2>&1
-      - run: node .github/diag/pentest.js; echo; grep -iE "error|unhandled" /tmp/app.log | grep -v ExperimentalWarning | tail -8 | sed 's/^/::notice::app-log /'
+          n(){ echo "::notice::$*"; }
+          B=https://hemu.uz
+          sleep 20
+          n "sayt: $(curl -s -o /dev/null -w '%{http_code}' $B/) health: $(curl -s $B/health | head -c 80)"
+          codes=""; for i in $(seq 36); do codes="$codes $(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' -H "X-Forwarded-For: 10.$i.$i.$i" -H "X-Real-IP: 10.$i.$i.$i" -d '{"login":"probe_xff_user","password":"Wrong1234x"}' $B/api/v1/auth/login)"; done
+          n "soxta XFF bilan 36 urinish: $(echo $codes | tr ' ' '\n' | sort | uniq -c | tr '\n' ' ')"
+          n "admin API tokensiz: $(curl -s -o /dev/null -w '%{http_code}' $B/api/v1/admin/users)"
+          n "admin OTP (soxta raqam): $(curl -s -X POST -H 'Content-Type: application/json' -d '{"phone":"+998901112299","code":"000000"}' $B/api/v1/auth/otp/verify | head -c 120)"

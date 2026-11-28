@@ -217,6 +217,18 @@ export async function specialist({ params }) {
         ${p.is_owner ? `<a class="btn btn-primary btn-block" href="/resume?kind=${p.kind}">${icon('file')} ${esc(t('edit'))}</a>` : p.demo ? `<div class="note" style="margin:0"><div><b>${esc(t('demo_tag'))}</b><p class="small">${esc(t('demo_note'))}</p><a class="btn btn-primary btn-sm" style="margin-top:8px" href="/resume?kind=${p.kind}">${esc(t('res_title'))}</a></div></div>` : `<div class="stack"><button class="btn btn-primary" data-phone>${icon('phone')} <span>${esc(t('show_phone'))}</span></button><button class="btn btn-soft" data-write>${icon('chat')} ${esc(t('write_seller'))}</button></div>`}
         <p class="tiny muted" style="margin:12px 0 0">${esc(t('on_platform', { y: p.since }))} · ${esc(t('views_n', { n: num(p.views) }))}</p>
       </div>
+      ${p.slug && !p.demo ? `<div class="side-card viz">
+        <h3 style="margin:0 0 4px">${icon('user')} ${esc(t('card_title'))}</h3>
+        <p class="tiny muted" style="margin:0 0 10px">${esc(t(p.is_owner ? 'card_owner_hint' : 'card_sub'))}</p>
+        <img class="viz-qr" src="/u/${esc(p.slug)}/qr.svg" alt="QR" width="160" height="160" loading="lazy">
+        <div class="viz-link"><span>hemu.uz/u/${esc(p.slug)}</span><button type="button" class="btn btn-ghost btn-sm" data-copy>${esc(t('card_copy'))}</button></div>
+        <div class="stack" style="margin-top:10px">
+          <button type="button" class="btn btn-primary" data-share>${icon('share')} ${esc(t('card_share'))}</button>
+          ${p.is_owner ? `<a class="btn btn-soft" href="/u/${esc(p.slug)}/vizitka.png?download=1" download>${icon('download')} ${esc(t('card_dl_card'))}</a>
+          <a class="btn btn-soft" href="/u/${esc(p.slug)}/stiker.png?download=1" download>${icon('download')} ${esc(t('card_dl_sticker'))}</a>
+          <a class="tiny" href="/u/${esc(p.slug)}/vizitka.svg?download=1" download style="text-align:center">${esc(t('card_print_hint'))}</a>` : ''}
+        </div>
+      </div>` : ''}
     </aside>
   </div>`;
   return {
@@ -229,6 +241,15 @@ export async function specialist({ params }) {
         e.currentTarget.outerHTML = `<a class="btn btn-primary" href="tel:${esc(r.phone)}">${icon('phone')} ${esc(r.phone)}</a>`;
       });
       $('[data-write]', main)?.addEventListener('click', () => { if (requireLogin(onAuthChanged)) writeModal(p.user_id, p.headline); });
+      const cardUrl = `${location.origin}/u/${p.slug}`;
+      $('[data-copy]', main)?.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(cardUrl); toast(t('card_copied')); } catch { prompt('', cardUrl); }
+      });
+      $('[data-share]', main)?.addEventListener('click', async () => {
+        const text = `${p.headline}${p.name ? ` — ${p.name}` : ''}`;
+        if (navigator.share) { try { await navigator.share({ title: text, text, url: cardUrl }); return; } catch { return; } }
+        window.open(`https://t.me/share/url?url=${encodeURIComponent(cardUrl)}&text=${encodeURIComponent(text)}`, '_blank', 'noopener');
+      });
     },
   };
 }

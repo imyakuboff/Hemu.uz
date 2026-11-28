@@ -304,6 +304,26 @@ function metaFor(req) {
       return { lang, qLang, title: `${name}${p.max_discount ? ` — −${p.max_discount}%` : ''} | HEMU.UZ`, description, url: req.path, body, ld };
     }
   }
+  // Usta/haydovchi sahifasi va elektron vizitkasi: /u/:slug, /specialist/:id
+  const spm = req.path.match(/^\/u\/([a-z0-9-]+)$/) || req.path.match(/^\/specialist\/(\d+)$/);
+  if (spm) {
+    const s = /^\d+$/.test(spm[1]) ? db.get(`SELECT * FROM specialists WHERE id = ? AND status = 'active'`, Number(spm[1])) : db.get(`SELECT * FROM specialists WHERE slug = ? AND status = 'active'`, spm[1]);
+    if (s) {
+      const u = db.get('SELECT name FROM users WHERE id = ?', s.user_id) || {};
+      if (!s.slug) require('./people').ensureSlug(s);
+      const kind = t(lang, s.kind === 'driver' ? 'seo.sec_driver' : 'seo.sec_mechanic');
+      const place = [s.city, regionName(s.country, s.region, lang)].filter(Boolean)[0] || '';
+      const title = `${u.name ? `${u.name} — ` : ''}${s.headline}${place ? `, ${place}` : ''}`;
+      const description = `${kind}. ${(s.about || '').replace(/\s+/g, ' ').slice(0, 200)}`;
+      const r = db.get('SELECT AVG(rating) AS a, COUNT(*) AS n FROM reviews WHERE seller_id = ?', s.user_id);
+      const url = `/u/${s.slug}`;
+      const person = { '@type': 'LocalBusiness', name: title, description: (s.about || '').slice(0, 500), url: `${config.siteUrl}${url}`, image: `${config.siteUrl}${url}/vizitka.png`,
+        ...(place ? { areaServed: place } : {}), ...(r.n ? { aggregateRating: { '@type': 'AggregateRating', ratingValue: Math.round(r.a * 10) / 10, reviewCount: r.n } } : {}) };
+      const body = `<h1>${esc(title)}</h1><p>${esc(kind)}${place ? ` · ${esc(place)}` : ''}</p>${s.about ? `<p>${esc(s.about)}</p>` : ''}`;
+      return { lang, qLang, title: `${title} | HEMU.UZ`, description, image: `${config.siteUrl}${url}/vizitka.png`, url, type: 'profile', body,
+        ld: { '@context': 'https://schema.org', '@graph': [crumbsLd(lang, [[kind, s.kind === 'driver' ? '/driver' : '/mechanic'], [title, url]]), person] } };
+    }
+  }
   // Model katalogi: /models, /model/:brand, /model/:brand/:model
   if (req.path === '/models' || req.path.startsWith('/model/')) {
     const M = require('./models');
@@ -425,7 +445,7 @@ function sitemapUrls() {
     // Model katalogi
     ['/models', 'weekly', '0.7'],
     ...require('./models').index().brands.flatMap((b) => [[`/model/${b.slug}`, 'weekly', '0.6'], ...b.models.map((m) => [`/model/${b.slug}/${m.slug}`, 'weekly', '0.6'])]),
-    ...db.all(`SELECT id, updated_at FROM specialists WHERE status = 'active' ORDER BY id LIMIT 5000`).map((s) => [`/specialist/${s.id}`, 'weekly', '0.5', s.updated_at]),
+    ...db.all(`SELECT id, slug, updated_at FROM specialists WHERE status = 'active' ORDER BY id LIMIT 5000`).map((s) => [s.slug ? `/u/${s.slug}` : `/specialist/${s.id}`, 'weekly', '0.5', s.updated_at]),
     ...cats.load().roots.flatMap((c) => [
       [`/catalog?category=${c.slug}`, 'daily', '0.7'], [`/prices?category=${c.slug}`, 'daily', '0.6'],
       ...c.children.flatMap((s) => [[`/catalog?category=${s.slug}`, 'daily', '0.5'], [`/prices?category=${s.slug}`, 'weekly', '0.4']]),

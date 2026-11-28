@@ -39,6 +39,7 @@ const routes = [
   [/^\/app$/, () => import('./pages/info.js'), 'appPage'],
   [/^\/application$/, () => import('./pages/sections.js'), 'application'],
   [/^\/specialist\/(\d+)$/, () => import('./pages/sections.js'), 'specialist'],
+  [/^\/u\/([a-z0-9-]+)$/, () => import('./pages/sections.js'), 'specialist'],
   [/^\/models$/, () => import('./pages/models.js'), 'modelsIndex'],
   [/^\/model\/([a-z0-9-]+)$/, () => import('./pages/models.js'), 'brandPage'],
   [/^\/model\/([a-z0-9-]+)\/([a-z0-9-]+)$/, () => import('./pages/models.js'), 'modelPage'],

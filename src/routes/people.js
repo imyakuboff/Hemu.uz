@@ -41,7 +41,9 @@ r.get('/specialists/options', (_req, res) => {
 });
 
 r.get('/specialists/:id', (req, res) => {
-  const s = db.get('SELECT * FROM specialists WHERE id = ?', Number(req.params.id));
+  // Raqam (/specialist/12) yoki vizitka manzili (/u/bahtiyor-yusupov-mexanik)
+  const key = String(req.params.id);
+  const s = /^\d+$/.test(key) ? db.get('SELECT * FROM specialists WHERE id = ?', Number(key)) : db.get('SELECT * FROM specialists WHERE slug = ?', key.toLowerCase());
   if (!s || (s.status !== 'active' && req.user?.id !== s.user_id)) notFound();
   if (req.user?.id !== s.user_id) db.run('UPDATE specialists SET views = views + 1 WHERE id = ?', s.id);
   res.json({ ...P.specialistView(s, req, { full: true }), is_owner: req.user?.id === s.user_id });

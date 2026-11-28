@@ -105,6 +105,8 @@ function createApp() {
 
   // ---------- SEO ----------
   const seo = require('./lib/seo');
+  // Elektron vizitka: /u/:slug/vizitka.png, stiker.png, qr.svg
+  app.get(/^\/u\/[a-z0-9-]+\/(vizitka|stiker|qr)\.(png|svg)$/, require('./lib/vizitka').handler);
   app.get('/robots.txt', (_req, res) => res.type('text/plain').send(seo.robots()));
   // IndexNow kalit fayli (Yandex/Bing tekshiradi)
   app.get(/^\/([a-f0-9]{32})\.txt$/, (req, res, next) => {

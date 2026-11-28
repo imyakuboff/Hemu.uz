@@ -29,6 +29,19 @@ const RULES = {
   available: { type: 'bool' },
 };
 
+// Vizitka manzili: ism + kasb (bahtiyor-yusupov-mexanik), band bo'lsa -2, -3 ...
+function ensureSlug(s) {
+  if (!s || s.slug) return s?.slug;
+  const { slug } = require('./models');
+  const name = db.get('SELECT name FROM users WHERE id = ?', s.user_id)?.name || '';
+  const base = `${(slug(name) || 'usta').slice(0, 40)}-${s.kind === 'driver' ? 'haydovchi' : 'mexanik'}`;
+  let sl = base;
+  for (let i = 2; db.get('SELECT 1 FROM specialists WHERE slug = ? AND id != ?', sl, s.id); i += 1) sl = `${base}-${i}`;
+  db.run('UPDATE specialists SET slug = ? WHERE id = ?', sl, s.id);
+  s.slug = sl;
+  return sl;
+}
+
 function upsertSpecialist(user, kind, body) {
   const v = validate(body, RULES);
   const allowed = kind === 'mechanic' ? MECHANIC_SKILLS : DRIVER_SKILLS;
@@ -42,9 +55,12 @@ function upsertSpecialist(user, kind, body) {
   const ex = db.get('SELECT id FROM specialists WHERE user_id = ?', user.id);
   if (ex) {
     db.update('specialists', ex.id, { ...row, updated_at: new Date().toISOString().replace('T', ' ').slice(0, 19) });
+    ensureSlug(db.get('SELECT * FROM specialists WHERE id = ?', ex.id));
     return ex.id;
   }
-  return db.insert('specialists', { ...row, user_id: user.id });
+  const id = db.insert('specialists', { ...row, user_id: user.id });
+  ensureSlug(db.get('SELECT * FROM specialists WHERE id = ?', id));
+  return id;
 }
 
 function specialistView(s, req, { full = false } = {}) {
@@ -52,6 +68,8 @@ function specialistView(s, req, { full = false } = {}) {
   const r = db.get('SELECT AVG(rating) AS a, COUNT(*) AS n FROM reviews WHERE seller_id = ?', s.user_id);
   const v = {
     id: s.id,
+    slug: ensureSlug(s),
+    card_url: s.slug ? `/u/${s.slug}` : null,
     kind: s.kind,
     user_id: s.user_id,
     name: u?.name,
@@ -129,4 +147,4 @@ function ensureDemoSpecialists() {
 // Ro'yxat so'rovi uchun: haqiqiylari yetarli bo'lsa namunalar ko'rinmaydi
 const demoVisible = (kind) => db.get(`SELECT COUNT(*) AS n FROM specialists WHERE demo = 0 AND status = 'active'${kind ? ' AND kind = ?' : ''}`, ...(kind ? [kind] : [])).n < DEMO_HIDE_AT;
 
-module.exports = { ensureDemoSpecialists, demoVisible, DEMO_HIDE_AT, specialistsToNotify, MECHANIC_SKILLS, DRIVER_SKILLS, LICENSES, RATE_UNITS, upsertSpecialist, specialistView, normalizePhone };
+module.exports = { ensureSlug, ensureDemoSpecialists, demoVisible, DEMO_HIDE_AT, specialistsToNotify, MECHANIC_SKILLS, DRIVER_SKILLS, LICENSES, RATE_UNITS, upsertSpecialist, specialistView, normalizePhone };

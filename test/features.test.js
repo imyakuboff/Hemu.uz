@@ -718,3 +718,43 @@ test("zapchastni topib beramiz: qisqa so'rov, mos do'konlarga xabar", async () =
   assert.equal((await api('POST', '/api/v1/parts/find', { token: buyer.token, body: { name: 'ab' } })).status, 422);
   assert.equal((await api('POST', '/api/v1/parts/find', { body: { name: 'Filtr' } })).status, 401);
 });
+
+test("elektron vizitka: /u/manzil, QR, vizitka va stiker, SEO", async () => {
+  const s = db.get(`SELECT * FROM specialists WHERE status = 'active' AND demo = 0 ORDER BY id LIMIT 1`) || db.get(`SELECT * FROM specialists WHERE status = 'active' ORDER BY id LIMIT 1`);
+  const v = await api('GET', `/api/v1/specialists/${s.id}`);
+  assert.match(v.body.slug, /^[a-z0-9-]+-(mexanik|haydovchi)(-\d+)?$/);
+  assert.equal(v.body.card_url, `/u/${v.body.slug}`);
+  // Manzil bo'yicha ham ochiladi
+  const bySlug = await api('GET', `/api/v1/specialists/${v.body.slug}`);
+  assert.equal(bySlug.body.id, s.id);
+  assert.equal((await api('GET', '/api/v1/specialists/no-such-usta')).status, 404);
+  // QR va vizitka SVG
+  const qr = await fetch(`${base}/u/${v.body.slug}/qr.svg`);
+  assert.equal(qr.status, 200);
+  assert.match(qr.headers.get('content-type'), /svg/);
+  assert.match(await qr.text(), /<path d="M/);
+  const card = await (await fetch(`${base}/u/${v.body.slug}/vizitka.svg`)).text();
+  assert.match(card, /HEMU/);
+  assert.match(card, new RegExp(`/u/${v.body.slug}`));
+  assert.equal((await fetch(`${base}/u/${v.body.slug}/stiker.svg`)).status, 200);
+  // PNG (sharp bor bo'lsa) — 200 yoki rasm yasovchi yo'q bo'lsa 404
+  const png = await fetch(`${base}/u/${v.body.slug}/vizitka.png?download=1`);
+  assert.ok([200, 404].includes(png.status));
+  if (png.status === 200) {
+    assert.equal(png.headers.get('content-type'), 'image/png');
+    assert.match(png.headers.get('content-disposition'), /attachment/);
+  }
+  assert.equal((await fetch(`${base}/u/no-such/vizitka.svg`)).status, 404);
+  // Sahifa: serverda sarlavha va og:image (Telegramda vizitka rasmi chiqadi)
+  const html = await (await fetch(`${base}/u/${v.body.slug}`)).text();
+  assert.match(html, new RegExp(`og:image" content="[^"]*/u/${v.body.slug}/vizitka\\.png`));
+  assert.match(html, /<h1>/);
+  const sm = await (await fetch(`${base}/sitemap-main.xml`)).text();
+  assert.match(sm, new RegExp(`/u/${v.body.slug}`));
+  // Yangi profil ham manzil oladi
+  const mech = await login('+998935557711');
+  const up = await api('PUT', '/api/v1/me/specialist?kind=mechanic', { token: mech.token, body: { kind: 'mechanic', headline: 'Gidravlika ustasi JCB', about: 'Gidravlika va dvigatel ta\'miri, obyektga chiqaman', experience_years: 5, skills: ['hydraulics'], region: 'tashkent', city: 'Chirchiq', rate: 100000, rate_unit: 'hour' } });
+  assert.ok(up.status < 300, JSON.stringify(up.body));
+  const mine = db.get('SELECT slug FROM specialists WHERE user_id = ?', mech.user.id);
+  assert.match(mine.slug, /-mexanik/);
+});

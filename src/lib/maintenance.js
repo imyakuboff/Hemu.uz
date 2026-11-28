@@ -9,6 +9,13 @@ const SEED_ADMIN_PHONE = '+998900000001';
 const SEED_PASSWORD = 'Hemu2026';
 
 function bootMigrations() {
+  // Vizitka manzillari (/u/...): noyob indeks va mavjud ustalar/haydovchilar uchun yasash
+  db.exec('CREATE UNIQUE INDEX IF NOT EXISTS ix_specialists_slug ON specialists(slug)');
+  if (!settings.getRaw('_mig.specSlugs')) {
+    const { ensureSlug } = require('./people');
+    for (const s of db.all('SELECT * FROM specialists WHERE slug IS NULL')) ensureSlug(s);
+    settings.setRaw('_mig.specSlugs', 1);
+  }
   // Qidiruv matni yangi qoidalar bilan (kirill/lotin: ц=s, х=h, қ=k) bir marta qayta yig'iladi
   if (!settings.getRaw('_mig.searchNorm3')) {
     const { normalizeSearch } = require('../i18n');

@@ -114,7 +114,7 @@ export async function catalog({ query }) {
         <select class="sort-select" data-sort>${['new', 'price_asc', 'price_desc', 'popular', 'shared', 'year_desc', ...(q.near ? ['distance'] : [])].map((s) => `<option value="${s}" ${(q.sort || 'new') === s ? 'selected' : ''}>${esc(s === 'new' ? t('sort_actual') : t(`sort_${s}`))}</option>`).join('')}</select></div>
       <div class="active-filters">${activeChips(q, f)}${state.user && (q.q || q.category) ? `<button class="chip-x" data-save-search>${icon('heart')} ${esc(t('save_search'))}</button>` : ''}</div>
       ${isMap ? '<div class="map-big" data-bigmap style="margin-bottom:16px"></div>' : ''}
-      ${res.items.length ? cards(res.items, 3) : emptyBox(t('nothing_found'), t('nothing_found_sub'))}
+      ${res.items.length ? cards(res.items, 3) : `${emptyBox(t('nothing_found'), t('nothing_found_sub'))}<a class="fp-card" href="/zapchast-topish${q.q ? `?machine=${encodeURIComponent(q.q)}` : ''}" style="margin-top:12px"><span class="fp-ic">${icon('gear')}</span><span><b>${esc(t('fp_card_title'))}</b><small>${esc(t('fp_card_sub'))}</small></span>${icon('chevron')}</a>`}
       ${pager(res.page, res.pages, (p) => `/catalog${qs({ ...q, page: p })}`)}
       <div class="note"><span>${icon('shield')}</span><div><b>${esc(t('buy_confidently'))}</b><p>${esc(t('buy_confidently_sub'))}</p></div></div>
     </div>

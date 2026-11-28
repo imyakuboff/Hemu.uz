@@ -304,6 +304,39 @@ function metaFor(req) {
       return { lang, qLang, title: `${name}${p.max_discount ? ` — −${p.max_discount}%` : ''} | HEMU.UZ`, description, url: req.path, body, ld };
     }
   }
+  // Model katalogi: /models, /model/:brand, /model/:brand/:model
+  if (req.path === '/models' || req.path.startsWith('/model/')) {
+    const M = require('./models');
+    const cur = LANG_CUR[lang] || 'USD';
+    const parts = req.path.split('/').filter(Boolean);
+    if (parts[0] === 'models') {
+      const brands = M.index().brands;
+      const name = t(lang, 'seo.models_title');
+      const body = `<h1>${esc(name)}</h1><p>${esc(t(lang, 'seo.models_desc'))}</p><ul>${brands.slice(0, 200).map((b) => `<li><a href="${esc(withLang(`/model/${b.slug}`, lang))}">${esc(b.name)}</a> (${b.count})${b.models.length ? ': ' + b.models.slice(0, 8).map((m) => `<a href="${esc(withLang(`/model/${b.slug}/${m.slug}`, lang))}">${esc(m.name)}</a>`).join(', ') : ''}</li>`).join('')}</ul>`;
+      return { lang, qLang, title: `${name} | HEMU.UZ`, description: t(lang, 'seo.models_desc'), url: '/models', body, ld: { '@context': 'https://schema.org', '@graph': [crumbsLd(lang, [[name, '/models']])] } };
+    }
+    const { brand, model } = M.find(parts[1], parts[2]);
+    if (brand && (!parts[2] || model)) {
+      const ids = M.equipmentRows(brand, model);
+      const st = M.stats(ids, cur, lang);
+      const rows = ids.length ? db.all(`SELECT id, title, price, currency, city FROM listings WHERE id IN (${ids.slice(0, 40).map(() => '?').join(',')})`, ...ids.slice(0, 40)) : [];
+      const partIds = M.partRows(brand, model, 20);
+      const partsRows = partIds.length ? db.all(`SELECT id, title, price, currency, city FROM listings WHERE id IN (${partIds.map(() => '?').join(',')})`, ...partIds) : [];
+      const full = model ? `${brand.name} ${model.name}` : brand.name;
+      const price = st?.price_min && st?.price_max ? t(lang, 'seo.model_price', { min: st.price_min, max: st.price_max }) : '';
+      const title = model ? t(lang, 'seo.model_title', { name: full }) : t(lang, 'seo.brand_title', { brand: brand.name });
+      const description = model ? t(lang, 'seo.model_desc', { name: full, n: ids.length, price }) : t(lang, 'seo.brand_desc', { brand: brand.name, n: brand.count, m: brand.models.length });
+      const url = model ? `/model/${brand.slug}/${model.slug}` : `/model/${brand.slug}`;
+      const crumbs = [[t(lang, 'seo.models_title'), '/models'], [brand.name, `/model/${brand.slug}`], ...(model ? [[full, url]] : [])];
+      const body = `<h1>${esc(title)}</h1><p>${esc(description)}</p>${listRows(rows, lang)}
+        ${!model && brand.models.length ? `<ul>${brand.models.map((m) => `<li><a href="${esc(withLang(`/model/${brand.slug}/${m.slug}`, lang))}">${esc(`${brand.name} ${m.name}`)}</a> (${m.count})</li>`).join('')}</ul>` : ''}
+        ${partsRows.length ? listRows(partsRows, lang) : ''}`;
+      const product = model && st?.price_min ? { '@type': 'Product', name: full, brand: { '@type': 'Brand', name: brand.name }, model: model.name,
+        offers: { '@type': 'AggregateOffer', offerCount: st.sale, priceCurrency: cur, lowPrice: Math.round(money.fromUsd(db.get(`SELECT MIN(price_usd) AS v FROM listings WHERE id IN (${ids.map(() => '?').join(',')}) AND price_usd > 0 AND deal_type != 'rent'`, ...ids).v, cur) || 0), highPrice: Math.round(money.fromUsd(db.get(`SELECT MAX(price_usd) AS v FROM listings WHERE id IN (${ids.map(() => '?').join(',')}) AND price_usd > 0 AND deal_type != 'rent'`, ...ids).v, cur) || 0) } } : null;
+      const ld = { '@context': 'https://schema.org', '@graph': [crumbsLd(lang, crumbs), { '@type': 'CollectionPage', name: title, description, url: `${config.siteUrl}${url}`, ...itemListLd(rows.map((x) => x.title)) }, ...(product ? [product] : [])] };
+      return { lang, qLang, title: `${title} | HEMU.UZ`, description, url, body, ld };
+    }
+  }
   // Matni o'zgarmaydigan sahifalar (shartlar, tariflar, aloqa ...)
   if (STATIC[req.path]) {
     const name = t(lang, STATIC[req.path]);
@@ -389,6 +422,9 @@ function sitemapUrls() {
     ...db.all('SELECT slug FROM promos WHERE active = 1').map((p) => [`/aksiya/${p.slug}`, 'weekly', '0.6']),
     // Kompaniya do'konlari va mutaxassislar
     ...db.all('SELECT id FROM companies ORDER BY id LIMIT 5000').map((c) => [`/company/${c.id}`, 'weekly', '0.6']),
+    // Model katalogi
+    ['/models', 'weekly', '0.7'],
+    ...require('./models').index().brands.flatMap((b) => [[`/model/${b.slug}`, 'weekly', '0.6'], ...b.models.map((m) => [`/model/${b.slug}/${m.slug}`, 'weekly', '0.6'])]),
     ...db.all(`SELECT id, updated_at FROM specialists WHERE status = 'active' ORDER BY id LIMIT 5000`).map((s) => [`/specialist/${s.id}`, 'weekly', '0.5', s.updated_at]),
     ...cats.load().roots.flatMap((c) => [
       [`/catalog?category=${c.slug}`, 'daily', '0.7'], [`/prices?category=${c.slug}`, 'daily', '0.6'],

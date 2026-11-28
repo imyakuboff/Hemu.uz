@@ -182,7 +182,15 @@ function detail(l, ctx) {
   const photos = db.all('SELECT id, path FROM listing_photos WHERE listing_id = ? ORDER BY sort, id', l.id).map((p) => ({ id: p.id, url: fileUrl(p.path), thumb: thumbUrl(p.path) }));
   const seller = sellerInfo(l.user_id, l.company_id);
   const delivery = parseJson(l.delivery, null);
+  // Model katalogidagi sahifa (/model/jcb/3cx) — bo'lsa havola
+  let modelUrl = null;
+  if (l.brand) {
+    const M = require('./models');
+    const { brand, model } = M.find(M.slug(l.brand), l.model && l.kind === 'equipment' ? M.slug(l.model) : null);
+    if (brand) modelUrl = model ? `/model/${brand.slug}/${model.slug}` : `/model/${brand.slug}`;
+  }
   return {
+    model_url: modelUrl,
     ...base,
     description: l.description,
     photos,

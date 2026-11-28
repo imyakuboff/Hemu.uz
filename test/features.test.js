@@ -674,3 +674,47 @@ test("qidiruv: kirill va lotin, sinonimlar (погрузчик = yuklagich, Та
   const sug = await api('GET', `/api/v1/search/suggest?q=${encodeURIComponent('юклагич')}`);
   assert.ok(sug.body.total >= 2);
 });
+
+test('model katalogi: /models, marka va model sahifalari, SEO va sitemap', async () => {
+  const idx = await api('GET', '/api/v1/models');
+  const jcb = idx.body.brands.find((b) => b.slug === 'jcb');
+  assert.ok(jcb && jcb.models.some((m) => m.slug === '3cx'), JSON.stringify(idx.body.brands.slice(0, 3)));
+  const br = await api('GET', '/api/v1/models/jcb');
+  assert.equal(br.status, 200);
+  assert.ok(br.body.listings.length >= 1);
+  const m = await api('GET', '/api/v1/models/jcb/3cx', { lang: 'uz' });
+  assert.equal(m.status, 200);
+  assert.equal(m.body.model.name, '3CX');
+  assert.ok(m.body.listings.length >= 1);
+  assert.ok(m.body.parts.length >= 1, 'JCB 3CX ga mos zapchastlar');
+  assert.ok(m.body.stats.total >= 1);
+  assert.equal((await api('GET', '/api/v1/models/jcb/no-such')).status, 404);
+  assert.equal((await api('GET', '/api/v1/models/nobrand')).status, 404);
+  // Serverda tayyorlangan sahifa (qidiruv botlari uchun)
+  const html = await (await fetch(`${base}/model/jcb/3cx?lang=uz`)).text();
+  assert.match(html, /<title>[^<]*JCB 3CX/);
+  assert.match(html, /<h1>[^<]*JCB 3CX/);
+  assert.match(html, /application\/ld\+json/);
+  assert.equal((await fetch(`${base}/models`)).status, 200);
+  const sm = await (await fetch(`${base}/sitemap-main.xml`)).text();
+  assert.match(sm, /\/model\/jcb\/3cx/);
+  // E'lon sahifasida model havolasi
+  const lid = db.get(`SELECT id FROM listings WHERE status = 'active' AND brand = 'JCB' AND model = '3CX' LIMIT 1`).id;
+  assert.equal((await api('GET', `/api/v1/listings/${lid}`)).body.model_url, '/model/jcb/3cx');
+});
+
+test("zapchastni topib beramiz: qisqa so'rov, mos do'konlarga xabar", async () => {
+  const buyer = await login('+998935559911');
+  const seller = db.get(`SELECT user_id FROM listings WHERE status = 'active' AND kind = 'part' AND search_text LIKE '%jcb%' LIMIT 1`).user_id;
+  const before = db.get(`SELECT COUNT(*) AS n FROM notifications WHERE user_id = ? AND type = 'request_match'`, seller).n;
+  const r = await api('POST', '/api/v1/parts/find', { token: buyer.token, body: { name: 'Gidravlika filtri', part_number: '32/925346', machine: 'JCB 3CX 2019', quantity: '2', region: 'tashkent' } });
+  assert.equal(r.status, 201, JSON.stringify(r.body));
+  assert.equal(r.body.want, 'part');
+  assert.ok(r.body.notified_sellers >= 1);
+  assert.ok(db.get(`SELECT COUNT(*) AS n FROM notifications WHERE user_id = ? AND type = 'request_match'`, seller).n > before);
+  const x = db.get('SELECT * FROM requests WHERE id = ?', r.body.id);
+  assert.equal(x.status, 'open');
+  assert.match(x.title, /Gidravlika filtri 32\/925346 — JCB 3CX/);
+  assert.equal((await api('POST', '/api/v1/parts/find', { token: buyer.token, body: { name: 'ab' } })).status, 422);
+  assert.equal((await api('POST', '/api/v1/parts/find', { body: { name: 'Filtr' } })).status, 401);
+});

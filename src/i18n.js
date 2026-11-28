@@ -301,6 +301,13 @@ const M = {
   'seo.page_verified': ['Tekshirilgan sotuvchi belgisi', 'Знак проверенного продавца', 'Verified seller badge'],
   'seo.page_terms': ['Foydalanish shartlari', 'Условия использования', 'Terms of use'],
   'seo.page_privacy': ['Maxfiylik siyosati', 'Политика конфиденциальности', 'Privacy policy'],
+  'seo.models_title': ['Maxsus texnika markalari va modellari', 'Марки и модели спецтехники', 'Heavy equipment brands and models'],
+  'seo.models_desc': ["Markalar va modellar bo'yicha e'lonlar, narxlar, zapchastlar va ustalar — HEMU.UZ", 'Объявления, цены, запчасти и мастера по маркам и моделям — HEMU.UZ', 'Listings, prices, parts and mechanics by brand and model — HEMU.UZ'],
+  'seo.brand_title': ["{brand} — texnika, narxlar va zapchastlar", '{brand} — техника, цены и запчасти', '{brand} — machines, prices and parts'],
+  'seo.brand_desc': ["{brand}: {n} ta e'lon, {m} ta model. Narxlar, zapchastlar va ustalar — HEMU.UZ", '{brand}: {n} объявлений, {m} моделей. Цены, запчасти и мастера — HEMU.UZ', '{brand}: {n} listings, {m} models. Prices, parts and mechanics — HEMU.UZ'],
+  'seo.model_title': ["{name} — narxi, e'lonlar, zapchastlar", '{name} — цена, объявления, запчасти', '{name} — price, listings, parts'],
+  'seo.model_desc': ["{name}: {n} ta e'lon{price}. Mos zapchastlar va ta'mirlash ustalari — HEMU.UZ", '{name}: {n} объявлений{price}. Запчасти и мастера по ремонту — HEMU.UZ', '{name}: {n} listings{price}. Compatible parts and repair mechanics — HEMU.UZ'],
+  'seo.model_price': [', narxi {min} dan {max} gacha', ', цена от {min} до {max}', ', price from {min} to {max}'],
   'seo.crumb_home': ['Bosh sahifa', 'Главная', 'Home', 'Басты бет', 'Башкы бет', 'Асосӣ', 'Baş sahypa', 'Əsas səhifə', 'خانه', 'کور'],
   'sms.otp': ['HEMU.UZ kodi: {code}. Hech kimga bermang.', 'Код HEMU.UZ: {code}. Никому не сообщайте.', 'HEMU.UZ code: {code}. Do not share it.', 'HEMU.UZ коды: {code}. Ешкімге айтпаңыз.', 'HEMU.UZ коду: {code}. Эч кимге айтпаңыз.', 'Рамзи HEMU.UZ: {code}. Ба касе нагӯед.', 'HEMU.UZ kody: {code}. Hiç kime aýtmaň.', 'HEMU.UZ kodu: {code}. Heç kimə deməyin.', 'کد HEMU.UZ: {code}. به هیچ‌کس ندهید.', 'د HEMU.UZ کوډ: {code}. چا ته یې مه ورکوئ.'],
 };

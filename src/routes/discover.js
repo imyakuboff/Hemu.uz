@@ -10,6 +10,35 @@ const { notFound, forbidden } = require('../lib/http');
 const { pick, normalizeSearch, searchVariants } = require('../i18n');
 
 const r = Router();
+const M = require('../lib/models');
+const P = require('../lib/people');
+const cardCtx = (req) => ({ lang: req.lang, currency: req.currency, favs: L.favoritesSet(req.user?.id) });
+const cardsOf = (ids, req) => (ids.length ? L.cardsByIds(`SELECT l.* FROM listings l WHERE l.id IN (${ids.map(() => '?').join(',')}) ORDER BY l.bumped_at DESC`, ids, cardCtx(req)) : []);
+
+// ---------- Model katalogi ----------
+r.get('/models', (_req, res) => {
+  res.json({ brands: M.index().brands.slice(0, 300) });
+});
+r.get('/models/:brand', (req, res) => {
+  const { brand } = M.find(req.params.brand);
+  if (!brand) notFound();
+  const ids = M.equipmentRows(brand);
+  res.json({ brand: { slug: brand.slug, name: brand.name, count: brand.count }, models: brand.models, stats: M.stats(ids, req.currency, req.lang),
+    listings: cardsOf(ids.slice(0, 24), req), parts: cardsOf(M.partRows(brand, null, 8), req) });
+});
+r.get('/models/:brand/:model', (req, res) => {
+  const { brand, model } = M.find(req.params.brand, req.params.model);
+  if (!brand || !model) notFound();
+  const ids = M.equipmentRows(brand, model);
+  res.json({
+    brand: { slug: brand.slug, name: brand.name }, model: { slug: model.slug, name: model.name, count: model.count },
+    stats: M.stats(ids, req.currency, req.lang),
+    listings: cardsOf(ids.slice(0, 24), req),
+    parts: cardsOf(M.partRows(brand, model, 12), req),
+    mechanics: M.mechanicRows(brand).map((s) => P.specialistView(s, req)),
+    related: brand.models.filter((m) => m.slug !== model.slug).slice(0, 12),
+  });
+});
 
 // Qidiruvni jurnalga yozish (tavsiyalar va "o'xshash so'rovlar" uchun)
 function logSearch(q, results) {

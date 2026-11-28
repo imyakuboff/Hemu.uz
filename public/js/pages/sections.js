@@ -51,6 +51,7 @@ async function listingSection(s, query) {
   const path = `/${s}`;
   const html = `
   ${head(s, `<a href="/create" class="btn btn-primary">${icon('plus')} ${esc(t('post_listing'))}</a>`)}
+  ${s === 'sparepart' ? `<a class="fp-card" href="/zapchast-topish" style="margin-bottom:14px">${`<span class="fp-ic">${icon('gear')}</span>`}<span><b>${esc(t('fp_card_title'))}</b><small>${esc(t('fp_card_sub'))}</small></span>${icon('chevron')}</a>` : ''}
   ${s === 'transportrental' ? `<a class="urgent-cta" href="/urgent" style="margin-bottom:14px">${icon('bolt')}<span><b>${esc(t('urgent_title'))}</b><small>${esc(t('urgent_cta_sub'))}</small></span></a>` : ''}
   <form class="search" data-sq style="margin-bottom:14px">${icon('search')}<input name="q" value="${esc(q.q || '')}" placeholder="${esc(t('search_ph'))}"><button class="btn btn-primary">${esc(t('find'))}</button></form>
   ${chips.length ? `<div class="lbl" style="margin-bottom:6px">${esc(t(p.rubric ? 'by_rubric' : 'category'))}</div><div class="chips"><a class="chip ${!q.cat ? 'on' : ''}" href="${path}${qs({ ...q, cat: undefined, page: undefined })}">${esc(t('all'))}</a>${chips.map(([v, l]) => `<a class="chip ${q.cat === v ? 'on' : ''}" href="${path}${qs({ ...q, cat: v, page: undefined })}">${esc(l)}</a>`).join('')}</div>` : ''}
@@ -63,6 +64,7 @@ async function listingSection(s, query) {
     </div></div>
   ${res.items.length ? cards(res.items, 4) : emptyBox(t('nothing_found'), t('nothing_found_sub'))}
   ${pager(res.page, res.pages, (pg) => `${path}${qs({ ...q, page: pg })}`)}
+  ${s === 'transportsale' || s === 'transportrental' ? `<a class="model-link" href="/models">${icon('chart')} ${esc(t('models_title'))} ${icon('chevron')}</a>` : ''}
   ${mech ? `<section class="sec"><div class="sec-head"><div><h2>${esc(t('nearby_mechanics'))}</h2></div><a class="pill-link" href="/mechanic">${icon('arrow', 'arrow-flip')} ${esc(t('see_all'))}</a></div>${mech.items.map(personCard).join('') || emptyBox(t('empty'))}</section>` : ''}`;
   return {
     title: t(`sec_${secKey(s)}`),
@@ -81,7 +83,7 @@ export const sparepart = ({ query }) => listingSection('sparepart', query);
 
 // ---------- Mexaniklar va haydovchilar ----------
 const rateText = (p) => (p.rate_formatted ? `${p.rate_formatted} ${t(`ru_${p.rate_unit || 'hour'}`)}` : '');
-function personCard(p) {
+export function personCard(p) {
   const tags = [...p.skills.map((k) => t(`sk_${k}`)), ...p.license.map((k) => (k === 'tractor' ? t('lic_tractor') : k === 'special' ? t('lic_special') : k))];
   return `<a class="person" href="/specialist/${p.id}">
     <span class="avatar">${p.avatar ? `<img src="${esc(p.avatar)}" alt="">` : esc(initials(p.name))}</span>

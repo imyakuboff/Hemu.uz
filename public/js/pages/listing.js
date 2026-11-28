@@ -117,13 +117,13 @@ export default async function listing({ params, query }) {
       </div>`;
 
   const left = part
-    ? `<div class="box"><h3>${esc(t('about_part'))}</h3>${table(specRows(l))}</div>
+    ? `<div class="box"><h3>${esc(t('about_part'))}</h3>${table(specRows(l))}${l.model_url ? `<a class="model-link" href="${esc(l.model_url)}">${icon('chart')} ${esc(t('m_all_about', { name: l.facts.brand || '' }))} ${icon('chevron')}</a>` : ''}</div>
       ${l.compatibility.length || l.compatibility_note ? `<div class="box"><h3>${esc(t('compat'))}</h3>
         <div class="chips" style="gap:6px">${l.compatibility.map((c) => `<span class="chip-x">${esc(c)}</span>`).join('')}</div>
         ${l.compatibility_note ? `<p class="tiny muted" style="margin:10px 0 0">${esc(l.compatibility_note)}</p>` : ''}</div>` : ''}
       ${l.description || l.delivery ? `<div class="box"><h3>${esc(t('desc_delivery'))}</h3>${l.description ? `<div class="prose">${esc(l.description)}</div>` : ''}
         ${l.delivery ? `<div style="margin-top:12px">${table([[t('pickup'), l.delivery.pickup], [t('delivery_local'), l.delivery.local], [t('delivery_national'), l.delivery.national], [t('payment'), l.delivery.payment]].filter((r) => r[1]))}</div>` : ''}</div>` : ''}`
-    : `<div class="box"><h3>${esc(t('specs'))}</h3>${table(specRows(l))}</div>
+    : `<div class="box"><h3>${esc(t('specs'))}</h3>${table(specRows(l))}${l.model_url ? `<a class="model-link" href="${esc(l.model_url)}">${icon('chart')} ${esc(t('m_all_about', { name: [l.facts.brand, l.facts.model].filter(Boolean).join(' ') }))} ${icon('chevron')}</a>` : ''}</div>
       ${l.description ? `<div class="box"><h3>${esc(t('description'))}</h3><div class="prose">${esc(l.description)}</div></div>` : ''}
       <div class="box"><h3>${esc(t('location_title'))}</h3>
         <p class="small" style="margin:0">${esc([l.location.region_name, l.location.city, l.location.address].filter(Boolean).join(', '))}</p>

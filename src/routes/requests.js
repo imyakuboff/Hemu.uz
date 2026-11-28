@@ -159,6 +159,39 @@ r.post('/requests', requireAuth, rateLimit({ name: 'req', windowMs: 3600000, max
   res.status(201).json({ ...requestView(db.get('SELECT * FROM requests WHERE id = ?', id), req, { withOffers: true }), notified_sellers: n });
 });
 
+// "Zapchastni topib beramiz": qisqa forma — nomi, artikul, texnika, soni, shahar. Rubrika nomdan aniqlanadi.
+const PART_RULES = {
+  name: { type: 'string', min: 3, max: 100, required: true },
+  part_number: { type: 'string', max: 60 },
+  machine: { type: 'string', max: 80 },
+  quantity: { type: 'string', max: 40 },
+  note: { type: 'string', max: 1000 },
+  condition: { type: 'enum', values: ['new', 'used', 'any'] },
+  region: { type: 'string', max: 40 },
+  city: { type: 'string', max: 80 },
+  contact_phone: { type: 'string', max: 30 },
+};
+r.post('/parts/find', requireAuth, rateLimit({ name: 'partfind', windowMs: 3600000, max: 10, key: (req) => req.user.id }), (req, res) => {
+  const v = validate(req.body || {}, PART_RULES);
+  const root = cats.find('parts');
+  const imap = require('../lib/importmap');
+  const sub = imap.guessChild([v.name, v.machine, v.note].filter(Boolean).join(' '), root.children) || cats.find('parts-special') || root.children[0];
+  let title = [v.name, v.part_number].filter(Boolean).join(' ');
+  if (v.machine) title += ` — ${v.machine}`;
+  if (title.length < 5) title = `${title} (zapchast)`;
+  const description = [
+    `Qism: ${v.name}`, v.part_number ? `Artikul: ${v.part_number}` : null, v.machine ? `Texnika: ${v.machine}` : null,
+    v.quantity ? `Soni: ${v.quantity}` : null, v.note ? `Izoh: ${v.note}` : null,
+  ].filter(Boolean).join('\n').padEnd(10, '.');
+  const p = prepare(req, {
+    want: 'part', category: root.slug, subcategory: sub.slug, title: title.slice(0, 120), description,
+    condition: v.condition || 'any', quantity: v.quantity, region: v.region, city: v.city, contact_phone: v.contact_phone, accept_messages: true,
+  }, null);
+  const id = db.insert('requests', { ...p, user_id: req.user.id, contact_name: req.user.name, contact_phone: p.contact_phone || req.user.phone, contact_email: req.user.email, status: 'draft' });
+  const n = openRequest(id, req.user.id);
+  res.status(201).json({ ...requestView(db.get('SELECT * FROM requests WHERE id = ?', id), req, { withOffers: true }), notified_sellers: n });
+});
+
 // Nashr: 30 kun faol, mos sotuvchilarga xabar ("Поставщики придут к вам")
 function openRequest(id, userId) {
   db.run(`UPDATE requests SET status = 'open', expires_at = datetime('now', '+30 days') WHERE id = ?`, id);
@@ -173,6 +206,21 @@ function openRequest(id, userId) {
      LIMIT 200`,
     x.country, userId, x.subcategory_id ?? -1, x.category_id, x.subcategory_id ?? -1, x.region ?? '',
   );
+  // Zapchast so'rovi: artikul, marka yoki model mos keladigan zapchast sotuvchilari (boshqa bo'limda bo'lsa ham) — birinchi
+  if (x.want === 'part') {
+    const { normalizeSearch } = require('../i18n');
+    const words = [...new Set(normalizeSearch(`${x.title} ${x.description}`).split(' ').filter((w) => w.length >= 3 && !['qism', 'artikul', 'tehnika', 'izoh', 'soni'].includes(w)))].slice(0, 8);
+    if (words.length) {
+      const seen = new Set(sellers.map((s) => s.user_id));
+      const exact = db.all(
+        `SELECT user_id, COUNT(*) AS hits FROM listings
+         WHERE status = 'active' AND kind = 'part' AND country = ? AND user_id != ? AND (${words.map(() => 'search_text LIKE ?').join(' OR ')})
+         GROUP BY user_id ORDER BY hits DESC LIMIT 100`,
+        x.country, userId, ...words.map((w) => `%${w}%`),
+      );
+      for (const e of exact) if (!seen.has(e.user_id)) { sellers.unshift({ user_id: e.user_id }); seen.add(e.user_id); }
+    }
+  }
   for (const s of sellers) notify(s.user_id, 'request_match', { title: x.title, request_id: x.id }, `/requests/${x.id}`);
   // Ta'mirlash buyurtmasi — mexaniklarga "Yangi buyurtma" (push, Telegram, sayt)
   let mechanics = [];

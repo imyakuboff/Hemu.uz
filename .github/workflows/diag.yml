@@ -3,15 +3,27 @@ on:
   push:
     branches: [diag]
 permissions:
-  contents: write
+  contents: read
 jobs:
-  photos:
+  admin:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 22 }
-      - run: node .github/diag/photos.js
-      - run: |
-          git config user.name Claude; git config user.email noreply@anthropic.com
-          cp -r out /tmp/out && git checkout --orphan photos && git rm -rfq . && cp /tmp/out/* . && git add -A && git commit -qm photos && git push -f origin photos
+      - name: Admin panel xavfsizligi (tashqaridan)
+        run: |
+          n(){ echo "::notice::$*"; }
+          B=https://hemu.uz
+          for p in /api/v1/admin/stats /api/v1/admin/users /api/v1/admin/overview /api/v1/admin/settings /api/v1/admin/log; do
+            n "tokensiz $p: $(curl -s -o /dev/null -w '%{http_code}' $B$p)"; done
+          n "soxta token: $(curl -s -o /dev/null -w '%{http_code}' -H 'Authorization: Bearer abc123' $B/api/v1/admin/stats)"
+          for p in /.env /.git/config /package.json /src/config.js /data/hemu.db /data/ /backups/ /server.js /deploy/hemu.service /.github/workflows/deploy.yml /node_modules/express/package.json /uploads/../data/hemu.db /api/v1/../../.env; do
+            n "fayl $p: $(curl -s -o /tmp/b -w '%{http_code} %{size_download}b %{content_type}' --path-as-is $B$p) $(head -c 60 /tmp/b | tr -dc '[:print:]' | grep -iE 'APP_SECRET|SQLite|\[core\]|\"name\"' || true)"; done
+          n "admin sahifa: $(curl -s -o /dev/null -w '%{http_code}' $B/admin)"
+          curl -sI $B/ | grep -iE "strict-transport|content-security|x-frame|x-content-type|referrer-policy|permissions-policy|server:|x-powered" | tr -d '\r' | sed 's/^/::notice::sarlavha /' | cut -c1-200
+          curl -sI $B/api/v1/meta | grep -iE "x-powered|server:|access-control" | tr -d '\r' | sed 's/^/::notice::api /'
+          n "CORS begona sayt: $(curl -s -o /dev/null -D - -H 'Origin: https://evil.example' $B/api/v1/me | grep -i access-control-allow-origin | tr -d '\r' || echo yoq)"
+          # Login cheklovi: soxta login bilan 35 ta noto'g'ri urinish
+          codes=""; for i in $(seq 35); do codes="$codes $(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d '{"login":"no_such_user_probe","password":"Wrong1234x"}' $B/api/v1/auth/login)"; done
+          n "login urinishlari: $(echo $codes | tr ' ' '\n' | sort | uniq -c | tr '\n' ' ')"
+          n "SQL in'ektsiya: $(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d "{\"login\":\"admin' OR '1'='1\",\"password\":\"x' OR '1'='1\"}" $B/api/v1/auth/login)"
+          n "TLS 1.0: $(echo | timeout 8 openssl s_client -connect hemu.uz:443 -tls1 2>&1 | grep -c 'Cipher is (NONE)\|no protocols\|alert') (0 = qabul qildi)"
+          n "ochiq portlar: $(for p in 21 22 25 80 443 3000 3306 4710 5432 6379 8080 8443 9000; do timeout 3 bash -c "</dev/tcp/hemu.uz/$p" 2>/dev/null && printf "$p "; done)"

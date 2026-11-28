@@ -7,7 +7,7 @@ const money = require('../lib/money');
 const L = require('../lib/listings');
 const { requireAuth } = require('../lib/auth');
 const { notFound, forbidden } = require('../lib/http');
-const { pick, normalizeSearch } = require('../i18n');
+const { pick, normalizeSearch, searchVariants } = require('../i18n');
 
 const r = Router();
 
@@ -31,8 +31,9 @@ r.get('/search/suggest', (req, res) => {
     return res.json({ q: raw, total: 0, categories: [], brands: [], listings: [], queries: popular });
   }
   const toks = q.split(' ').filter(Boolean).slice(0, 6);
-  const where = toks.map(() => 'l.search_text LIKE ?').join(' AND ');
-  const params = toks.map((x) => `%${x}%`);
+  const vars = toks.map(searchVariants);
+  const where = vars.map((vs) => `(${vs.map(() => 'l.search_text LIKE ?').join(' OR ')})`).join(' AND ');
+  const params = vars.flat().map((x) => `%${x}%`);
   const total = db.get(`SELECT COUNT(*) AS n FROM listings l WHERE l.status = 'active' AND ${where}`, ...params).n;
   const listings = db.all(`SELECT ${L.CARD_COLS} FROM listings l WHERE l.status = 'active' AND ${where} ORDER BY l.views DESC LIMIT 5`, ...params)
     .map((l) => ({ id: l.id, title: l.title, price: L.card(l, ctx).price.formatted, cover: L.fileUrl(l.cover) }));
@@ -40,7 +41,7 @@ r.get('/search/suggest', (req, res) => {
   const categories = [];
   for (const root of cats.load().roots) {
     for (const c of [root, ...root.children]) {
-      if (toks.every((tk) => c.searchText.includes(tk))) categories.push({ slug: c.slug, name: pick(c.names, req.lang), parent: c.parent_id ? pick(root.names, req.lang) : null, count: counts.get(c.id) || 0 });
+      if (vars.every((vs) => vs.some((tk) => c.searchText.includes(tk)))) categories.push({ slug: c.slug, name: pick(c.names, req.lang), parent: c.parent_id ? pick(root.names, req.lang) : null, count: counts.get(c.id) || 0 });
     }
   }
   const brands = db.all(`SELECT brand, COUNT(*) AS n FROM listings WHERE status = 'active' AND brand IS NOT NULL GROUP BY LOWER(brand) ORDER BY n DESC`)

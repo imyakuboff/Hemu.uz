@@ -335,8 +335,39 @@ function normalizeSearch(s) {
     .replace(/[̀-ͯ]/g, '')
     .replace(/['`‘’ʻʼ"]/g, '')
     .replace(/kh/g, 'x')
+    // Kirill va lotin yozuvidagi farqlarni tekislash (ikkala tomonda bir xil):
+    // щ/shch -> sh, ц/ts -> s (цемент = sement), х/x -> h (хаво = havo, Шахрисабз = Shahrisabz), қ/q -> k (Самарканд = Samarqand)
+    .replace(/shch/g, 'sh')
+    .replace(/ts/g, 's')
+    .replace(/x/g, 'h')
+    .replace(/q/g, 'k')
     .replace(/[^\p{L}\p{N}]+/gu, ' ')
     .trim();
 }
 
-module.exports = { LANGUAGES, LANGS, byCode, normalizeLang, pickFromAcceptLanguage, pick, L, t, MESSAGES, normalizeSearch };
+// Qidiruv sinonimlari: ruscha/o'zbekcha/inglizcha atamalar va shahar nomlarining turli yozilishi.
+// Har bir guruhdagi so'z o'zagi (normalizeSearch dan keyin) — biri qidirilsa, qolganlari ham topiladi.
+const SYNONYM_GROUPS = [
+  ['pogruzchik', 'yuklagich', 'loader'], ['frontalniy', 'frontal'], ['ekskavator', 'excavator', 'ekskovator', 'eskavator'],
+  ['avtokran', 'kran', 'crane'], ['buldozer', 'bulldozer'], ['samosval', 'dump truck', 'kamaz'], ['sedelniy', 'tyagach', 'shatak'],
+  ['zapchast', 'zapchas', 'ehtiyot', 'detal', 'spare part'], ['filtr', 'filter'], ['dvigatel', 'motor', 'engine'],
+  ['shina', 'balon', 'pokrishka', 'tire', 'tyre', 'gildirak'], ['gidravlik', 'hydraulic'], ['nasos', 'pump'], ['akkumulyator', 'akumulyator', 'battery'],
+  ['arenda', 'ijara', 'prokat', 'rent'], ['prodaja', 'prodam', 'sotuv', 'sotiladi', 'sale'], ['remont', 'tamir', 'repair'],
+  ['mehanik', 'usta', 'master', 'mechanic'], ['voditel', 'haydovchi', 'operator', 'mashinist', 'driver'], ['katok', 'roller'],
+  ['traktor', 'tractor'], ['manipulyator', 'manipulator'], ['avtovishka', 'vishka', 'kotarma'], ['betonomeshalka', 'miksher', 'mikser', 'mixer'],
+  ['generator', 'dizel generator', 'elektrostansiya'], ['kompressor', 'compressor'], ['pricep', 'tirkama', 'trailer'],
+  ['toshkent', 'tashkent'], ['samarkand'], ['buhoro', 'buhara', 'bukhara'], ['fargona', 'fergana'], ['andijon', 'andijan'],
+  ['kokon', 'kokand'], ['termiz', 'termez'], ['horazm', 'horezm', 'urganch', 'urgench'], ['navoiy', 'navoi'], ['jizzah', 'jizah', 'djizak', 'jizak'],
+  ['guliston', 'gulistan'], ['karshi'], ['nukus'], ['chirchik'], ['olmalik', 'almalik'], ['angren'], ['shahrisabz', 'shahrizabz'],
+].map((g) => [...new Set(g.map((w) => normalizeSearch(w)))]);
+
+// So'rov so'zi uchun variantlar: o'zi + (ichida guruh o'zagi bo'lsa) guruhdagi boshqa o'zaklar
+function searchVariants(tok) {
+  const out = new Set([tok]);
+  for (const g of SYNONYM_GROUPS) {
+    if (g.some((w) => tok.includes(w) || (tok.length >= 4 && w.startsWith(tok)))) g.forEach((w) => out.add(w));
+  }
+  return [...out].slice(0, 8);
+}
+
+module.exports = { LANGUAGES, LANGS, byCode, normalizeLang, pickFromAcceptLanguage, pick, L, t, MESSAGES, normalizeSearch, searchVariants };

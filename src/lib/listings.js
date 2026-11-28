@@ -3,7 +3,7 @@ const config = require('../config');
 const cats = require('./categories');
 const money = require('./money');
 const promos = require('./promos');
-const { t, normalizeSearch } = require('../i18n');
+const { t, normalizeSearch, searchVariants } = require('../i18n');
 const { countryName, regionName, maskPhone } = require('../geo');
 const { parseJson } = require('./http');
 
@@ -237,9 +237,14 @@ function buildWhere(q, currency, exclude = null) {
 
   if (q.q) {
     for (const tok of normalizeSearch(q.q).split(' ').filter(Boolean).slice(0, 8)) {
-      // 3+ harfli so'zlar trigram indeksi orqali (natija bir xil, tezroq)
-      if (tok.length >= 3) add('l.id IN (SELECT rowid FROM listings_fts WHERE search_text LIKE ?)', `%${tok}%`);
-      else add('l.search_text LIKE ?', `%${tok}%`);
+      // Har so'z: o'zi yoki sinonimi (погрузчик = yuklagich, Ташкент = Toshkent); 3+ harfli variantlar trigram indeksi orqali
+      const vars = searchVariants(tok);
+      const long = vars.filter((v) => v.length >= 3);
+      const short = vars.filter((v) => v.length < 3);
+      const parts = [];
+      if (long.length) parts.push(`l.id IN (SELECT rowid FROM listings_fts WHERE ${long.map(() => 'search_text LIKE ?').join(' OR ')})`);
+      for (let i = 0; i < short.length; i += 1) parts.push('l.search_text LIKE ?');
+      add(`(${parts.join(' OR ')})`, ...long.map((v) => `%${v}%`), ...short.map((v) => `%${v}%`));
     }
   }
   const cat = cats.find(q.category);

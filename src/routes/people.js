@@ -6,11 +6,14 @@ const { companyFor } = require('../lib/company');
 const { requireAuth, rateLimit } = require('../lib/auth');
 const { fail, notFound, forbidden, validate, paging, pageResult, parseJson } = require('../lib/http');
 const { COUNTRY, CURRENCY_CODES, isValidRegion, countryName, regionName } = require('../geo');
-const { normalizeSearch } = require('../i18n');
+const { normalizeSearch, searchVariants } = require('../i18n');
 const { notify } = require('../lib/notify');
 
 const r = Router();
-const textFilter = (q, col = 'search_text') => normalizeSearch(q || '').split(' ').filter(Boolean).slice(0, 6).map((tok) => [`${col} LIKE ?`, `%${tok}%`]);
+const textFilter = (q, col = 'search_text') => normalizeSearch(q || '').split(' ').filter(Boolean).slice(0, 6).map((tok) => {
+  const vs = searchVariants(tok);
+  return [`(${vs.map(() => `${col} LIKE ?`).join(' OR ')})`, vs.map((v) => `%${v}%`)];
+});
 
 // ---------- Mutaxassislar (rezyume) ----------
 r.get('/specialists', (req, res) => {
@@ -26,7 +29,7 @@ r.get('/specialists', (req, res) => {
   if (req.query.license) { where.push('license LIKE ?'); params.push(`%"${String(req.query.license).replace(/[%"]/g, '')}"%`); }
   if (req.query.mobile === '1') where.push('mobile = 1');
   if (req.query.available === '1') where.push('available = 1');
-  for (const [w, p] of textFilter(req.query.q)) { where.push(w); params.push(p); }
+  for (const [w, ps] of textFilter(req.query.q)) { where.push(w); params.push(...ps); }
   const sql = where.join(' AND ');
   const total = db.get(`SELECT COUNT(*) AS n FROM specialists WHERE ${sql}`, ...params).n;
   const rows = db.all(`SELECT * FROM specialists WHERE ${sql} ORDER BY demo ASC, available DESC, updated_at DESC LIMIT ? OFFSET ?`, ...params, pg.perPage, pg.offset);
@@ -101,7 +104,7 @@ r.get('/jobs', (req, res) => {
   const params = [];
   if (['driver', 'mechanic'].includes(req.query.kind)) { where.push('kind = ?'); params.push(req.query.kind); }
   if (req.query.country) { where.push('country = ?'); params.push(String(req.query.country).toUpperCase()); }
-  for (const [w, p] of textFilter(req.query.q)) { where.push(w); params.push(p); }
+  for (const [w, ps] of textFilter(req.query.q)) { where.push(w); params.push(...ps); }
   const sql = where.join(' AND ');
   const total = db.get(`SELECT COUNT(*) AS n FROM jobs WHERE ${sql}`, ...params).n;
   const rows = db.all(`SELECT * FROM jobs WHERE ${sql} ORDER BY id DESC LIMIT ? OFFSET ?`, ...params, pg.perPage, pg.offset);

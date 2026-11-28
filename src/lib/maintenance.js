@@ -9,6 +9,22 @@ const SEED_ADMIN_PHONE = '+998900000001';
 const SEED_PASSWORD = 'Hemu2026';
 
 function bootMigrations() {
+  // Qidiruv matni yangi qoidalar bilan (kirill/lotin: ц=s, х=h, қ=k) bir marta qayta yig'iladi
+  if (!settings.getRaw('_mig.searchNorm2')) {
+    const { normalizeSearch } = require('../i18n');
+    const L = require('./listings');
+    const parse = (v) => { try { return JSON.parse(v || '[]'); } catch { return []; } };
+    db.tx(() => {
+      for (const l of db.all('SELECT * FROM listings')) db.run('UPDATE listings SET search_text = ? WHERE id = ?', L.buildSearchText(l), l.id);
+      for (const s of db.all('SELECT s.*, u.name AS uname FROM specialists s JOIN users u ON u.id = s.user_id')) {
+        db.run('UPDATE specialists SET search_text = ? WHERE id = ?', normalizeSearch([s.headline, s.about, parse(s.brands).join(' '), s.city, s.uname].filter(Boolean).join(' ')), s.id);
+      }
+      for (const j of db.all('SELECT j.*, c.name AS cname FROM jobs j LEFT JOIN companies c ON c.id = j.company_id')) {
+        db.run('UPDATE jobs SET search_text = ? WHERE id = ?', normalizeSearch([j.title, j.description, parse(j.requirements).join(' '), j.city, j.cname].filter(Boolean).join(' ')), j.id);
+      }
+    });
+    settings.setRaw('_mig.searchNorm2', 1);
+  }
   // Eski bildirishnomalardagi mavjud bo'lmagan sahifa havolalari
   if (!settings.getRaw('_mig.notifLinks')) {
     db.run(`UPDATE notifications SET link = '/dashboard' WHERE link LIKE '/seller/%'`);

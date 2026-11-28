@@ -638,3 +638,32 @@ test("push: yangi e'lon xabarida rasm, teg va o'qilmaganlar soni; saqlangan qidi
   const src = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'src', 'routes', 'listings.js'), 'utf8');
   assert.ok(!src.includes('`/listings/${l.id}`'), "saqlangan qidiruv havolasi /listing/ bo'lishi kerak");
 });
+
+test("qidiruv: kirill va lotin, sinonimlar (погрузчик = yuklagich, Ташкент = Toshkent, цемент = sement)", async () => {
+  const L = require('../src/lib/listings');
+  const { normalizeSearch, searchVariants } = require('../src/i18n');
+  assert.equal(normalizeSearch('Самарканд'), normalizeSearch('Samarqand'));
+  assert.equal(normalizeSearch('хаво'), normalizeSearch('havo'));
+  assert.equal(normalizeSearch('цемент'), normalizeSearch('sement'));
+  assert.equal(normalizeSearch('Чирчиқ'), normalizeSearch('Chirchiq'));
+  assert.ok(searchVariants(normalizeSearch('Ташкент')).includes('toshkent'));
+  const ids = db.all(`SELECT id FROM listings WHERE status = 'active' ORDER BY id LIMIT 2`).map((r) => r.id);
+  const set = (id, title, city) => {
+    db.run('UPDATE listings SET title = ?, city = ? WHERE id = ?', title, city, id);
+    db.run('UPDATE listings SET search_text = ? WHERE id = ?', L.buildSearchText(db.get('SELECT * FROM listings WHERE id = ?', id)), id);
+  };
+  set(ids[0], 'Фронтальный погрузчик Цементный завод', 'Ташкент');
+  set(ids[1], "Frontal yuklagich XGMA Qarshi", 'Qarshi');
+  const find = async (q) => (await api('GET', `/api/v1/listings?q=${encodeURIComponent(q)}`)).body.items.map((x) => x.id);
+  for (const q of ['pogruzchik', 'yuklagich', 'Погрузчик', 'юклагич', 'loader']) {
+    const got = await find(q);
+    assert.ok(got.includes(ids[0]) && got.includes(ids[1]), `${q}: ${got}`);
+  }
+  assert.ok((await find('Toshkent yuklagich')).includes(ids[0]));
+  assert.ok((await find('sement')).includes(ids[0]));
+  assert.ok((await find('Карши')).includes(ids[1]));
+  assert.ok((await find('хгма')).includes(ids[1]));
+  // Takliflar ham ikkala yozuvda
+  const sug = await api('GET', `/api/v1/search/suggest?q=${encodeURIComponent('юклагич')}`);
+  assert.ok(sug.body.total >= 2);
+});

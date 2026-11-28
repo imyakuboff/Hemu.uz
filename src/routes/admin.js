@@ -339,7 +339,9 @@ admin.post('/users/:id/impersonate', (req, res) => {
   const u = db.get('SELECT * FROM users WHERE id = ?', id(req));
   if (!u) notFound();
   if (u.blocked) fail(409, 'err.invalid_status');
-  const token = createSession(u.id, req);
+  // Boshqa admin nomidan kirib bo'lmaydi; sessiya 1 soat
+  if (u.role === 'admin' && u.id !== req.user.id) fail(403, 'err.forbidden');
+  const token = createSession(u.id, req, 3600e3);
   log(req, 'user.impersonate', 'user', u.id);
   res.json({ token });
 });

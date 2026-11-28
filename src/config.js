@@ -34,6 +34,7 @@ module.exports = {
   otpDevEcho: env.OTP_DEV_ECHO ? env.OTP_DEV_ECHO === '1' : env.NODE_ENV !== 'production',
   otpTtlSec: 300,
   sessionTtlDays: Number(env.SESSION_TTL_DAYS || 60),
+  staffSessionTtlDays: Number(env.STAFF_SESSION_TTL_DAYS || 7),
   defaultLang: env.DEFAULT_LANG || 'uz',
   defaultCountry: env.DEFAULT_COUNTRY || 'UZ',
   corsOrigins: (env.CORS_ORIGINS || '*').split(',').map((s) => s.trim()).filter(Boolean),

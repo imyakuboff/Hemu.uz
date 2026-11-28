@@ -19,8 +19,8 @@ let server;
 let base;
 const S = {};
 
-async function api(method, url, { token, body, lang = 'ru', currency } = {}) {
-  const h = { 'X-Lang': lang };
+async function api(method, url, { token, body, lang = 'ru', currency, headers } = {}) {
+  const h = { 'X-Lang': lang, ...(headers || {}) };
   if (currency) h['X-Currency'] = currency;
   if (token) h.Authorization = `Bearer ${token}`;
   let payload;
@@ -137,6 +137,9 @@ test('admin: bloklash sababi bilan, nomidan kirish, o\'chirish', async () => {
   const imp = await A('POST', `/users/${u.id}/impersonate`);
   const me = await api('GET', '/api/v1/me', { token: imp.body.token });
   assert.equal(me.body.id, u.id);
+  // "Nomidan kirish" sessiyasi — 1 soat
+  const impS = db.get('SELECT expires_at FROM sessions ORDER BY id DESC LIMIT 1');
+  assert.ok(Date.parse(impS.expires_at) - Date.now() < 3700e3);
   // Buyurtmasi bor foydalanuvchini o'chirib bo'lmaydi
   const withOrders = db.get('SELECT buyer_id FROM orders LIMIT 1').buyer_id;
   assert.equal((await A('DELETE', `/users/${withOrders}`)).body.error.code, 'has_orders');
@@ -242,4 +245,34 @@ test('admin: reklama karuseli — standart 3 ta banner, tahrirlash, xavfsiz havo
   const after = (await api('GET', '/api/v1/banners')).body;
   assert.equal(after.length, 2);
   assert.equal(after[1].title, 'JCB lizing 0%');
+});
+
+test('admin hisobi himoyasi: bloklash, SMS-kodsiz kirish taqiqi, qisqa sessiya, xabar', async () => {
+  const phone = '+998935557777';
+  assert.equal((await A('POST', '/users', { phone, name: 'Moderator', role: 'moderator', password: 'Moder2026x' })).status, 201);
+  const uid = db.get('SELECT id FROM users WHERE phone = ?', phone).id;
+  // Admin sessiyasi 7 kundan oshmaydi
+  const tok = (await login(phone, 'Moder2026x')).token;
+  const s = db.get('SELECT expires_at FROM sessions WHERE user_id = ? ORDER BY id DESC LIMIT 1', uid);
+  assert.ok(Date.parse(s.expires_at) - Date.now() <= 7 * 86400e3 + 5000);
+  // Eski (8 kunlik) admin sessiyasi endi qabul qilinmaydi
+  db.run(`UPDATE sessions SET created_at = datetime('now', '-8 days') WHERE user_id = ?`, uid);
+  assert.equal((await api('GET', '/api/v1/me', { token: tok })).status, 401);
+  // Faqat SMS-kod bilan (parolsiz) kirish taqiqlangan
+  const otpV = await api('POST', '/api/v1/auth/otp/verify', { body: { phone, code: '123456' } });
+  assert.equal(otpV.status, 403);
+  // 10 ta noto'g'ri parol (har xil IP) — hisob yopiladi, to'g'ri parol ham o'tmaydi
+  for (let i = 0; i < 10; i += 1) {
+    const r = await api('POST', '/api/v1/auth/login', { body: { phone, password: `Wrong${i}pass` }, headers: { 'X-Forwarded-For': `203.0.113.${i + 1}` } });
+    assert.equal(r.status, 401);
+  }
+  const locked = await api('POST', '/api/v1/auth/login', { body: { phone, password: 'Moder2026x' }, headers: { 'X-Forwarded-For': '198.51.100.7' } });
+  assert.equal(locked.status, 429);
+  assert.ok(locked.body.error.details.retry_after > 3000);
+  // Admin(lar)ga xavfsizlik bildirishnomasi tushdi
+  const adminId = db.get(`SELECT id FROM users WHERE role = 'admin' ORDER BY id LIMIT 1`).id;
+  assert.ok(db.get(`SELECT COUNT(*) AS n FROM notifications WHERE user_id = ? AND type = 'security'`, adminId).n >= 1);
+  // Yopilish muddati tugagach (bu yerda — tozalab) to'g'ri parol yana o'tadi
+  db.run('DELETE FROM staff_login_failures WHERE user_id = ?', uid);
+  assert.ok((await login(phone, 'Moder2026x')).token);
 });

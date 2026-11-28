@@ -16,9 +16,12 @@ function legacySession(token) {
   return s;
 }
 
-function createSession(userId, req) {
+// Admin/moderator sessiyasi qisqaroq (standart 7 kun); ttlMs — maxsus muddat (masalan, "foydalanuvchi nomidan kirish" — 1 soat)
+function createSession(userId, req, ttlMs = null) {
   const token = crypto.randomBytes(32).toString('base64url');
-  const expires = new Date(Date.now() + config.sessionTtlDays * 86400000).toISOString();
+  const role = db.get('SELECT role FROM users WHERE id = ?', userId)?.role;
+  const days = role === 'admin' || role === 'moderator' ? Math.min(config.sessionTtlDays, config.staffSessionTtlDays) : config.sessionTtlDays;
+  const expires = new Date(Date.now() + (ttlMs || days * 86400000)).toISOString();
   db.insert('sessions', {
     user_id: userId,
     token_hash: sha(token),
@@ -56,11 +59,14 @@ function context(req, _res, next) {
     if (streamSession.expires_at > new Date().toISOString() && !streamSession.blocked) { req.sessionId = streamSession.sid; req.user = streamSession; }
   } else if (token) {
     const s = db.get(
-      `SELECT s.id AS sid, s.expires_at, u.* FROM sessions s JOIN users u ON u.id = s.user_id
+      `SELECT s.id AS sid, s.expires_at, s.created_at AS s_created_at, u.* FROM sessions s JOIN users u ON u.id = s.user_id
        WHERE s.token_hash = ?`,
       sha(token),
     ) || legacySession(token);
-    if (s && s.expires_at > new Date().toISOString() && !s.blocked) {
+    // Avval ochilgan uzoq admin sessiyalari ham qisqa muddat bilan cheklanadi
+    const staffOld = s && (s.role === 'admin' || s.role === 'moderator') && s.s_created_at
+      && Date.parse(`${s.s_created_at.replace(' ', 'T')}Z`) < Date.now() - config.staffSessionTtlDays * 86400000;
+    if (s && s.expires_at > new Date().toISOString() && !s.blocked && !staffOld) {
       req.sessionId = s.sid;
       req.user = s;
       // last_used ni har so'rovda emas, daqiqada bir marta yangilaymiz

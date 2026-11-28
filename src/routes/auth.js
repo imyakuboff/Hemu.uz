@@ -8,6 +8,7 @@ const { fail, validate, notFound } = require('../lib/http');
 const { normalizePhone, COUNTRY, CURRENCY_CODES, isValidRegion } = require('../geo');
 const { LANGS, t } = require('../i18n');
 const { sendSms } = require('../lib/sms');
+const guard = require('../lib/staffguard');
 const { fileUrl } = require('../lib/listings');
 const { ACTIVITIES, companyFor, linkMembership } = require('../lib/company');
 const { upsertSpecialist } = require('../lib/people');
@@ -162,6 +163,8 @@ const phoneOf = (req) => {
   return p;
 };
 
+const maskPhone = (p) => String(p || '').replace(/^(\+\d{5})\d+(\d{2})$/, '$1•••••$2');
+
 function signIn(req, res, user, extra = {}) {
   if (user.blocked) fail(403, 'err.account_blocked', user.blocked_reason ? { reason: user.blocked_reason } : undefined);
   linkMembership(user);
@@ -203,6 +206,9 @@ r.post('/auth/otp/request', authLimit, async (req, res) => {
 
 r.post('/auth/otp/verify', authLimit, (req, res) => {
   const p = phoneOf(req);
+  // Admin/moderator faqat SMS-kod bilan (parolsiz) kira olmaydi — SIM-kartani egallash hujumidan himoya
+  const staff = db.get('SELECT * FROM users WHERE phone = ?', p.e164);
+  if (guard.isStaff(staff) && staff.password_hash) fail(403, 'err.staff_password_required');
   consumeCode(p.e164, req.body?.code);
   let user = db.get('SELECT * FROM users WHERE phone = ?', p.e164);
   const isNew = !user;
@@ -317,13 +323,20 @@ r.post('/auth/login', loginLimit, async (req, res) => {
     p = phoneOf(req);
     user = db.get('SELECT * FROM users WHERE phone = ?', p.e164);
   }
+  // Admin/moderator hisobi ko'p noto'g'ri urinishdan keyin vaqtincha yopiladi (to'g'ri parol bilan ham)
+  const locked = user && guard.lockedFor(user);
+  if (locked) fail(429, 'err.too_many', { retry_after: locked });
   // Hisob bor-yo'qligini oshkor qilmaslik uchun bir xil xato
-  if (!user || !checkPassword(String(req.body?.password || ''), user.password_hash)) fail(401, 'err.wrong_password');
-  // Admin va moderator uchun ikki bosqichli kirish: paroldan keyin SMS-kod
-  if (config.adminTwoFactor && (user.role === 'admin' || user.role === 'moderator')) {
-    if (!req.body?.code) return res.json({ two_factor: true, phone: p.e164, expires_in: config.otpTtlSec, ...(await sendCode(req, p.e164)) });
-    consumeCode(p.e164, req.body.code);
+  if (!user || !checkPassword(String(req.body?.password || ''), user.password_hash)) {
+    if (user) guard.recordFailure(user, req);
+    fail(401, 'err.wrong_password');
   }
+  // Admin va moderator uchun ikki bosqichli kirish: paroldan keyin SMS-kod
+  if (config.adminTwoFactor && guard.isStaff(user)) {
+    if (!req.body?.code) return res.json({ two_factor: true, phone: maskPhone(p.e164), expires_in: config.otpTtlSec, ...(await sendCode(req, p.e164)) });
+    try { consumeCode(p.e164, req.body.code); } catch (e) { guard.recordFailure(user, req); throw e; }
+  }
+  guard.loginSucceeded(user, req, config.adminTwoFactor ? 'parol + SMS' : 'parol');
   signIn(req, res, user);
 });
 
@@ -343,6 +356,7 @@ r.post('/auth/password/reset', authLimit, (req, res) => {
   db.run(`UPDATE users SET password_hash = ?, password_set_at = datetime('now') WHERE id = ?`, hashPassword(req.body.password), user.id);
   // Parol tiklanganda boshqa qurilmalardagi sessiyalar yopiladi
   db.run('DELETE FROM sessions WHERE user_id = ?', user.id);
+  if (guard.isStaff(user)) { guard.clearFailures(user); guard.alert(`reset:${user.id}`, `HEMU.UZ: admin paroli SMS orqali tiklandi. IP: ${req.ip}. Agar bu siz bo'lmasangiz, darhol bog'laning.`); }
   signIn(req, res, user);
 });
 

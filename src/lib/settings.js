@@ -99,7 +99,7 @@ config.otpTestRegistration ??= process.env.OTP_TEST_REGISTRATION === '1';
 config.welcomeBonus ??= { enabled: process.env.WELCOME_BONUS !== '0', amount: Number(process.env.WELCOME_BONUS_AMOUNT || 50000), currency: process.env.WELCOME_BONUS_CURRENCY || 'UZS' };
 config.legalTin ??= '';
 config.legalAddress ??= '';
-config.adminTwoFactor ??= false;
+config.adminTwoFactor ??= process.env.ADMIN_TWO_FACTOR === '1';
 config.backupTelegram ??= process.env.BACKUP_TELEGRAM !== '0'; // standart: yoqiq (server yo'qolsa ham nusxa adminda qoladi)
 config.mailProvider ??= process.env.MAIL_PROVIDER || (process.env.SMTP_USER ? 'smtp' : 'off');
 config.smtp ??= { host: process.env.SMTP_HOST || 'smtp.gmail.com', port: Number(process.env.SMTP_PORT || 465), user: process.env.SMTP_USER || '', pass: process.env.SMTP_PASS || '', from: process.env.SMTP_FROM || 'HEMU.UZ' };

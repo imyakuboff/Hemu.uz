@@ -751,6 +751,15 @@ CREATE TABLE IF NOT EXISTS admin_log (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS ix_admin_log ON admin_log(id DESC);
+
+-- Admin/moderator hisobiga noto'g'ri parol urinishlari (IP dan qat'i nazar hisob yopiladi)
+CREATE TABLE IF NOT EXISTS staff_login_failures (
+  id INTEGER PRIMARY KEY,
+  user_id INTEGER NOT NULL,
+  ip TEXT,
+  at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ix_staff_fail ON staff_login_failures(user_id, at);
 -- Platforma sozlamalari (admin paneldan o'zgartiriladi)
 CREATE TABLE IF NOT EXISTS settings (
   key TEXT PRIMARY KEY,

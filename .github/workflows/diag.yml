@@ -3,14 +3,16 @@ on:
   push:
     branches: [diag]
 permissions:
-  contents: read
+  contents: write
 jobs:
-  qidiruv:
+  shots:
     runs-on: ubuntu-latest
     steps:
-      - name: Haqiqiy saytda qidiruv
-        run: |
-          for q in ekskavator экскаватор yuklagich погрузчик pogruzchik zapchast запчасть ehtiyot ijara аренда Toshkent Ташкент XGMA хгма filtr фильтр; do
-            n=$(curl -s "https://hemu.uz/api/v1/listings?q=$(python3 -c "import urllib.parse,sys;print(urllib.parse.quote(sys.argv[1]))" "$q")&per_page=1" | python3 -c "import sys,json;d=json.load(sys.stdin);print(d.get('total',len(d.get('items',[]))))")
-            echo "::notice::$q: $n ta"
-          done
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm i --no-save playwright@1.48.2 >/dev/null 2>&1 && npx playwright install --with-deps chromium >/dev/null 2>&1
+      - run: node .github/diag/shots.js
+      - run: |
+          git config user.name Claude; git config user.email noreply@anthropic.com
+          mkdir -p /tmp/s && cp *.png /tmp/s/ && git checkout --orphan shots && git rm -rfq . && cp /tmp/s/*.png . && git add *.png && git commit -qm shots && git push -f origin shots
